@@ -25,6 +25,7 @@ import ctypes
 import re
 import ssl
 import socket
+from cmath import inf
 from tqdm import tqdm
 from packaging import version
 import hashlib
@@ -1175,6 +1176,7 @@ class DataHandler_Thread(QThread):
     feedPeripheralStack=pyqtSignal(int, int, int)
     adjustCamDelay=pyqtSignal(int, float)
     clearCamBox= pyqtSignal(int)
+    lowConfData= pyqtSignal(list,list,np.ndarray)
     setListItem=pyqtSignal(str,str)
     updateRasmGridOfLine=pyqtSignal(int, int, np.ndarray, str)
     chainGridAddArm=pyqtSignal(int, int, np.ndarray, str)
@@ -1183,7 +1185,10 @@ class DataHandler_Thread(QThread):
     updateStartTime=pyqtSignal(str)
     yoloResultQue=q.Queue()
     data=np.zeros((5,Data_Num), dtype = int)
+    dataLow=np.zeros((5,Data_Num), dtype = int)
+    totalLow=np.zeros((5,Data_Num), dtype = int)
     prevData=np.zeros((5,Data_Num), dtype = int)
+    prevDataLow=np.zeros((5,Data_Num), dtype = int)
     dataStart=np.zeros((5,Data_Num), dtype = int)
     dataDay=np.zeros((5,Data_Num), dtype = int)
     dataHour=np.zeros((5,Data_Num), dtype = int)
@@ -1235,6 +1240,7 @@ class DataHandler_Thread(QThread):
         self.samplingCountDown=50
         self.nasConnected=False
         self.firstAnchor=False
+        self.classDatas=[0]*len(CLASSES)
         self.startCapture()
 
     def lineSpeedAlert(self, aveSecPerGlove):
@@ -1358,6 +1364,7 @@ class DataHandler_Thread(QThread):
 
     def incrementData(self, line, row):
         self.data[line][row]+=1
+        self.dataLow[line][row]+=1
         self.updateTable.emit(row+1,line, str(self.data[line][row]-self.prevData[line][row]))
 
     def refreshDataTable(self):
@@ -1399,6 +1406,11 @@ class DataHandler_Thread(QThread):
         if formerID%10==0 and side==0: #calculate total and defective rate every 10 former 
             self.updateTotal()
 
+        # syafii edit
+        if formerID%1==0 and side==0: #calculate total and defective rate every 1 former 
+            self.updateTotalLowConf()
+        # syafii edit
+
         if formerID==0 and side==0:#update the whole grid once for every former iteration
             chainDefectionRecords=[self.chainIndexers[i].getAllData() for i in range(4)]
             if self.firstAnchor:
@@ -1418,6 +1430,28 @@ class DataHandler_Thread(QThread):
         dr=1-self.dataDiff[:,0]/self.dataDiff[:,1]  #1-GoodGlove/ProducedGlove
         for i in range(5):#Defective rate (1st row)
             self.updateTable.emit(0,i, str(f'{dr[i]*100:.2f}%'))
+
+    #syafii edit, add new function
+    def updateTotalLowConf(self):
+        self.dataLow[-1,:]=np.sum(self.dataLow[:-1,:],axis=0)
+        self.dataDiffLow=self.dataLow-self.prevDataLow
+        self.totalLow=self.dataDiffLow[-1,:]
+
+    #syafii edit, add new function
+    def getLowConfidence(self,classIds):
+        total = self.totalLow
+        appendLowConfidence=[]
+        for i in range (len(DATA_NAMES)):
+            if i<1:
+                appendLowConfidence.append(total[i])
+            elif i>2:
+                appendLowConfidence.append(total[i])# total glove
+        for i in range(len(CLASSES)):
+            if classIds == i:
+                self.classDatas[i]+=1 #increase if got low confident 
+                differentDataRate = np.nan_to_num((np.subtract(appendLowConfidence,self.classDatas)/appendLowConfidence))*100
+                if not -inf in differentDataRate:
+                    self.lowConfData.emit(appendLowConfidence,self.classDatas,differentDataRate)
 
     def startCapture(self):
         self.capturing=not self.capturing
@@ -1639,6 +1673,11 @@ class DataHandler_Thread(QThread):
                             s=CAM_NAME[camSeq][-1]#Either T or B
                         listStr=f'{CLASSES[classId]}\t{b[4]*100:.2f}%    {time.strftime("%H:%M:%S")}    {SIDE_SHORT[side]}{s}    {formerID:05d}'
                         self.setListItem.emit(listStr, f"{imgName}.{IMG_FORMAT}")
+                    
+                    #syafii edit
+                    if b[4]<0.90:
+                        self.getLowConfidence(classId)
+                    #syafii edit    
 
                     if b[4]<CFG.LOW_CONF_THRESHOLD: #Any low confidence inference
                         labelLow+=f"{classId} {xc} {yc} {width} {height}\n"
@@ -2073,7 +2112,7 @@ class MainWindow(QMainWindow):
                 self.ui.table_defect_data.setItem(i+4, j, item)
 
         self.ui.label_title.setText(f'Integrated AIVC System  {CFG.FACTORY_NAME} LINE {CFG.LINE_NUM}')
-        self.ui.label_version.setText(f'V{CFG.VERSION}')
+        self.ui.label_version.setText(f'V2.3.61.8')
         self.ui.select_duration.currentIndexChanged.connect(self.changeRecordDuration)
         self.camBoxes=[CamBox(i) for i in range(MAX_CAM_NUM)]
         #Populate Camera View
@@ -2150,6 +2189,8 @@ class MainWindow(QMainWindow):
         self.tableDialog=TableDialog(self)
         self.plcDialog=PLCDialog(self,self.plc)
         self.dataHistoryDialog=DataHistoryDialog(self)
+        self.modelLowConfident=ModelLowConfident(self)# syafii edit
+        self.dataThread.lowConfData.connect(self.modelLowConfident.display)# syafii edit
         self.infoDialog=InfoDialog(self)
         for rcw in self.infoDialog.rejectCountWidgets:
             rcw.resetRejectCount.connect(self.resetRejectCount)
@@ -2322,6 +2363,7 @@ class MainWindow(QMainWindow):
         self.ui.btn_history.clicked.connect(self.showDataHistory)
         #self.ui.btn_login.clicked.connect(self.changeAIVCMode)#H#
         self.ui.btn_plc.clicked.connect(self.showPLC)
+        self.ui.btn_model.clicked.connect(self.showModelLowConfident)# syafii edit
         self.ui.btn_info.clicked.connect(self.showInfo)
         self.ui.btn_exit.clicked.connect(self.close)
 
@@ -2411,6 +2453,9 @@ class MainWindow(QMainWindow):
     def showDataHistory(self):
         self.dataHistoryDialog.show()
 
+    def showModelLowConfident(self):# syafii edit
+        self.modelLowConfident.show()
+
     def showPLC(self):
         self.plcDialog.show()
 
@@ -2469,7 +2514,7 @@ class MainWindow(QMainWindow):
                     pf.itemAt(i,QFormLayout.LabelRole).widget().show()
                 pf.itemAt(5,QFormLayout.FieldRole).widget().show()
                 pf.itemAt(5,QFormLayout.LabelRole).widget().show()
-
+            
         elif CFG.AIVC_MODE==1:#TAC
             for i in range(self.ui.tab_main.count()):
                 self.ui.tab_main.removeTab(0)
@@ -2953,6 +2998,7 @@ class MainWindow(QMainWindow):
         self.dataHistoryDialog.close()
         self.userDialog.close()
         self.plc.close()
+        self.modelLowConfident.close()
         if toUpdate:
             saveStatus(2)#Indicate pending update
         else:
@@ -3289,7 +3335,7 @@ class DefectionGrid(QWidget):
                     if(dr <0.2): #Remove from grid
                         idxsToRemove.append(index-removedNum)
                     else:
-                        self.updateArm(index-removedNum, armID, record, highlight=False, chain=True)
+                       self.updateArm(index-removedNum, armID, record, highlight=False, chain=True)
                 except KeyError as e:
                     recorder.debug(f"updateAllChain Key Error :{e}")
             for idx in idxsToRemove:
@@ -3454,6 +3500,59 @@ class DataHistoryDialog(QDialog):
                 self.scene.addItem(self.statusTextItem)
         else:
             self.label.setText(f'No Data for {monthStartTime.strftime("%y%B")}')
+
+class ModelLowConfident(QDialog): # syafii edit, add new classes
+    def __init__(self, parent=None):
+        super().__init__(parent, flags=Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
+        self.parent=parent
+        self.setWindowTitle("AIVC Model Performance")
+        #self.setFixedSize(350,150)
+        vLayout=QVBoxLayout()
+        self.setLayout(vLayout)
+        hLayout=QHBoxLayout()
+        vLayout.addLayout(hLayout)
+        self.table=QTableWidget(self)
+        vLayout.addWidget(self.table)
+        self.table.setColumnCount(3)
+        self.table.setRowCount(len(CLASSES))
+        self.table.setSizePolicy(QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred))
+        sizePolicy=QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
+        self.setSizePolicy(sizePolicy)
+        self.table.setHorizontalHeaderLabels(("Total Glove","Low Conf. Found","High Conf. Rate"))
+        self.table.setVerticalHeaderLabels((CLASSES))
+        self.table.setColumnWidth(0,100)
+        self.table.setColumnWidth(1,120)
+        self.table.setColumnWidth(2,100)
+        self.resize(vLayout.sizeHint().width(),vLayout.sizeHint().height())
+        self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        #self.table.setMinimumSize(QSize(710, 600))
+        self.resize(470,420)
+         
+    def display(self,appendData,classData,differentDataRate):
+        combineData=[]
+        split=len(CLASSES)
+        for i in range (len(CLASSES)):
+            combineData.append(appendData[i])
+            combineData.append(classData[i])
+            combineData.append(differentDataRate[i])
+        self.newData=np.array_split(combineData,split)
+        rows=-1
+        columns=-1
+        for row in self.newData:
+            rows+=1
+            for column in row:
+                columns+=1
+                intColumn = int(column)
+                item = QTableWidgetItem()
+                if columns == 0 or columns == 1:
+                    item.setText(str(intColumn))
+                    self.table.setItem(rows,columns,item)
+                if columns == 2:
+                    strColumn = f'{column:.2f}%'
+                    item.setText(strColumn)
+                    self.table.setItem(rows,columns,item)
+                    columns=-1
+
 class BlackStrip(QGraphicsRectItem):
     def __init__(self,y,width=720,qtParent=None):
         super().__init__(20,y,width,TIME_SEGMENT_HEIGHT,parent=qtParent)
