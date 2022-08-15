@@ -32,6 +32,7 @@ TIMER_10MS_ADDR=3076		#M1028
 ENCODER_ADDR=3829			#C245 (3784+45) X4 Encoder
 ENCODER_LATCH_ADDR=4386		#D290
 HIGH_DEFECT_FORMER_ADDR=2998	#M950
+FORMER_COUNTING=6095			#D2000
 
 class HalfmoonPLC():
 	def __init__(self, ip):
@@ -70,6 +71,10 @@ class PLC():
 	timeSpan=0
 	connected=False
 	prev_res=0
+	countSend=0
+	countAddress=-1
+	sendPLC=[]
+	appendFormerID=[]
 	def __init__(self, ip,sensorAddr=0,periSensorAddr=50,periSignalAddr=900,aivcMode=0):
 		#ip should be 10.39.0.2
 		self.client = ModbusTcpClient(ip)
@@ -218,6 +223,22 @@ class PLC():
 				return -1
 		else:
 			return -1	#no connection
+
+	def formerCounting(self,formerID,sideNum):
+		if self.connected:
+			if sideNum == 4:
+				idAppend = 2
+			else:
+				idAppend = 1
+			self.appendFormerID.append(formerID)
+			if len(self.appendFormerID) == idAppend:
+				for data in self.appendFormerID:
+					for i in data:
+						self.countAddress+=1
+						#print(f'This is PLC address: {FORMER_COUNTING+self.countAddress} | Data write: {i} ')
+						self.client.write_register(FORMER_COUNTING+self.countAddress,i)
+				self.countAddress=0
+				self.appendFormerID.clear()
 
 	def setDualBinFlap(self,side,val):
 		if self.connected:

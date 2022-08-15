@@ -103,6 +103,7 @@ Cam_Delay=CFG.CAM_DELAY_ALL[CFG.AIVC_MODE]
 Cam_Sensor=CFG.CAM_SENSOR_ALL[CFG.AIVC_MODE]
 Cam_Sensor=[s if s<CFG.SENSOR_NUM else (CFG.SENSOR_NUM-1) for s in Cam_Sensor]#Limit maximum value of Cam_Sensor
 Side_Num= 4 if CFG.DOUBLE_FORMER else 2 #Get Side Num
+Former_Plc_offset=CFG.FORMER_COUNTER_OFFSET
 
 #AIVC_MODE  #0:AIVC RASM&FKTH; 1:TAC AIVC; 2:ASM AIVC
 CAM_NAME=['FKTH_LIT','FKTH_LIB','FKTH_RIT','FKTH_RIB','FKTH_LOT','FKTH_LOB','FKTH_ROT','FKTH_ROB','RASM_LI','RASM_RI','RASM_LO','RASM_RO']
@@ -243,6 +244,81 @@ def generateSasToken(uri, key, expiry=3600):
         'se' : str(int(ttl))
     }
     return 'SharedAccessSignature ' + parse.urlencode(rawtoken)
+
+def convertToAscii(strID):
+    elementAppend=[]
+    elementAppendFinish=[]
+    numElement=48
+    listDecimal=[12288,12544,12800,13056,13312,13568,13824,14080,14336,14592]
+    for element in strID:
+        if element == '0':
+            numElement=48
+        elif element == '1':
+            numElement=49
+        elif element == '2':
+            numElement=50
+        elif element == '3':
+            numElement=51
+        elif element == '4':
+            numElement=52
+        elif element == '5':
+            numElement=53
+        elif element == '6':
+            numElement=54
+        elif element == '7':
+            numElement=55
+        elif element == '8':
+            numElement=56
+        elif element == '9':
+            numElement=57
+        
+        elementAppend.append(numElement)
+        if len(elementAppend) == len(strID):
+            if elementAppend[2] == 48:
+                elementAppend[2] = listDecimal[0]
+            elif elementAppend[2] == 49:
+                elementAppend[2] = listDecimal[1]
+            elif elementAppend[2] == 50:
+                elementAppend[2] = listDecimal[2]
+            elif elementAppend[2] == 51:
+                elementAppend[2] = listDecimal[3]
+            elif elementAppend[2] == 52:
+                elementAppend[2] = listDecimal[4]
+            elif elementAppend[2] == 53:
+                elementAppend[2] = listDecimal[5]
+            elif elementAppend[2] == 54:
+                elementAppend[2] = listDecimal[6]
+            elif elementAppend[2] == 55:
+                elementAppend[2] = listDecimal[7]
+            elif elementAppend[2] == 56:
+                elementAppend[2] = listDecimal[8]
+            elif elementAppend[2] == 57:
+                elementAppend[2] = listDecimal[9]
+
+            if elementAppend[0] == 48:
+                elementAppend[0] = listDecimal[0]
+            elif elementAppend[0] == 49:
+                elementAppend[0] = listDecimal[1]
+            elif elementAppend[0] == 50:
+                elementAppend[0] = listDecimal[2]
+            elif elementAppend[0] == 51:
+                elementAppend[0] = listDecimal[3]
+            elif elementAppend[0] == 52:
+                elementAppend[0] = listDecimal[4]
+            elif elementAppend[0] == 53:
+                elementAppend[0] = listDecimal[5]
+            elif elementAppend[0] == 54:
+                elementAppend[0] = listDecimal[6]
+            elif elementAppend[0] == 55:
+                elementAppend[0] = listDecimal[7]
+            elif elementAppend[0] == 56:
+                elementAppend[0] = listDecimal[8]
+            elif elementAppend[0] == 57:
+                elementAppend[0] = listDecimal[9]
+            
+            elementAppendFinish = np.copy(elementAppend)
+            elementAppend.clear()
+    return elementAppendFinish
 
 class ShiftCounter():
     def __init__(self,addr, plc, idx, maxlen=300):
@@ -1125,7 +1201,7 @@ class MinuteDataRecorder(QThread):
 
             if (time.time()//60)%15==0:#Trigger every 15min
                 self.dHandler.trigger15min.emit()
-                if self.dHandler.state<2:
+                if self.dHandler.state<6:
                     self.dHandler.save15minSideRecord()
                     self.dHandler.uploadDatabase()
 
@@ -1511,7 +1587,8 @@ class DataHandler_Thread(QThread):
                 self.state=3 #line stopped state
             elif self.lineBypassings[side]:#Skip data recording
                 img=self.drawBBoxes(frame, bboxes, ch, w, h)
-                self.updateCamBox.emit(img, f'{SIDE_NAME[side]} Bypassing', camSeq)
+                rasmID2=self.rasmRecords[side].getActualIndex()+1
+                self.updateCamBox.emit(img, f'{SIDE_NAME[side]} Bypassing... | Former ID: {formerID} | RASM ID: {rasmID2}', camSeq)
                 if self.lineBypassings==[True,True,True,True]:
                     self.state=2 #bypassing state
                 else:
@@ -1847,6 +1924,9 @@ class Capture_Thread(QThread):
         camTriggereds=[False]*Cams_Num
         prev_times=[0 for _ in range(CFG.SENSOR_NUM)]
         countDown=1000
+        stringID=[]
+        strID=[]
+        sendFormer=[]
         encoderT=time.time()
         pt=time.time()
         self.plc.clearFlags()
@@ -1948,6 +2028,30 @@ class Capture_Thread(QThread):
                                 id+=camSeq % MAX_ASM_LENGTH
                             formerID=id % TOTAL_FORMER + side*SIDE_SEP
                             self.camThreads[num_cam].que.put(formerID)#Capture Image
+                            """stringID = str(formerID%SIDE_SEP).zfill(4) #0001
+                            for i in stringID:
+                                if len(stringID) == 4:
+                                    strID.append(i)
+                            sendFormer = convertToAscii(strID)
+                            self.plc.formerCounting(sendFormer)
+                            strID.clear()"""
+                            if CFG.COUNTER_INSTALLED:
+                                if CFG.AIVC_MODE==0:
+                                    if camSeq == 9 or camSeq == 11:
+                                        if camSeq == 9:
+                                            idPLC=(CFormerIDs[CFG.PURGER_SENSOR[side]]+Former_Interval[camSeq]+Former_Plc_offset[0])
+                                        elif camSeq ==11:
+                                            idPLC=(CFormerIDs[CFG.PURGER_SENSOR[side]]+Former_Interval[camSeq]+Former_Plc_offset[1])
+                                        formerIDplc=idPLC % TOTAL_FORMER + side*SIDE_SEP
+                                        stringID = str(formerIDplc%SIDE_SEP).zfill(4) #0001
+                                        for i in stringID:
+                                            if len(stringID) == 4:
+                                                strID.append(i)
+                                        if strID:
+                                            sendFormer = convertToAscii(strID)
+                                            self.plc.formerCounting(sendFormer,Side_Num)
+                                            strID.clear()
+                            
                             camTriggereds[num_cam]=False
 
                 countDown-=1
@@ -2072,7 +2176,7 @@ class MainWindow(QMainWindow):
                 self.ui.table_defect_data.setItem(i+4, j, item)
 
         self.ui.label_title.setText(f'Integrated AIVC System  {CFG.FACTORY_NAME} LINE {CFG.LINE_NUM}')
-        self.ui.label_version.setText(f'V{CFG.VERSION}')
+        self.ui.label_version.setText(f'V2.3.61.7')
         self.ui.select_duration.currentIndexChanged.connect(self.changeRecordDuration)
         self.camBoxes=[CamBox(i) for i in range(MAX_CAM_NUM)]
         #Populate Camera View
