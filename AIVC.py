@@ -1511,7 +1511,8 @@ class DataHandler_Thread(QThread):
                 self.state=3 #line stopped state
             elif self.lineBypassings[side]:#Skip data recording
                 img=self.drawBBoxes(frame, bboxes, ch, w, h)
-                self.updateCamBox.emit(img, f'{SIDE_NAME[side]} Bypassing', camSeq)
+                rasmID2=self.rasmRecords[side].getActualIndex()+1
+                self.updateCamBox.emit(img, f'{SIDE_NAME[side]} Bypassing... | Former ID: {formerID} | RASM ID: {rasmID2}', camSeq)
                 if self.lineBypassings==[True,True,True,True]:
                     self.state=2 #bypassing state
                 else:
