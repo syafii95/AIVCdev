@@ -50,6 +50,7 @@ from core.yolov3 import YOLOv3, decode
 from labelImg import MainWindow as LabelWindow
 import plcLib
 import sqlConnect
+import sqlConnectFormer
 from indexer import FixLenIndexer
 from utils.AIVCMainWindow import Ui_AIVCMainWindow
 from utils.SettingDialog import Ui_SettingDialog
@@ -606,6 +607,58 @@ class SQLHandler(QThread):
         self.prevDate=date
         self.prevTime=_time
 
+class SQLHandlerFormer(QThread): # Syafii Edit ; Add new class
+    def __init__(self,parent=None):
+        super().__init__(parent=parent)
+        self.queueFormer = q.Queue()
+        self.cache=[]
+        self.SQLDisableRetry=False
+        self.prevDate=time.strftime("%Y-%m-%d")
+        self.prevTime=time.strftime("%H:%M:%S")
+        self.prevData=np.zeros((5,Data_Num), dtype = int)
+        self.keepBeforeSend=[]
+        self.start(3)
+
+    def run(self):
+        self.sqlConnector=sqlConnectFormer.SQLConnectFormer(DATA_NAMES)
+        while True:
+            payload = self.queueFormer.get()
+            if payload is None:
+                break
+            if self.SQLDisableRetry:
+                self.cache.append(payload)
+                continue
+            res=self.sqlConnector.push(*payload)#push current data
+            if res == -1:
+                logger.warning("Failed To Upload Data To SQL Server")
+                self.cache.append(payload)
+                print(f'Cached data to upload after network connection resume: {self.cache}')
+                self.SQLDisableRetry=True
+                continue
+            
+            while self.cache:#push cached data
+                res=self.sqlConnector.push(*(self.cache[0]))
+                if res == -1:
+                    logger.warning("Failed To Upload Data To SQL Server")
+                    self.SQLDisableRetry=True
+                    continue
+                self.cache.pop(0)
+        print('SQLHandlerFormer Closed')
+    
+    def uploads(self,formerID,side,databasePrevState,formerData):
+        _time=time.strftime("%H:%M:%S")
+        date=time.strftime("%Y-%m-%d")
+        DorS='D' if CFG.DOUBLE_FORMER else 'S'
+        #print(f'ID: {formerID} | State: {databasePrevState} | Side: {side} | Data: {formerData} | Classes: {DATA_NAMES[row]}')
+        #self.queueFormer.put([formerID%SIDE_SEP,CFG.FACTORY_NAME,f'L{CFG.LINE_NUM}{DorS}',side,date,_time,databasePrevState,formerData])
+        self.keepBeforeSend.append([formerID%SIDE_SEP,CFG.FACTORY_NAME,f'L{CFG.LINE_NUM}{DorS}',side,date,_time,databasePrevState,formerData])
+    
+    def sendToServer(self):
+        for item in self.keepBeforeSend:
+            self.queueFormer.put(item)
+        print(f'Succesfully upload {len(self.keepBeforeSend)} former data')
+        self.keepBeforeSend.clear()
+
 class AlertHandler(QThread):
     def __init__(self,parent, iotHubRestURI,teamsMessenger):
         super().__init__(parent=parent)
@@ -1125,9 +1178,10 @@ class MinuteDataRecorder(QThread):
 
             if (time.time()//60)%15==0:#Trigger every 15min
                 self.dHandler.trigger15min.emit()
-                if self.dHandler.state<2:
+                if self.dHandler.state<6:
                     self.dHandler.save15minSideRecord()
                     self.dHandler.uploadDatabase()
+                    self.dHandler.uploadToSqlServer()
 
                 np.copyto(self.dHandler.data15m,self.dHandler.data)
                 copyRecords(self.dHandler.rasmRecords15m, rasmRecordsData)
@@ -1230,6 +1284,7 @@ class DataHandler_Thread(QThread):
         self.alertHandler=AlertHandler(self, IOTHUB_REST_URI, self.teamsMessenger)
         self.jsonRPCThread=JsonRPCClient(self)
         self.sqlHandler=SQLHandler()
+        self.sqlHandlerFormer=SQLHandlerFormer()
         self.occu=OccuAnalyzer(self.__class__.__name__,30)
         self.RCs=[RepetitionChecker(i) for i in range(4)]
         self.samplingCountDown=50
@@ -1248,6 +1303,9 @@ class DataHandler_Thread(QThread):
         self.minuteDataRecorder.pushIotHub(self.databasePrevState)
         self.databasePrevState=STATE[self.state]
     
+    def uploadToSqlServer(self):
+        self.sqlHandlerFormer.sendToServer()
+
     def saveSegmentedRecord(self):
         dataSegment=self.data-self.lastData
         endTime=time.strftime("%Y-%m-%d_%H:%M:%S")
@@ -1316,10 +1374,12 @@ class DataHandler_Thread(QThread):
     def closeThread(self):
         self.uploadDatabase()#Upload last data segment to SQL & IotHub before closing
         self.saveSegmentedRecord()
+        self.uploadToSqlServer()
         self.minuteDataRecorder.que.put(None)
         self.teamsMessenger.queue.put(None)
         self.alertHandler.alertQueue.put([None,None,None])
         self.sqlHandler.queue.put(None)
+        self.sqlHandlerFormer.queueFormer.put(None)
         self.jsonRPCThread.reportQue.put(None)
 
         for savingProcess in self.savingProcesses:
@@ -1333,6 +1393,7 @@ class DataHandler_Thread(QThread):
         self.teamsMessenger.wait()
         self.alertHandler.wait()
         self.sqlHandler.wait()
+        self.sqlHandlerFormer.wait()
         self.jsonRPCThread.wait()
     def feedYoloResult(self,camSeq,frame,pred_bbox,formerID,isRasmAnchor):
         self.yoloResultQue.put([camSeq,frame,pred_bbox,formerID,isRasmAnchor])
@@ -1359,6 +1420,7 @@ class DataHandler_Thread(QThread):
     def incrementData(self, line, row):
         self.data[line][row]+=1
         self.updateTable.emit(row+1,line, str(self.data[line][row]-self.prevData[line][row]))
+        self.defectInfo(row)# Syafii Edit
 
     def refreshDataTable(self):
         for line,row in np.ndindex(self.data.shape):
@@ -1418,6 +1480,25 @@ class DataHandler_Thread(QThread):
         dr=1-self.dataDiff[:,0]/self.dataDiff[:,1]  #1-GoodGlove/ProducedGlove
         for i in range(5):#Defective rate (1st row)
             self.updateTable.emit(0,i, str(f'{dr[i]*100:.2f}%'))
+
+    def getFormerInfo(self,cam,idFormer,side,defect):# Syafii Edit ; add new function
+        self.sideFormer = side
+        self.idFormer = idFormer
+        self.cam = cam
+        self.defect = defect
+
+    def defectInfo(self,row):# Syafii Edit ; add new function
+        self.dataFormerss=np.zeros((1,Data_Num), dtype = int)
+        self.databasePrevState=STATE[self.state]
+        if row != 1:
+            if row != 2:
+                self.dataFormerss[0][1]=1
+            else:
+                self.dataFormerss[0][1]=0
+            self.dataFormerss[0][row]+=1
+            #print(f'ID: {self.idFormer} | Row: {row} | Data: {self.dataFormerss[0]} | Classes: {DATA_NAMES[row]}')
+            # info need to send
+            self.sqlHandlerFormer.uploads(self.idFormer,self.sideFormer,self.databasePrevState,self.dataFormerss[0])
 
     def startCapture(self):
         self.capturing=not self.capturing
@@ -1511,7 +1592,8 @@ class DataHandler_Thread(QThread):
                 self.state=3 #line stopped state
             elif self.lineBypassings[side]:#Skip data recording
                 img=self.drawBBoxes(frame, bboxes, ch, w, h)
-                self.updateCamBox.emit(img, f'{SIDE_NAME[side]} Bypassing', camSeq)
+                rasmID2=self.rasmRecords[side].getActualIndex()+1
+                self.updateCamBox.emit(img, f'{SIDE_NAME[side]} Bypassing... | Former ID: {formerID} | RASM ID: {rasmID2}', camSeq)
                 if self.lineBypassings==[True,True,True,True]:
                     self.state=2 #bypassing state
                 else:
@@ -1523,6 +1605,7 @@ class DataHandler_Thread(QThread):
             if self.state!=self.prevState:
                 self.saveSegmentedRecord()
                 self.uploadDatabase()
+                self.uploadToSqlServer()
 
             if not self.isRunning():
                 self.occu.end()
@@ -1544,6 +1627,9 @@ class DataHandler_Thread(QThread):
                 self.updateRasmRecord(side, int(bboxes[0][5] if bboxes else -1), isRasmAnchor) #RASM ID updated here
             rasmID1=self.rasmRecords[side].getActualIndex()+1
             camStr=f"{SIDE_NAME[side]} | {classStr}| Former ID: {formerID}{f' | RASM ID: {rasmID1}' if isRASM(camSeq) else ''}"
+            self.getFormerID = formerID # Syafii Edit
+            if camSeq >= 8: # Syafii Edit
+                self.getFormerInfo(camSeq,self.getFormerID,side,classStr) # Syafii Edit
             #Update tempDefectRecord 
             previousRecord=0
             if formerID in self.tempDefectRecord:
