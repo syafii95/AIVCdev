@@ -1125,7 +1125,7 @@ class MinuteDataRecorder(QThread):
 
             if (time.time()//60)%15==0:#Trigger every 15min
                 self.dHandler.trigger15min.emit()
-                if self.dHandler.state<2:
+                if self.dHandler.state<6:
                     self.dHandler.save15minSideRecord()
                     self.dHandler.uploadDatabase()
 
