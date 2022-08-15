@@ -2451,42 +2451,23 @@ class MainWindow(QMainWindow):
                 pf.itemAt(5,QFormLayout.LabelRole).widget().hide()
 
         elif CFG.AIVC_MODE==0:#AIVC RASM&FKTH
-            if CFG.ENABLE_RASM_TAB:
-                for i in range(self.ui.tab_main.count()):
-                    self.ui.tab_main.removeTab(0)
-                self.ui.tab_main.addTab(self.ui.tab_fingertip,'FKTH')
-                self.ui.tab_main.addTab(self.ui.tab_rasm,'RASM')
-                self.ui.tab_main.setCurrentIndex(1)
-                for i in range(8):
-                    self.ui.grid_fingertip_cam.addWidget(self.camBoxes[i], i/2, i%2, 1, 1)
+            for i in range(self.ui.tab_main.count()):
+                self.ui.tab_main.removeTab(0)
+            self.ui.tab_main.addTab(self.ui.tab_fingertip,'FKTH')
+            self.ui.tab_main.addTab(self.ui.tab_rasm,'RASM')
+            self.ui.tab_main.setCurrentIndex(1)
+            for i in range(8):
+                self.ui.grid_fingertip_cam.addWidget(self.camBoxes[i], i/2, i%2, 1, 1)
 
-                for i in range(4):
-                    self.ui.grid_rasm_cam.addWidget(self.camBoxes[i+8], i/2,i%2, 1, 1)
-                self.ui.label_title.setText(f'Integrated AIVC System  {CFG.FACTORY_NAME} LINE {CFG.LINE_NUM}')
-                for pf in self.purgerforms:
-                    for i in range(1,4):
-                        pf.itemAt(i,QFormLayout.FieldRole).widget().show()
-                        pf.itemAt(i,QFormLayout.LabelRole).widget().show()
-                    pf.itemAt(5,QFormLayout.FieldRole).widget().show()
-                    pf.itemAt(5,QFormLayout.LabelRole).widget().show()
-            else:
-                for i in range(self.ui.tab_main.count()):
-                    self.ui.tab_main.removeTab(0)
-                self.ui.tab_main.addTab(self.ui.tab_fingertip,'FKTH')
-                #self.ui.tab_main.addTab(self.ui.tab_rasm,'RASM')
-                self.ui.tab_main.setCurrentIndex(1)
-                for i in range(8):
-                    self.ui.grid_fingertip_cam.addWidget(self.camBoxes[i], i/2, i%2, 1, 1)
-
-                for i in range(4):
-                    self.ui.grid_rasm_cam.addWidget(self.camBoxes[i+8], i/2,i%2, 1, 1)
-                self.ui.label_title.setText(f'Integrated AIVC System  {CFG.FACTORY_NAME} LINE {CFG.LINE_NUM}')
-                for pf in self.purgerforms:
-                    for i in range(1,4):
-                        pf.itemAt(i,QFormLayout.FieldRole).widget().show()
-                        pf.itemAt(i,QFormLayout.LabelRole).widget().show()
-                    pf.itemAt(5,QFormLayout.FieldRole).widget().show()
-                    pf.itemAt(5,QFormLayout.LabelRole).widget().show()
+            for i in range(4):
+                self.ui.grid_rasm_cam.addWidget(self.camBoxes[i+8], i/2,i%2, 1, 1)
+            self.ui.label_title.setText(f'Integrated AIVC System  {CFG.FACTORY_NAME} LINE {CFG.LINE_NUM}')
+            for pf in self.purgerforms:
+                for i in range(1,4):
+                    pf.itemAt(i,QFormLayout.FieldRole).widget().show()
+                    pf.itemAt(i,QFormLayout.LabelRole).widget().show()
+                pf.itemAt(5,QFormLayout.FieldRole).widget().show()
+                pf.itemAt(5,QFormLayout.LabelRole).widget().show()
 
         elif CFG.AIVC_MODE==1:#TAC
             for i in range(self.ui.tab_main.count()):
