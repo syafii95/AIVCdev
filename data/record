@@ -1,0 +1,543 @@
+2022-05-11 10:11:52,822	| 9500 Miscount detected. Average_rotation:170 Current_rotation:351 Counting_added:1
+2022-05-11 10:11:53,221	| (9746, 170, 1, 339, [1665, 1663, -1, -1], 1.9941176470588236)
+2022-05-11 10:11:53,221	| 9746 Miscount detected. Average_rotation:170 Current_rotation:339 Counting_added:1
+2022-05-11 10:11:53,357	| (9838, 170, 0, 338, [1665, 1665, -1, -1], 1.988235294117647)
+2022-05-11 10:11:53,357	| 9838 Miscount detected. Average_rotation:170 Current_rotation:338 Counting_added:1
+2022-05-11 10:11:53,709	| (92, 170, 1, 346, [1667, 1665, -1, -1], 2.0352941176470587)
+2022-05-11 10:11:53,709	| 92 Miscount detected. Average_rotation:170 Current_rotation:346 Counting_added:1
+2022-05-11 10:11:53,829	| (184, 170, 0, 346, [1667, 1667, -1, -1], 2.0352941176470587)
+2022-05-11 10:11:53,829	| 184 Miscount detected. Average_rotation:170 Current_rotation:346 Counting_added:1
+2022-05-11 10:11:54,181	| (443, 170, 1, 351, [1669, 1667, -1, -1], 2.0647058823529414)
+2022-05-11 10:11:54,181	| 443 Miscount detected. Average_rotation:170 Current_rotation:351 Counting_added:1
+2022-05-11 10:11:54,317	| (533, 170, 0, 349, [1669, 1669, -1, -1], 2.052941176470588)
+2022-05-11 10:11:54,317	| 533 Miscount detected. Average_rotation:170 Current_rotation:349 Counting_added:1
+2022-05-11 10:11:54,684	| (782, 170, 1, 339, [1671, 1669, -1, -1], 1.9941176470588236)
+2022-05-11 10:11:54,684	| 782 Miscount detected. Average_rotation:170 Current_rotation:339 Counting_added:1
+2022-05-11 10:11:54,836	| (875, 170, 0, 342, [1671, 1671, -1, -1], 2.011764705882353)
+2022-05-11 10:11:54,836	| 875 Miscount detected. Average_rotation:170 Current_rotation:342 Counting_added:1
+2022-05-11 10:11:55,244	| (1128, 170, 1, 346, [1673, 1671, -1, -1], 2.0352941176470587)
+2022-05-11 10:11:55,244	| 1128 Miscount detected. Average_rotation:170 Current_rotation:346 Counting_added:1
+2022-05-11 10:11:55,388	| (1221, 170, 0, 346, [1673, 1673, -1, -1], 2.0352941176470587)
+2022-05-11 10:11:55,388	| 1221 Miscount detected. Average_rotation:170 Current_rotation:346 Counting_added:1
+2022-05-11 10:11:55,764	| (1476, 170, 1, 348, [1675, 1673, -1, -1], 2.0470588235294116)
+2022-05-11 10:11:55,764	| 1476 Miscount detected. Average_rotation:170 Current_rotation:348 Counting_added:1
+2022-05-11 10:11:55,900	| (1564, 170, 0, 343, [1675, 1675, -1, -1], 2.0176470588235293)
+2022-05-11 10:11:55,900	| 1564 Miscount detected. Average_rotation:170 Current_rotation:343 Counting_added:1
+2022-05-11 10:11:56,259	| (1819, 170, 1, 343, [1677, 1675, -1, -1], 2.0176470588235293)
+2022-05-11 10:11:56,259	| 1819 Miscount detected. Average_rotation:170 Current_rotation:343 Counting_added:1
+2022-05-11 10:11:56,395	| (1912, 170, 0, 348, [1677, 1677, -1, -1], 2.0470588235294116)
+2022-05-11 10:11:56,395	| 1912 Miscount detected. Average_rotation:170 Current_rotation:348 Counting_added:1
+2022-05-11 10:11:56,747	| (2163, 170, 1, 344, [1679, 1677, -1, -1], 2.023529411764706)
+2022-05-11 10:11:56,747	| 2163 Miscount detected. Average_rotation:170 Current_rotation:344 Counting_added:1
+2022-05-11 10:11:56,867	| (2253, 170, 0, 341, [1679, 1679, -1, -1], 2.0058823529411764)
+2022-05-11 10:11:56,867	| 2253 Miscount detected. Average_rotation:170 Current_rotation:341 Counting_added:1
+2022-05-11 10:11:57,259	| (2504, 170, 1, 341, [1681, 1679, -1, -1], 2.0058823529411764)
+2022-05-11 10:11:57,259	| 2504 Miscount detected. Average_rotation:170 Current_rotation:341 Counting_added:1
+2022-05-11 10:11:57,395	| (2596, 170, 0, 343, [1681, 1681, -1, -1], 2.0176470588235293)
+2022-05-11 10:11:57,395	| 2596 Miscount detected. Average_rotation:170 Current_rotation:343 Counting_added:1
+2022-05-11 10:11:57,794	| (2852, 170, 1, 348, [1683, 1681, -1, -1], 2.0470588235294116)
+2022-05-11 10:11:57,794	| 2852 Miscount detected. Average_rotation:170 Current_rotation:348 Counting_added:1
+2022-05-11 10:11:57,946	| (2948, 170, 0, 352, [1683, 1683, -1, -1], 2.070588235294118)
+2022-05-11 10:11:57,946	| 2948 Miscount detected. Average_rotation:170 Current_rotation:352 Counting_added:1
+2022-05-11 10:11:58,330	| (3196, 170, 1, 344, [1685, 1683, -1, -1], 2.023529411764706)
+2022-05-11 10:11:58,330	| 3196 Miscount detected. Average_rotation:170 Current_rotation:344 Counting_added:1
+2022-05-11 10:11:58,458	| (3286, 170, 0, 338, [1685, 1685, -1, -1], 1.988235294117647)
+2022-05-11 10:11:58,458	| 3286 Miscount detected. Average_rotation:170 Current_rotation:338 Counting_added:1
+2022-05-11 10:11:58,834	| (3542, 170, 1, 346, [1687, 1685, -1, -1], 2.0352941176470587)
+2022-05-11 10:11:58,834	| 3542 Miscount detected. Average_rotation:170 Current_rotation:346 Counting_added:1
+2022-05-11 10:11:58,961	| (3628, 170, 0, 342, [1687, 1687, -1, -1], 2.011764705882353)
+2022-05-11 10:11:58,961	| 3628 Miscount detected. Average_rotation:170 Current_rotation:342 Counting_added:1
+2022-05-11 10:11:59,297	| (3880, 170, 1, 338, [1689, 1687, -1, -1], 1.988235294117647)
+2022-05-11 10:11:59,297	| 3880 Miscount detected. Average_rotation:170 Current_rotation:338 Counting_added:1
+2022-05-11 10:11:59,457	| (3977, 170, 0, 349, [1689, 1689, -1, -1], 2.052941176470588)
+2022-05-11 10:11:59,457	| 3977 Miscount detected. Average_rotation:170 Current_rotation:349 Counting_added:1
+2022-05-11 10:11:59,809	| (4222, 170, 1, 342, [1691, 1689, -1, -1], 2.011764705882353)
+2022-05-11 10:11:59,809	| 4222 Miscount detected. Average_rotation:170 Current_rotation:342 Counting_added:1
+2022-05-11 10:11:59,953	| (4318, 170, 0, 341, [1691, 1691, -1, -1], 2.0058823529411764)
+2022-05-11 10:11:59,953	| 4318 Miscount detected. Average_rotation:170 Current_rotation:341 Counting_added:1
+2022-05-11 10:12:00,313	| (4565, 170, 1, 343, [1693, 1691, -1, -1], 2.0176470588235293)
+2022-05-11 10:12:00,313	| 4565 Miscount detected. Average_rotation:170 Current_rotation:343 Counting_added:1
+2022-05-11 10:12:00,456	| (4659, 170, 0, 341, [1693, 1693, -1, -1], 2.0058823529411764)
+2022-05-11 10:12:00,456	| 4659 Miscount detected. Average_rotation:170 Current_rotation:341 Counting_added:1
+2022-05-11 10:12:00,832	| (4912, 170, 1, 347, [1695, 1693, -1, -1], 2.041176470588235)
+2022-05-11 10:12:00,832	| 4912 Miscount detected. Average_rotation:170 Current_rotation:347 Counting_added:1
+2022-05-11 10:12:00,960	| (5004, 170, 0, 345, [1695, 1695, -1, -1], 2.0294117647058822)
+2022-05-11 10:12:00,960	| 5004 Miscount detected. Average_rotation:170 Current_rotation:345 Counting_added:1
+2022-05-11 10:12:01,328	| (5263, 170, 1, 351, [1697, 1695, -1, -1], 2.0647058823529414)
+2022-05-11 10:12:01,336	| 5263 Miscount detected. Average_rotation:170 Current_rotation:351 Counting_added:1
+2022-05-11 10:12:01,456	| (5356, 170, 0, 352, [1697, 1697, -1, -1], 2.070588235294118)
+2022-05-11 10:12:01,456	| 5356 Miscount detected. Average_rotation:170 Current_rotation:352 Counting_added:1
+2022-05-11 10:12:01,824	| (5606, 170, 1, 343, [1699, 1697, -1, -1], 2.0176470588235293)
+2022-05-11 10:12:01,824	| 5606 Miscount detected. Average_rotation:170 Current_rotation:343 Counting_added:1
+2022-05-11 10:12:01,975	| (5704, 170, 0, 348, [1699, 1699, -1, -1], 2.0470588235294116)
+2022-05-11 10:12:01,975	| 5704 Miscount detected. Average_rotation:170 Current_rotation:348 Counting_added:1
+2022-05-11 10:12:02,359	| (5950, 170, 1, 344, [1701, 1699, -1, -1], 2.023529411764706)
+2022-05-11 10:12:02,359	| 5950 Miscount detected. Average_rotation:170 Current_rotation:344 Counting_added:1
+2022-05-11 10:12:02,495	| (6045, 170, 0, 341, [1701, 1701, -1, -1], 2.0058823529411764)
+2022-05-11 10:12:02,495	| 6045 Miscount detected. Average_rotation:170 Current_rotation:341 Counting_added:1
+2022-05-11 10:12:02,863	| (6293, 170, 1, 343, [1703, 1701, -1, -1], 2.0176470588235293)
+2022-05-11 10:12:02,863	| 6293 Miscount detected. Average_rotation:170 Current_rotation:343 Counting_added:1
+2022-05-11 10:12:03,007	| (6387, 170, 0, 342, [1703, 1703, -1, -1], 2.011764705882353)
+2022-05-11 10:12:03,007	| 6387 Miscount detected. Average_rotation:170 Current_rotation:342 Counting_added:1
+2022-05-11 10:12:03,343	| (6637, 170, 1, 344, [1705, 1703, -1, -1], 2.023529411764706)
+2022-05-11 10:12:03,343	| 6637 Miscount detected. Average_rotation:170 Current_rotation:344 Counting_added:1
+2022-05-11 10:12:03,486	| (6734, 170, 0, 347, [1705, 1705, -1, -1], 2.041176470588235)
+2022-05-11 10:12:03,486	| 6734 Miscount detected. Average_rotation:170 Current_rotation:347 Counting_added:1
+2022-05-11 10:12:03,838	| (6985, 170, 1, 348, [1707, 1705, -1, -1], 2.0470588235294116)
+2022-05-11 10:12:03,838	| 6985 Miscount detected. Average_rotation:170 Current_rotation:348 Counting_added:1
+2022-05-11 10:12:03,974	| (7079, 170, 0, 345, [1707, 1707, -1, -1], 2.0294117647058822)
+2022-05-11 10:12:03,974	| 7079 Miscount detected. Average_rotation:170 Current_rotation:345 Counting_added:1
+2022-05-11 10:12:04,358	| (7330, 170, 1, 345, [1709, 1707, -1, -1], 2.0294117647058822)
+2022-05-11 10:12:04,358	| 7330 Miscount detected. Average_rotation:170 Current_rotation:345 Counting_added:1
+2022-05-11 10:12:04,486	| (7418, 170, 0, 339, [1709, 1709, -1, -1], 1.9941176470588236)
+2022-05-11 10:12:04,486	| 7418 Miscount detected. Average_rotation:170 Current_rotation:339 Counting_added:1
+2022-05-11 10:12:04,886	| (7669, 170, 1, 339, [1711, 1709, -1, -1], 1.9941176470588236)
+2022-05-11 10:12:04,886	| 7669 Miscount detected. Average_rotation:170 Current_rotation:339 Counting_added:1
+2022-05-11 10:12:05,037	| (7764, 170, 0, 346, [1711, 1711, -1, -1], 2.0352941176470587)
+2022-05-11 10:12:05,037	| 7764 Miscount detected. Average_rotation:170 Current_rotation:346 Counting_added:1
+2022-05-11 10:12:05,421	| (8011, 170, 1, 342, [1713, 1711, -1, -1], 2.011764705882353)
+2022-05-11 10:12:05,421	| 8011 Miscount detected. Average_rotation:170 Current_rotation:342 Counting_added:1
+2022-05-11 10:12:05,565	| (8106, 170, 0, 342, [1713, 1713, -1, -1], 2.011764705882353)
+2022-05-11 10:12:05,565	| 8106 Miscount detected. Average_rotation:170 Current_rotation:342 Counting_added:1
+2022-05-11 10:12:05,917	| (8357, 170, 1, 346, [1715, 1713, -1, -1], 2.0352941176470587)
+2022-05-11 10:12:05,917	| 8357 Miscount detected. Average_rotation:170 Current_rotation:346 Counting_added:1
+2022-05-11 10:12:06,077	| (8447, 170, 0, 341, [1715, 1715, -1, -1], 2.0058823529411764)
+2022-05-11 10:12:06,077	| 8447 Miscount detected. Average_rotation:170 Current_rotation:341 Counting_added:1
+2022-05-11 10:12:06,428	| (8711, 170, 1, 354, [1717, 1715, -1, -1], 2.0823529411764707)
+2022-05-11 10:12:06,428	| 8711 Miscount detected. Average_rotation:170 Current_rotation:354 Counting_added:1
+2022-05-11 10:12:06,564	| (8798, 170, 0, 351, [1717, 1717, -1, -1], 2.0647058823529414)
+2022-05-11 10:12:06,564	| 8798 Miscount detected. Average_rotation:170 Current_rotation:351 Counting_added:1
+2022-05-11 10:12:06,940	| (9049, 170, 1, 338, [1719, 1717, -1, -1], 1.988235294117647)
+2022-05-11 10:12:06,940	| 9049 Miscount detected. Average_rotation:170 Current_rotation:338 Counting_added:1
+2022-05-11 10:12:07,084	| (9140, 170, 0, 342, [1719, 1719, -1, -1], 2.011764705882353)
+2022-05-11 10:12:07,084	| 9140 Miscount detected. Average_rotation:170 Current_rotation:342 Counting_added:1
+2022-05-11 10:12:07,452	| (9394, 170, 1, 345, [1721, 1719, -1, -1], 2.0294117647058822)
+2022-05-11 10:12:07,452	| 9394 Miscount detected. Average_rotation:170 Current_rotation:345 Counting_added:1
+2022-05-11 10:12:07,588	| (9487, 170, 0, 347, [1721, 1721, -1, -1], 2.041176470588235)
+2022-05-11 10:12:07,588	| 9487 Miscount detected. Average_rotation:170 Current_rotation:347 Counting_added:1
+2022-05-11 10:12:07,963	| (9743, 170, 1, 349, [1723, 1721, -1, -1], 2.052941176470588)
+2022-05-11 10:12:07,963	| 9743 Miscount detected. Average_rotation:170 Current_rotation:349 Counting_added:1
+2022-05-11 10:12:08,099	| (9836, 170, 0, 349, [1723, 1723, -1, -1], 2.052941176470588)
+2022-05-11 10:12:08,099	| 9836 Miscount detected. Average_rotation:170 Current_rotation:349 Counting_added:1
+2022-05-11 10:12:08,451	| (93, 170, 1, 350, [1725, 1723, -1, -1], 2.0588235294117645)
+2022-05-11 10:12:08,451	| 93 Miscount detected. Average_rotation:170 Current_rotation:350 Counting_added:1
+2022-05-11 10:12:08,571	| (178, 170, 0, 342, [1725, 1725, -1, -1], 2.011764705882353)
+2022-05-11 10:12:08,571	| 178 Miscount detected. Average_rotation:170 Current_rotation:342 Counting_added:1
+2022-05-11 10:12:08,955	| (433, 170, 1, 340, [1727, 1725, -1, -1], 2.0)
+2022-05-11 10:12:08,955	| 433 Miscount detected. Average_rotation:170 Current_rotation:340 Counting_added:1
+2022-05-11 10:12:09,099	| (524, 170, 0, 346, [1727, 1727, -1, -1], 2.0352941176470587)
+2022-05-11 10:12:09,099	| 524 Miscount detected. Average_rotation:170 Current_rotation:346 Counting_added:1
+2022-05-11 10:12:09,482	| (776, 170, 1, 343, [1729, 1727, -1, -1], 2.0176470588235293)
+2022-05-11 10:12:09,482	| 776 Miscount detected. Average_rotation:170 Current_rotation:343 Counting_added:1
+2022-05-11 10:12:09,626	| (867, 170, 0, 343, [1729, 1729, -1, -1], 2.0176470588235293)
+2022-05-11 10:12:09,626	| 867 Miscount detected. Average_rotation:170 Current_rotation:343 Counting_added:1
+2022-05-11 10:12:10,002	| (1115, 170, 1, 339, [1731, 1729, -1, -1], 1.9941176470588236)
+2022-05-11 10:12:10,002	| 1115 Miscount detected. Average_rotation:170 Current_rotation:339 Counting_added:1
+2022-05-11 10:12:10,146	| (1209, 170, 0, 342, [1731, 1731, -1, -1], 2.011764705882353)
+2022-05-11 10:12:10,146	| 1209 Miscount detected. Average_rotation:170 Current_rotation:342 Counting_added:1
+2022-05-11 10:12:10,514	| (1463, 170, 1, 348, [1733, 1731, -1, -1], 2.0470588235294116)
+2022-05-11 10:12:10,514	| 1463 Miscount detected. Average_rotation:170 Current_rotation:348 Counting_added:1
+2022-05-11 10:12:10,634	| (1553, 170, 0, 344, [1733, 1733, -1, -1], 2.023529411764706)
+2022-05-11 10:12:10,634	| 1553 Miscount detected. Average_rotation:170 Current_rotation:344 Counting_added:1
+2022-05-11 10:12:11,017	| (1806, 170, 1, 343, [1735, 1733, -1, -1], 2.0176470588235293)
+2022-05-11 10:12:11,017	| 1806 Miscount detected. Average_rotation:170 Current_rotation:343 Counting_added:1
+2022-05-11 10:12:11,137	| (1894, 170, 0, 341, [1735, 1735, -1, -1], 2.0058823529411764)
+2022-05-11 10:12:11,137	| 1894 Miscount detected. Average_rotation:170 Current_rotation:341 Counting_added:1
+2022-05-11 10:12:11,521	| (2146, 170, 1, 340, [1737, 1735, -1, -1], 2.0)
+2022-05-11 10:12:11,521	| 2146 Miscount detected. Average_rotation:170 Current_rotation:340 Counting_added:1
+2022-05-11 10:12:11,665	| (2238, 170, 0, 344, [1737, 1737, -1, -1], 2.023529411764706)
+2022-05-11 10:12:11,665	| 2238 Miscount detected. Average_rotation:170 Current_rotation:344 Counting_added:1
+2022-05-11 10:12:12,065	| (2479, 170, 1, 333, [1739, 1737, -1, -1], 1.9588235294117646)
+2022-05-11 10:12:12,065	| 2479 Miscount detected. Average_rotation:170 Current_rotation:333 Counting_added:1
+2022-05-11 10:12:12,217	| (2574, 170, 0, 336, [1739, 1739, -1, -1], 1.9764705882352942)
+2022-05-11 10:12:12,217	| 2574 Miscount detected. Average_rotation:170 Current_rotation:336 Counting_added:1
+2022-05-11 10:12:12,568	| (2824, 170, 1, 345, [1741, 1739, -1, -1], 2.0294117647058822)
+2022-05-11 10:12:12,568	| 2824 Miscount detected. Average_rotation:170 Current_rotation:345 Counting_added:1
+2022-05-11 10:12:12,696	| (2915, 170, 0, 341, [1741, 1741, -1, -1], 2.0058823529411764)
+2022-05-11 10:12:12,696	| 2915 Miscount detected. Average_rotation:170 Current_rotation:341 Counting_added:1
+2022-05-11 10:12:13,056	| (3178, 170, 1, 354, [1743, 1741, -1, -1], 2.0823529411764707)
+2022-05-11 10:12:13,056	| 3178 Miscount detected. Average_rotation:170 Current_rotation:354 Counting_added:1
+2022-05-11 10:12:13,184	| (3270, 170, 0, 355, [1743, 1743, -1, -1], 2.088235294117647)
+2022-05-11 10:12:13,184	| 3270 Miscount detected. Average_rotation:170 Current_rotation:355 Counting_added:1
+2022-05-11 10:12:13,560	| (3522, 170, 1, 344, [1745, 1743, -1, -1], 2.023529411764706)
+2022-05-11 10:12:13,560	| 3522 Miscount detected. Average_rotation:170 Current_rotation:344 Counting_added:1
+2022-05-11 10:12:13,704	| (3615, 170, 0, 345, [1745, 1745, -1, -1], 2.0294117647058822)
+2022-05-11 10:12:13,704	| 3615 Miscount detected. Average_rotation:170 Current_rotation:345 Counting_added:1
+2022-05-11 10:12:14,079	| (3866, 170, 1, 344, [1747, 1745, -1, -1], 2.023529411764706)
+2022-05-11 10:12:14,079	| 3866 Miscount detected. Average_rotation:170 Current_rotation:344 Counting_added:1
+2022-05-11 10:12:14,223	| (3958, 170, 0, 343, [1747, 1747, -1, -1], 2.0176470588235293)
+2022-05-11 10:12:14,223	| 3958 Miscount detected. Average_rotation:170 Current_rotation:343 Counting_added:1
+2022-05-11 10:12:14,623	| (4204, 170, 1, 338, [1749, 1747, -1, -1], 1.988235294117647)
+2022-05-11 10:12:14,623	| 4204 Miscount detected. Average_rotation:170 Current_rotation:338 Counting_added:1
+2022-05-11 10:12:14,759	| (4296, 170, 0, 338, [1749, 1749, -1, -1], 1.988235294117647)
+2022-05-11 10:12:14,759	| 4296 Miscount detected. Average_rotation:170 Current_rotation:338 Counting_added:1
+2022-05-11 10:12:15,143	| (4553, 170, 1, 349, [1751, 1749, -1, -1], 2.052941176470588)
+2022-05-11 10:12:15,143	| 4553 Miscount detected. Average_rotation:170 Current_rotation:349 Counting_added:1
+2022-05-11 10:12:15,279	| (4641, 170, 0, 345, [1751, 1751, -1, -1], 2.0294117647058822)
+2022-05-11 10:12:15,279	| 4641 Miscount detected. Average_rotation:170 Current_rotation:345 Counting_added:1
+2022-05-11 10:12:15,638	| (4901, 170, 1, 348, [1753, 1751, -1, -1], 2.0470588235294116)
+2022-05-11 10:12:15,638	| 4901 Miscount detected. Average_rotation:170 Current_rotation:348 Counting_added:1
+2022-05-11 10:12:15,750	| (4989, 170, 0, 348, [1753, 1753, -1, -1], 2.0470588235294116)
+2022-05-11 10:12:15,750	| 4989 Miscount detected. Average_rotation:170 Current_rotation:348 Counting_added:1
+2022-05-11 10:12:16,126	| (5246, 170, 1, 345, [1755, 1753, -1, -1], 2.0294117647058822)
+2022-05-11 10:12:16,126	| 5246 Miscount detected. Average_rotation:170 Current_rotation:345 Counting_added:1
+2022-05-11 10:12:16,262	| (5339, 170, 0, 350, [1755, 1755, -1, -1], 2.0588235294117645)
+2022-05-11 10:12:16,262	| 5339 Miscount detected. Average_rotation:170 Current_rotation:350 Counting_added:1
+2022-05-11 10:12:16,654	| (5582, 170, 1, 336, [1757, 1755, -1, -1], 1.9764705882352942)
+2022-05-11 10:12:16,654	| 5582 Miscount detected. Average_rotation:170 Current_rotation:336 Counting_added:1
+2022-05-11 10:12:16,798	| (5674, 170, 0, 335, [1757, 1757, -1, -1], 1.9705882352941178)
+2022-05-11 10:12:16,798	| 5674 Miscount detected. Average_rotation:170 Current_rotation:335 Counting_added:1
+2022-05-11 10:12:17,181	| (5924, 170, 1, 342, [1759, 1757, -1, -1], 2.011764705882353)
+2022-05-11 10:12:17,181	| 5924 Miscount detected. Average_rotation:170 Current_rotation:342 Counting_added:1
+2022-05-11 10:12:17,325	| (6012, 170, 0, 338, [1759, 1759, -1, -1], 1.988235294117647)
+2022-05-11 10:12:17,325	| 6012 Miscount detected. Average_rotation:170 Current_rotation:338 Counting_added:1
+2022-05-11 10:12:17,685	| (6260, 170, 1, 336, [1761, 1759, -1, -1], 1.9764705882352942)
+2022-05-11 10:12:17,685	| 6260 Miscount detected. Average_rotation:170 Current_rotation:336 Counting_added:1
+2022-05-11 10:12:17,829	| (6352, 170, 0, 340, [1761, 1761, -1, -1], 2.0)
+2022-05-11 10:12:17,829	| 6352 Miscount detected. Average_rotation:170 Current_rotation:340 Counting_added:1
+2022-05-11 10:12:18,181	| (6607, 170, 1, 347, [1763, 1761, -1, -1], 2.041176470588235)
+2022-05-11 10:12:18,181	| 6607 Miscount detected. Average_rotation:170 Current_rotation:347 Counting_added:1
+2022-05-11 10:12:18,325	| (6697, 170, 0, 345, [1763, 1763, -1, -1], 2.0294117647058822)
+2022-05-11 10:12:18,325	| 6697 Miscount detected. Average_rotation:170 Current_rotation:345 Counting_added:1
+2022-05-11 10:12:18,684	| (6948, 170, 1, 341, [1765, 1763, -1, -1], 2.0058823529411764)
+2022-05-11 10:12:18,684	| 6948 Miscount detected. Average_rotation:170 Current_rotation:341 Counting_added:1
+2022-05-11 10:12:18,836	| (7043, 170, 0, 346, [1765, 1765, -1, -1], 2.0352941176470587)
+2022-05-11 10:12:18,836	| 7043 Miscount detected. Average_rotation:170 Current_rotation:346 Counting_added:1
+2022-05-11 10:12:19,204	| (7291, 170, 1, 343, [1767, 1765, -1, -1], 2.0176470588235293)
+2022-05-11 10:12:19,204	| 7291 Miscount detected. Average_rotation:170 Current_rotation:343 Counting_added:1
+2022-05-11 10:12:19,348	| (7384, 170, 0, 341, [1767, 1767, -1, -1], 2.0058823529411764)
+2022-05-11 10:12:19,348	| 7384 Miscount detected. Average_rotation:170 Current_rotation:341 Counting_added:1
+2022-05-11 10:12:19,732	| (7634, 170, 1, 343, [1769, 1767, -1, -1], 2.0176470588235293)
+2022-05-11 10:12:19,732	| 7634 Miscount detected. Average_rotation:170 Current_rotation:343 Counting_added:1
+2022-05-11 10:12:19,859	| (7724, 170, 0, 340, [1769, 1769, -1, -1], 2.0)
+2022-05-11 10:12:19,859	| 7724 Miscount detected. Average_rotation:170 Current_rotation:340 Counting_added:1
+2022-05-11 10:12:20,235	| (7981, 170, 1, 347, [1771, 1769, -1, -1], 2.041176470588235)
+2022-05-11 10:12:20,235	| 7981 Miscount detected. Average_rotation:170 Current_rotation:347 Counting_added:1
+2022-05-11 10:12:20,379	| (8068, 170, 0, 344, [1771, 1771, -1, -1], 2.023529411764706)
+2022-05-11 10:12:20,379	| 8068 Miscount detected. Average_rotation:170 Current_rotation:344 Counting_added:1
+2022-05-11 10:12:20,731	| (8321, 170, 1, 340, [1773, 1771, -1, -1], 2.0)
+2022-05-11 10:12:20,731	| 8321 Miscount detected. Average_rotation:170 Current_rotation:340 Counting_added:1
+2022-05-11 10:12:20,851	| (8412, 170, 0, 344, [1773, 1773, -1, -1], 2.023529411764706)
+2022-05-11 10:12:20,851	| 8412 Miscount detected. Average_rotation:170 Current_rotation:344 Counting_added:1
+2022-05-11 10:12:21,235	| (8664, 170, 1, 343, [1775, 1773, -1, -1], 2.0176470588235293)
+2022-05-11 10:12:21,235	| 8664 Miscount detected. Average_rotation:170 Current_rotation:343 Counting_added:1
+2022-05-11 10:12:21,370	| (8752, 170, 0, 340, [1775, 1775, -1, -1], 2.0)
+2022-05-11 10:12:21,370	| 8752 Miscount detected. Average_rotation:170 Current_rotation:340 Counting_added:1
+2022-05-11 10:12:21,738	| (9004, 170, 1, 340, [1777, 1775, -1, -1], 2.0)
+2022-05-11 10:12:21,738	| 9004 Miscount detected. Average_rotation:170 Current_rotation:340 Counting_added:1
+2022-05-11 10:12:21,882	| (9096, 170, 0, 344, [1777, 1777, -1, -1], 2.023529411764706)
+2022-05-11 10:12:21,882	| 9096 Miscount detected. Average_rotation:170 Current_rotation:344 Counting_added:1
+2022-05-11 10:12:22,234	| (9349, 170, 1, 345, [1779, 1777, -1, -1], 2.0294117647058822)
+2022-05-11 10:12:22,234	| 9349 Miscount detected. Average_rotation:170 Current_rotation:345 Counting_added:1
+2022-05-11 10:12:22,362	| (9442, 170, 0, 346, [1779, 1779, -1, -1], 2.0352941176470587)
+2022-05-11 10:12:22,362	| 9442 Miscount detected. Average_rotation:170 Current_rotation:346 Counting_added:1
+2022-05-11 10:12:22,730	| (9696, 170, 1, 347, [1781, 1779, -1, -1], 2.041176470588235)
+2022-05-11 10:12:22,730	| 9696 Miscount detected. Average_rotation:170 Current_rotation:347 Counting_added:1
+2022-05-11 10:12:22,865	| (9789, 170, 0, 347, [1781, 1781, -1, -1], 2.041176470588235)
+2022-05-11 10:12:22,865	| 9789 Miscount detected. Average_rotation:170 Current_rotation:347 Counting_added:1
+2022-05-11 10:12:23,249	| (36, 170, 1, 340, [1783, 1781, -1, -1], 2.0)
+2022-05-11 10:12:23,249	| 36 Miscount detected. Average_rotation:170 Current_rotation:340 Counting_added:1
+2022-05-11 10:12:23,393	| (132, 170, 0, 343, [1783, 1783, -1, -1], 2.0176470588235293)
+2022-05-11 10:12:23,393	| 132 Miscount detected. Average_rotation:170 Current_rotation:343 Counting_added:1
+2022-05-11 10:12:23,801	| (380, 170, 1, 344, [1785, 1783, -1, -1], 2.023529411764706)
+2022-05-11 10:12:23,801	| 380 Miscount detected. Average_rotation:170 Current_rotation:344 Counting_added:1
+2022-05-11 10:12:23,937	| (471, 170, 0, 339, [1785, 1785, -1, -1], 1.9941176470588236)
+2022-05-11 10:12:23,937	| 471 Miscount detected. Average_rotation:170 Current_rotation:339 Counting_added:1
+2022-05-11 10:12:24,321	| (728, 170, 1, 348, [1787, 1785, -1, -1], 2.0470588235294116)
+2022-05-11 10:12:24,321	| 728 Miscount detected. Average_rotation:170 Current_rotation:348 Counting_added:1
+2022-05-11 10:12:24,448	| (822, 170, 0, 351, [1787, 1787, -1, -1], 2.0647058823529414)
+2022-05-11 10:12:24,448	| 822 Miscount detected. Average_rotation:170 Current_rotation:351 Counting_added:1
+2022-05-11 10:12:24,792	| (1074, 170, 1, 346, [1789, 1787, -1, -1], 2.0352941176470587)
+2022-05-11 10:12:24,792	| 1074 Miscount detected. Average_rotation:170 Current_rotation:346 Counting_added:1
+2022-05-11 10:12:24,936	| (1167, 170, 0, 345, [1789, 1789, -1, -1], 2.0294117647058822)
+2022-05-11 10:12:24,936	| 1167 Miscount detected. Average_rotation:170 Current_rotation:345 Counting_added:1
+2022-05-11 10:12:25,280	| (1416, 170, 1, 342, [1791, 1789, -1, -1], 2.011764705882353)
+2022-05-11 10:12:25,280	| 1416 Miscount detected. Average_rotation:170 Current_rotation:342 Counting_added:1
+2022-05-11 10:12:25,424	| (1514, 170, 0, 347, [1791, 1791, -1, -1], 2.041176470588235)
+2022-05-11 10:12:25,424	| 1514 Miscount detected. Average_rotation:170 Current_rotation:347 Counting_added:1
+2022-05-11 10:12:25,800	| (1762, 170, 1, 346, [1793, 1791, -1, -1], 2.0352941176470587)
+2022-05-11 10:12:25,800	| 1762 Miscount detected. Average_rotation:170 Current_rotation:346 Counting_added:1
+2022-05-11 10:12:25,927	| (1851, 170, 0, 337, [1793, 1793, -1, -1], 1.9823529411764707)
+2022-05-11 10:12:25,927	| 1851 Miscount detected. Average_rotation:170 Current_rotation:337 Counting_added:1
+2022-05-11 10:12:26,351	| (2107, 170, 1, 345, [1795, 1793, -1, -1], 2.0294117647058822)
+2022-05-11 10:12:26,351	| 2107 Miscount detected. Average_rotation:170 Current_rotation:345 Counting_added:1
+2022-05-11 10:12:26,479	| (2197, 170, 0, 346, [1795, 1795, -1, -1], 2.0352941176470587)
+2022-05-11 10:12:26,479	| 2197 Miscount detected. Average_rotation:170 Current_rotation:346 Counting_added:1
+2022-05-11 10:12:26,847	| (2454, 170, 1, 347, [1797, 1795, -1, -1], 2.041176470588235)
+2022-05-11 10:12:26,847	| 2454 Miscount detected. Average_rotation:170 Current_rotation:347 Counting_added:1
+2022-05-11 10:12:26,983	| (2546, 170, 0, 349, [1797, 1797, -1, -1], 2.052941176470588)
+2022-05-11 10:12:26,983	| 2546 Miscount detected. Average_rotation:170 Current_rotation:349 Counting_added:1
+2022-05-11 10:12:27,327	| (2794, 170, 1, 340, [1799, 1797, -1, -1], 2.0)
+2022-05-11 10:12:27,327	| 2794 Miscount detected. Average_rotation:170 Current_rotation:340 Counting_added:1
+2022-05-11 10:12:27,454	| (2886, 170, 0, 340, [1799, 1799, -1, -1], 2.0)
+2022-05-11 10:12:27,454	| 2886 Miscount detected. Average_rotation:170 Current_rotation:340 Counting_added:1
+2022-05-11 10:12:27,814	| (3142, 170, 1, 348, [1801, 1799, -1, -1], 2.0470588235294116)
+2022-05-11 10:12:27,814	| 3142 Miscount detected. Average_rotation:170 Current_rotation:348 Counting_added:1
+2022-05-11 10:12:27,934	| (3234, 170, 0, 348, [1801, 1801, -1, -1], 2.0470588235294116)
+2022-05-11 10:12:27,934	| 3234 Miscount detected. Average_rotation:170 Current_rotation:348 Counting_added:1
+2022-05-11 10:12:28,326	| (3482, 170, 1, 340, [1803, 1801, -1, -1], 2.0)
+2022-05-11 10:12:28,326	| 3482 Miscount detected. Average_rotation:170 Current_rotation:340 Counting_added:1
+2022-05-11 10:12:28,470	| (3578, 170, 0, 344, [1803, 1803, -1, -1], 2.023529411764706)
+2022-05-11 10:12:28,470	| 3578 Miscount detected. Average_rotation:170 Current_rotation:344 Counting_added:1
+2022-05-11 10:12:28,861	| (3827, 170, 1, 345, [1805, 1803, -1, -1], 2.0294117647058822)
+2022-05-11 10:12:28,861	| 3827 Miscount detected. Average_rotation:170 Current_rotation:345 Counting_added:1
+2022-05-11 10:12:29,013	| (3920, 170, 0, 342, [1805, 1805, -1, -1], 2.011764705882353)
+2022-05-11 10:12:29,013	| 3920 Miscount detected. Average_rotation:170 Current_rotation:342 Counting_added:1
+2022-05-11 10:12:29,389	| (4179, 170, 1, 352, [1807, 1805, -1, -1], 2.070588235294118)
+2022-05-11 10:12:29,389	| 4179 Miscount detected. Average_rotation:170 Current_rotation:352 Counting_added:1
+2022-05-11 10:12:29,533	| (4267, 170, 0, 347, [1807, 1807, -1, -1], 2.041176470588235)
+2022-05-11 10:12:29,533	| 4267 Miscount detected. Average_rotation:170 Current_rotation:347 Counting_added:1
+2022-05-11 10:12:29,869	| (4522, 170, 1, 343, [1809, 1807, -1, -1], 2.0176470588235293)
+2022-05-11 10:12:29,869	| 4522 Miscount detected. Average_rotation:170 Current_rotation:343 Counting_added:1
+2022-05-11 10:12:29,997	| (4618, 170, 0, 351, [1809, 1809, -1, -1], 2.0647058823529414)
+2022-05-11 10:12:29,997	| 4618 Miscount detected. Average_rotation:170 Current_rotation:351 Counting_added:1
+2022-05-11 10:12:30,356	| (4867, 170, 1, 345, [1811, 1809, -1, -1], 2.0294117647058822)
+2022-05-11 10:12:30,356	| 4867 Miscount detected. Average_rotation:170 Current_rotation:345 Counting_added:1
+2022-05-11 10:12:30,476	| (4956, 170, 0, 338, [1811, 1811, -1, -1], 1.988235294117647)
+2022-05-11 10:12:30,476	| 4956 Miscount detected. Average_rotation:170 Current_rotation:338 Counting_added:1
+2022-05-11 10:12:30,900	| (5212, 170, 1, 345, [1813, 1811, -1, -1], 2.0294117647058822)
+2022-05-11 10:12:30,900	| 5212 Miscount detected. Average_rotation:170 Current_rotation:345 Counting_added:1
+2022-05-11 10:12:31,052	| (5302, 170, 0, 346, [1813, 1813, -1, -1], 2.0352941176470587)
+2022-05-11 10:12:31,052	| 5302 Miscount detected. Average_rotation:170 Current_rotation:346 Counting_added:1
+2022-05-11 10:12:31,492	| (5550, 170, 1, 338, [1815, 1813, -1, -1], 1.988235294117647)
+2022-05-11 10:12:31,492	| 5550 Miscount detected. Average_rotation:170 Current_rotation:338 Counting_added:1
+2022-05-11 10:12:31,636	| (5645, 170, 0, 343, [1815, 1815, -1, -1], 2.0176470588235293)
+2022-05-11 10:12:31,636	| 5645 Miscount detected. Average_rotation:170 Current_rotation:343 Counting_added:1
+2022-05-11 10:12:31,995	| (5905, 170, 1, 355, [1817, 1815, -1, -1], 2.088235294117647)
+2022-05-11 10:12:31,995	| 5905 Miscount detected. Average_rotation:170 Current_rotation:355 Counting_added:1
+2022-05-11 10:12:32,107	| (5999, 170, 0, 354, [1817, 1817, -1, -1], 2.0823529411764707)
+2022-05-11 10:12:32,107	| 5999 Miscount detected. Average_rotation:170 Current_rotation:354 Counting_added:1
+2022-05-11 10:12:32,451	| (6247, 170, 1, 342, [1819, 1817, -1, -1], 2.011764705882353)
+2022-05-11 10:12:32,451	| 6247 Miscount detected. Average_rotation:170 Current_rotation:342 Counting_added:1
+2022-05-11 10:12:32,579	| (6337, 170, 0, 338, [1819, 1819, -1, -1], 1.988235294117647)
+2022-05-11 10:12:32,579	| 6337 Miscount detected. Average_rotation:170 Current_rotation:338 Counting_added:1
+2022-05-11 10:12:32,923	| (6587, 170, 1, 340, [1821, 1819, -1, -1], 2.0)
+2022-05-11 10:12:32,923	| 6587 Miscount detected. Average_rotation:170 Current_rotation:340 Counting_added:1
+2022-05-11 10:12:33,067	| (6683, 170, 0, 346, [1821, 1821, -1, -1], 2.0352941176470587)
+2022-05-11 10:12:33,067	| 6683 Miscount detected. Average_rotation:170 Current_rotation:346 Counting_added:1
+2022-05-11 10:12:33,434	| (6934, 170, 1, 347, [1823, 1821, -1, -1], 2.041176470588235)
+2022-05-11 10:12:33,434	| 6934 Miscount detected. Average_rotation:170 Current_rotation:347 Counting_added:1
+2022-05-11 10:12:33,594	| (7026, 170, 0, 343, [1823, 1823, -1, -1], 2.0176470588235293)
+2022-05-11 10:12:33,594	| 7026 Miscount detected. Average_rotation:170 Current_rotation:343 Counting_added:1
+2022-05-11 10:12:34,026	| (7276, 170, 1, 342, [1825, 1823, -1, -1], 2.011764705882353)
+2022-05-11 10:12:34,034	| 7276 Miscount detected. Average_rotation:170 Current_rotation:342 Counting_added:1
+2022-05-11 10:12:34,178	| (7369, 170, 0, 343, [1825, 1825, -1, -1], 2.0176470588235293)
+2022-05-11 10:12:34,178	| 7369 Miscount detected. Average_rotation:170 Current_rotation:343 Counting_added:1
+2022-05-11 10:12:34,578	| (7623, 170, 1, 347, [1827, 1825, -1, -1], 2.041176470588235)
+2022-05-11 10:12:34,578	| 7623 Miscount detected. Average_rotation:170 Current_rotation:347 Counting_added:1
+2022-05-11 10:12:34,706	| (7709, 170, 0, 340, [1827, 1827, -1, -1], 2.0)
+2022-05-11 10:12:34,706	| 7709 Miscount detected. Average_rotation:170 Current_rotation:340 Counting_added:1
+2022-05-11 10:12:35,065	| (7966, 170, 1, 343, [1829, 1827, -1, -1], 2.0176470588235293)
+2022-05-11 10:12:35,065	| 7966 Miscount detected. Average_rotation:170 Current_rotation:343 Counting_added:1
+2022-05-11 10:12:35,185	| (8066, 170, 0, 357, [1829, 1829, -1, -1], 2.1)
+2022-05-11 10:12:35,185	| 8066 Miscount detected. Average_rotation:170 Current_rotation:357 Counting_added:1
+2022-05-11 10:12:35,505	| (8311, 170, 1, 345, [1831, 1829, -1, -1], 2.0294117647058822)
+2022-05-11 10:12:35,505	| 8311 Miscount detected. Average_rotation:170 Current_rotation:345 Counting_added:1
+2022-05-11 10:12:35,641	| (8405, 170, 0, 339, [1831, 1831, -1, -1], 1.9941176470588236)
+2022-05-11 10:12:35,641	| 8405 Miscount detected. Average_rotation:170 Current_rotation:339 Counting_added:1
+2022-05-11 10:12:36,033	| (8650, 170, 1, 339, [1833, 1831, -1, -1], 1.9941176470588236)
+2022-05-11 10:12:36,033	| 8650 Miscount detected. Average_rotation:170 Current_rotation:339 Counting_added:1
+2022-05-11 10:12:36,161	| (8740, 170, 0, 335, [1833, 1833, -1, -1], 1.9705882352941178)
+2022-05-11 10:12:36,161	| 8740 Miscount detected. Average_rotation:170 Current_rotation:335 Counting_added:1
+2022-05-11 10:12:36,536	| (8991, 170, 1, 341, [1835, 1833, -1, -1], 2.0058823529411764)
+2022-05-11 10:12:36,536	| 8991 Miscount detected. Average_rotation:170 Current_rotation:341 Counting_added:1
+2022-05-11 10:12:36,680	| (9081, 170, 0, 341, [1835, 1835, -1, -1], 2.0058823529411764)
+2022-05-11 10:12:36,680	| 9081 Miscount detected. Average_rotation:170 Current_rotation:341 Counting_added:1
+2022-05-11 10:12:37,072	| (9338, 170, 1, 347, [1837, 1835, -1, -1], 2.041176470588235)
+2022-05-11 10:12:37,072	| 9338 Miscount detected. Average_rotation:170 Current_rotation:347 Counting_added:1
+2022-05-11 10:12:37,208	| (9430, 170, 0, 349, [1837, 1837, -1, -1], 2.052941176470588)
+2022-05-11 10:12:37,208	| 9430 Miscount detected. Average_rotation:170 Current_rotation:349 Counting_added:1
+2022-05-11 10:12:37,560	| (9684, 170, 1, 346, [1839, 1837, -1, -1], 2.0352941176470587)
+2022-05-11 10:12:37,560	| 9684 Miscount detected. Average_rotation:170 Current_rotation:346 Counting_added:1
+2022-05-11 10:12:37,696	| (9773, 170, 0, 343, [1839, 1839, -1, -1], 2.0176470588235293)
+2022-05-11 10:12:37,696	| 9773 Miscount detected. Average_rotation:170 Current_rotation:343 Counting_added:1
+2022-05-11 10:12:38,087	| (27, 170, 1, 343, [1841, 1839, -1, -1], 2.0176470588235293)
+2022-05-11 10:12:38,087	| 27 Miscount detected. Average_rotation:170 Current_rotation:343 Counting_added:1
+2022-05-11 10:12:38,215	| (119, 170, 0, 346, [1841, 1841, -1, -1], 2.0352941176470587)
+2022-05-11 10:12:38,215	| 119 Miscount detected. Average_rotation:170 Current_rotation:346 Counting_added:1
+2022-05-11 10:12:38,607	| (371, 170, 1, 344, [1843, 1841, -1, -1], 2.023529411764706)
+2022-05-11 10:12:38,607	| 371 Miscount detected. Average_rotation:170 Current_rotation:344 Counting_added:1
+2022-05-11 10:12:38,751	| (460, 170, 0, 341, [1843, 1843, -1, -1], 2.0058823529411764)
+2022-05-11 10:12:38,751	| 460 Miscount detected. Average_rotation:170 Current_rotation:341 Counting_added:1
+2022-05-11 10:12:39,143	| (715, 170, 1, 344, [1845, 1843, -1, -1], 2.023529411764706)
+2022-05-11 10:12:39,143	| 715 Miscount detected. Average_rotation:170 Current_rotation:344 Counting_added:1
+2022-05-11 10:12:39,263	| (806, 170, 0, 346, [1845, 1845, -1, -1], 2.0352941176470587)
+2022-05-11 10:12:39,263	| 806 Miscount detected. Average_rotation:170 Current_rotation:346 Counting_added:1
+2022-05-11 10:12:39,614	| (1065, 170, 1, 350, [1847, 1845, -1, -1], 2.0588235294117645)
+2022-05-11 10:12:39,614	| 1065 Miscount detected. Average_rotation:170 Current_rotation:350 Counting_added:1
+2022-05-11 10:12:39,726	| (1157, 170, 0, 351, [1847, 1847, -1, -1], 2.0647058823529414)
+2022-05-11 10:12:39,726	| 1157 Miscount detected. Average_rotation:170 Current_rotation:351 Counting_added:1
+2022-05-11 10:12:40,094	| (1413, 170, 1, 348, [1849, 1847, -1, -1], 2.0470588235294116)
+2022-05-11 10:12:40,094	| 1413 Miscount detected. Average_rotation:170 Current_rotation:348 Counting_added:1
+2022-05-11 10:12:40,222	| (1502, 170, 0, 345, [1849, 1849, -1, -1], 2.0294117647058822)
+2022-05-11 10:12:40,222	| 1502 Miscount detected. Average_rotation:170 Current_rotation:345 Counting_added:1
+2022-05-11 10:12:40,606	| (1751, 170, 1, 338, [1851, 1849, -1, -1], 1.988235294117647)
+2022-05-11 10:12:40,606	| 1751 Miscount detected. Average_rotation:170 Current_rotation:338 Counting_added:1
+2022-05-11 10:12:40,758	| (1841, 170, 0, 339, [1851, 1851, -1, -1], 1.9941176470588236)
+2022-05-11 10:12:40,758	| 1841 Miscount detected. Average_rotation:170 Current_rotation:339 Counting_added:1
+2022-05-11 10:12:41,129	| (2094, 170, 1, 343, [1853, 1851, -1, -1], 2.0176470588235293)
+2022-05-11 10:12:41,129	| 2094 Miscount detected. Average_rotation:170 Current_rotation:343 Counting_added:1
+2022-05-11 10:12:41,297	| (2190, 170, 0, 349, [1853, 1853, -1, -1], 2.052941176470588)
+2022-05-11 10:12:41,297	| 2190 Miscount detected. Average_rotation:170 Current_rotation:349 Counting_added:1
+2022-05-11 10:12:41,665	| (2446, 170, 1, 352, [1855, 1853, -1, -1], 2.070588235294118)
+2022-05-11 10:12:41,665	| 2446 Miscount detected. Average_rotation:170 Current_rotation:352 Counting_added:1
+2022-05-11 10:12:41,801	| (2541, 170, 0, 351, [1855, 1855, -1, -1], 2.0647058823529414)
+2022-05-11 10:12:41,801	| 2541 Miscount detected. Average_rotation:170 Current_rotation:351 Counting_added:1
+2022-05-11 10:12:42,137	| (2788, 170, 1, 342, [1857, 1855, -1, -1], 2.011764705882353)
+2022-05-11 10:12:42,137	| 2788 Miscount detected. Average_rotation:170 Current_rotation:342 Counting_added:1
+2022-05-11 10:12:42,264	| (2878, 170, 0, 337, [1857, 1857, -1, -1], 1.9823529411764707)
+2022-05-11 10:12:42,264	| 2878 Miscount detected. Average_rotation:170 Current_rotation:337 Counting_added:1
+2022-05-11 10:12:42,632	| (3126, 170, 1, 338, [1859, 1857, -1, -1], 1.988235294117647)
+2022-05-11 10:12:42,632	| 3126 Miscount detected. Average_rotation:170 Current_rotation:338 Counting_added:1
+2022-05-11 10:12:42,760	| (3214, 170, 0, 336, [1859, 1859, -1, -1], 1.9764705882352942)
+2022-05-11 10:12:42,760	| 3214 Miscount detected. Average_rotation:170 Current_rotation:336 Counting_added:1
+2022-05-11 10:12:43,152	| (3466, 170, 1, 340, [1861, 1859, -1, -1], 2.0)
+2022-05-11 10:12:43,152	| 3466 Miscount detected. Average_rotation:170 Current_rotation:340 Counting_added:1
+2022-05-11 10:12:43,312	| (3560, 170, 0, 346, [1861, 1861, -1, -1], 2.0352941176470587)
+2022-05-11 10:12:43,312	| 3560 Miscount detected. Average_rotation:170 Current_rotation:346 Counting_added:1
+2022-05-11 10:12:43,695	| (3815, 170, 1, 349, [1863, 1861, -1, -1], 2.052941176470588)
+2022-05-11 10:12:43,695	| 3815 Miscount detected. Average_rotation:170 Current_rotation:349 Counting_added:1
+2022-05-11 10:12:43,831	| (3907, 170, 0, 347, [1863, 1863, -1, -1], 2.041176470588235)
+2022-05-11 10:12:43,831	| 3907 Miscount detected. Average_rotation:170 Current_rotation:347 Counting_added:1
+2022-05-11 10:12:44,199	| (4155, 170, 1, 340, [1865, 1863, -1, -1], 2.0)
+2022-05-11 10:12:44,199	| 4155 Miscount detected. Average_rotation:170 Current_rotation:340 Counting_added:1
+2022-05-11 10:12:44,335	| (4252, 170, 0, 345, [1865, 1865, -1, -1], 2.0294117647058822)
+2022-05-11 10:12:44,335	| 4252 Miscount detected. Average_rotation:170 Current_rotation:345 Counting_added:1
+2022-05-11 10:12:44,687	| (4508, 170, 1, 353, [1867, 1865, -1, -1], 2.0764705882352943)
+2022-05-11 10:12:44,687	| 4508 Miscount detected. Average_rotation:170 Current_rotation:353 Counting_added:1
+2022-05-11 10:12:44,839	| (4600, 170, 0, 348, [1867, 1867, -1, -1], 2.0470588235294116)
+2022-05-11 10:12:44,839	| 4600 Miscount detected. Average_rotation:170 Current_rotation:348 Counting_added:1
+2022-05-11 10:12:45,214	| (4853, 170, 1, 345, [1869, 1867, -1, -1], 2.0294117647058822)
+2022-05-11 10:12:45,214	| 4853 Miscount detected. Average_rotation:170 Current_rotation:345 Counting_added:1
+2022-05-11 10:12:45,366	| (4944, 170, 0, 344, [1869, 1869, -1, -1], 2.023529411764706)
+2022-05-11 10:12:45,366	| 4944 Miscount detected. Average_rotation:170 Current_rotation:344 Counting_added:1
+2022-05-11 10:12:45,766	| (5200, 170, 1, 347, [1871, 1869, -1, -1], 2.041176470588235)
+2022-05-11 10:12:45,766	| 5200 Miscount detected. Average_rotation:170 Current_rotation:347 Counting_added:1
+2022-05-11 10:12:45,910	| (5288, 170, 0, 344, [1871, 1871, -1, -1], 2.023529411764706)
+2022-05-11 10:12:45,910	| 5288 Miscount detected. Average_rotation:170 Current_rotation:344 Counting_added:1
+2022-05-11 10:12:46,294	| (5542, 170, 1, 342, [1873, 1871, -1, -1], 2.011764705882353)
+2022-05-11 10:12:46,294	| 5542 Miscount detected. Average_rotation:170 Current_rotation:342 Counting_added:1
+2022-05-11 10:12:46,414	| (5634, 170, 0, 346, [1873, 1873, -1, -1], 2.0352941176470587)
+2022-05-11 10:12:46,414	| 5634 Miscount detected. Average_rotation:170 Current_rotation:346 Counting_added:1
+2022-05-11 10:12:46,765	| (5889, 170, 1, 347, [1875, 1873, -1, -1], 2.041176470588235)
+2022-05-11 10:12:46,765	| 5889 Miscount detected. Average_rotation:170 Current_rotation:347 Counting_added:1
+2022-05-11 10:12:46,901	| (5982, 170, 0, 348, [1875, 1875, -1, -1], 2.0470588235294116)
+2022-05-11 10:12:46,901	| 5982 Miscount detected. Average_rotation:170 Current_rotation:348 Counting_added:1
+2022-05-11 10:12:47,261	| (6234, 170, 1, 345, [1877, 1875, -1, -1], 2.0294117647058822)
+2022-05-11 10:12:47,261	| 6234 Miscount detected. Average_rotation:170 Current_rotation:345 Counting_added:1
+2022-05-11 10:12:47,389	| (6327, 170, 0, 345, [1877, 1877, -1, -1], 2.0294117647058822)
+2022-05-11 10:12:47,389	| 6327 Miscount detected. Average_rotation:170 Current_rotation:345 Counting_added:1
+2022-05-11 10:12:47,765	| (6573, 170, 1, 339, [1879, 1877, -1, -1], 1.9941176470588236)
+2022-05-11 10:12:47,765	| 6573 Miscount detected. Average_rotation:170 Current_rotation:339 Counting_added:1
+2022-05-11 10:12:47,917	| (6666, 170, 0, 339, [1879, 1879, -1, -1], 1.9941176470588236)
+2022-05-11 10:12:47,917	| 6666 Miscount detected. Average_rotation:170 Current_rotation:339 Counting_added:1
+2022-05-11 10:12:48,315	| (6921, 170, 1, 348, [1881, 1879, -1, -1], 2.0470588235294116)
+2022-05-11 10:12:48,315	| 6921 Miscount detected. Average_rotation:170 Current_rotation:348 Counting_added:1
+2022-05-11 10:12:48,455	| (7010, 170, 0, 344, [1881, 1881, -1, -1], 2.023529411764706)
+2022-05-11 10:12:48,455	| 7010 Miscount detected. Average_rotation:170 Current_rotation:344 Counting_added:1
+2022-05-11 10:12:48,830	| (7260, 170, 1, 339, [1883, 1881, -1, -1], 1.9941176470588236)
+2022-05-11 10:12:48,830	| 7260 Miscount detected. Average_rotation:170 Current_rotation:339 Counting_added:1
+2022-05-11 10:12:48,954	| (7351, 170, 0, 341, [1883, 1883, -1, -1], 2.0058823529411764)
+2022-05-11 10:12:48,954	| 7351 Miscount detected. Average_rotation:170 Current_rotation:341 Counting_added:1
+2022-05-11 10:12:49,331	| (7612, 170, 1, 352, [1885, 1883, -1, -1], 2.070588235294118)
+2022-05-11 10:12:49,331	| 7612 Miscount detected. Average_rotation:170 Current_rotation:352 Counting_added:1
+2022-05-11 10:12:49,456	| (7703, 170, 0, 352, [1885, 1885, -1, -1], 2.070588235294118)
+2022-05-11 10:12:49,456	| 7703 Miscount detected. Average_rotation:170 Current_rotation:352 Counting_added:1
+2022-05-11 10:12:49,815	| (7958, 170, 1, 346, [1887, 1885, -1, -1], 2.0352941176470587)
+2022-05-11 10:12:49,815	| 7958 Miscount detected. Average_rotation:170 Current_rotation:346 Counting_added:1
+2022-05-11 10:12:49,955	| (8049, 170, 0, 346, [1887, 1887, -1, -1], 2.0352941176470587)
+2022-05-11 10:12:49,955	| 8049 Miscount detected. Average_rotation:170 Current_rotation:346 Counting_added:1
+2022-05-11 10:12:50,330	| (8306, 170, 1, 348, [1889, 1887, -1, -1], 2.0470588235294116)
+2022-05-11 10:12:50,330	| 8306 Miscount detected. Average_rotation:170 Current_rotation:348 Counting_added:1
+2022-05-11 10:12:50,476	| (8395, 170, 0, 346, [1889, 1889, -1, -1], 2.0352941176470587)
+2022-05-11 10:12:50,476	| 8395 Miscount detected. Average_rotation:170 Current_rotation:346 Counting_added:1
+2022-05-11 10:12:50,862	| (8647, 170, 1, 341, [1891, 1889, -1, -1], 2.0058823529411764)
+2022-05-11 10:12:50,862	| 8647 Miscount detected. Average_rotation:170 Current_rotation:341 Counting_added:1
+2022-05-11 10:12:51,003	| (8739, 170, 0, 344, [1891, 1891, -1, -1], 2.023529411764706)
+2022-05-11 10:12:51,003	| 8739 Miscount detected. Average_rotation:170 Current_rotation:344 Counting_added:1
+2022-05-11 10:12:51,376	| (8993, 170, 1, 346, [1893, 1891, -1, -1], 2.0352941176470587)
+2022-05-11 10:12:51,376	| 8993 Miscount detected. Average_rotation:170 Current_rotation:346 Counting_added:1
+2022-05-11 10:12:51,520	| (9089, 170, 0, 350, [1893, 1893, -1, -1], 2.0588235294117645)
+2022-05-11 10:12:51,520	| 9089 Miscount detected. Average_rotation:170 Current_rotation:350 Counting_added:1
+2022-05-11 10:12:51,872	| (9342, 170, 1, 349, [1895, 1893, -1, -1], 2.052941176470588)
+2022-05-11 10:12:51,872	| 9342 Miscount detected. Average_rotation:170 Current_rotation:349 Counting_added:1
+2022-05-11 10:12:52,008	| (9433, 170, 0, 344, [1895, 1895, -1, -1], 2.023529411764706)
+2022-05-11 10:12:52,008	| 9433 Miscount detected. Average_rotation:170 Current_rotation:344 Counting_added:1
+2022-05-11 10:12:52,359	| (9689, 170, 1, 347, [1897, 1895, -1, -1], 2.041176470588235)
+2022-05-11 10:12:52,359	| 9689 Miscount detected. Average_rotation:170 Current_rotation:347 Counting_added:1
+2022-05-11 10:12:52,503	| (9783, 170, 0, 350, [1897, 1897, -1, -1], 2.0588235294117645)
+2022-05-11 10:12:52,503	| 9783 Miscount detected. Average_rotation:170 Current_rotation:350 Counting_added:1
+2022-05-11 10:12:52,895	| (27, 170, 1, 338, [1899, 1897, -1, -1], 1.988235294117647)
+2022-05-11 10:12:52,895	| 27 Miscount detected. Average_rotation:170 Current_rotation:338 Counting_added:1
+2022-05-11 10:12:53,047	| (121, 170, 0, 338, [1899, 1899, -1, -1], 1.988235294117647)
+2022-05-11 10:12:53,047	| 121 Miscount detected. Average_rotation:170 Current_rotation:338 Counting_added:1
+2022-05-11 10:12:53,447	| (377, 170, 1, 350, [1901, 1899, -1, -1], 2.0588235294117645)
+2022-05-11 10:12:53,447	| 377 Miscount detected. Average_rotation:170 Current_rotation:350 Counting_added:1
+2022-05-11 10:12:53,582	| (468, 170, 0, 347, [1901, 1901, -1, -1], 2.041176470588235)
+2022-05-11 10:12:53,582	| 468 Miscount detected. Average_rotation:170 Current_rotation:347 Counting_added:1
+2022-05-11 10:12:53,950	| (724, 170, 1, 347, [1903, 1901, -1, -1], 2.041176470588235)
+2022-05-11 10:12:53,950	| 724 Miscount detected. Average_rotation:170 Current_rotation:347 Counting_added:1
+2022-05-11 10:12:54,078	| (817, 170, 0, 349, [1903, 1903, -1, -1], 2.052941176470588)
+2022-05-11 10:12:54,078	| 817 Miscount detected. Average_rotation:170 Current_rotation:349 Counting_added:1
+2022-05-11 10:12:54,430	| (1064, 170, 1, 340, [1905, 1903, -1, -1], 2.0)
+2022-05-11 10:12:54,430	| 1064 Miscount detected. Average_rotation:170 Current_rotation:340 Counting_added:1
+2022-05-11 10:12:54,558	| (1155, 170, 0, 338, [1905, 1905, -1, -1], 1.988235294117647)
+2022-05-11 10:12:54,558	| 1155 Miscount detected. Average_rotation:170 Current_rotation:338 Counting_added:1
+2022-05-11 10:12:54,902	| (1408, 170, 1, 344, [1907, 1905, -1, -1], 2.023529411764706)
+2022-05-11 10:12:54,902	| 1408 Miscount detected. Average_rotation:170 Current_rotation:344 Counting_added:1
+2022-05-11 10:12:55,069	| (1501, 170, 0, 346, [1907, 1907, -1, -1], 2.0352941176470587)
+2022-05-11 10:12:55,069	| 1501 Miscount detected. Average_rotation:170 Current_rotation:346 Counting_added:1
+2022-05-11 10:12:55,469	| (1747, 170, 1, 339, [1909, 1907, -1, -1], 1.9941176470588236)
+2022-05-11 10:12:55,469	| 1747 Miscount detected. Average_rotation:170 Current_rotation:339 Counting_added:1
+2022-05-11 10:12:55,613	| (1840, 170, 0, 339, [1909, 1909, -1, -1], 1.9941176470588236)
+2022-05-11 10:12:55,613	| 1840 Miscount detected. Average_rotation:170 Current_rotation:339 Counting_added:1
+2022-05-11 10:12:56,037	| (2096, 170, 1, 349, [1911, 1909, -1, -1], 2.052941176470588)
+2022-05-11 10:12:56,045	| 2096 Miscount detected. Average_rotation:170 Current_rotation:349 Counting_added:1
+2022-05-11 10:12:56,157	| (2184, 170, 0, 344, [1911, 1911, -1, -1], 2.023529411764706)
+2022-05-11 10:12:56,157	| 2184 Miscount detected. Average_rotation:170 Current_rotation:344 Counting_added:1
+2022-05-11 10:12:56,517	| (2439, 170, 1, 343, [1913, 1911, -1, -1], 2.0176470588235293)
+2022-05-11 10:12:56,517	| 2439 Miscount detected. Average_rotation:170 Current_rotation:343 Counting_added:1
+2022-05-11 10:12:56,644	| (2537, 170, 0, 353, [1913, 1913, -1, -1], 2.0764705882352943)
+2022-05-11 10:12:56,644	| 2537 Miscount detected. Average_rotation:170 Current_rotation:353 Counting_added:1
+2022-05-11 10:12:56,980	| (2783, 170, 1, 344, [1915, 1913, -1, -1], 2.023529411764706)
+2022-05-11 10:12:56,980	| 2783 Miscount detected. Average_rotation:170 Current_rotation:344 Counting_added:1
+2022-05-11 10:12:57,108	| (2880, 170, 0, 343, [1915, 1915, -1, -1], 2.0176470588235293)
+2022-05-11 10:12:57,108	| 2880 Miscount detected. Average_rotation:170 Current_rotation:343 Counting_added:1
+2022-05-11 10:12:57,484	| (3127, 170, 1, 344, [1917, 1915, -1, -1], 2.023529411764706)
+2022-05-11 10:12:57,484	| 3127 Miscount detected. Average_rotation:170 Current_rotation:344 Counting_added:1
+2022-05-11 10:12:57,628	| (3217, 170, 0, 337, [1917, 1917, -1, -1], 1.9823529411764707)
+2022-05-11 10:12:57,628	| 3217 Miscount detected. Average_rotation:170 Current_rotation:337 Counting_added:1
+2022-05-11 10:12:58,036	| (3465, 170, 1, 338, [1919, 1917, -1, -1], 1.988235294117647)
+2022-05-11 10:12:58,036	| 3465 Miscount detected. Average_rotation:170 Current_rotation:338 Counting_added:1
+2022-05-11 10:12:58,163	| (3557, 170, 0, 340, [1919, 1919, -1, -1], 2.0)
+2022-05-11 10:12:58,163	| 3557 Miscount detected. Average_rotation:170 Current_rotation:340 Counting_added:1
+2022-05-11 10:12:58,531	| (3810, 170, 1, 345, [1921, 1919, -1, -1], 2.0294117647058822)
+2022-05-11 10:12:58,531	| 3810 Miscount detected. Average_rotation:170 Current_rotation:345 Counting_added:1
+2022-05-11 10:12:58,675	| (3897, 170, 0, 340, [1921, 1921, -1, -1], 2.0)
+2022-05-11 10:12:58,675	| 3897 Miscount detected. Average_rotation:170 Current_rotation:340 Counting_added:1
+2022-05-11 10:12:59,051	| (4152, 170, 1, 342, [1923, 1921, -1, -1], 2.011764705882353)
+2022-05-11 10:12:59,051	| 4152 Miscount detected. Average_rotation:170 Current_rotation:342 Counting_added:1
+2022-05-11 10:12:59,187	| (4244, 170, 0, 347, [1923, 1923, -1, -1], 2.041176470588235)
+2022-05-11 10:12:59,187	| 4244 Miscount detected. Average_rotation:170 Current_rotation:347 Counting_added:1
+2022-05-11 10:12:59,554	| (4500, 170, 1, 348, [1925, 1923, -1, -1], 2.0470588235294116)
+2022-05-11 10:12:59,554	| 4500 Miscount detected. Average_rotation:170 Current_rotation:348 Counting_added:1
+2022-05-11 10:12:59,690	| (4589, 170, 0, 345, [1925, 1925, -1, -1], 2.0294117647058822)
+2022-05-11 10:12:59,690	| 4589 Miscount detected. Average_rotation:170 Current_rotation:345 Counting_added:1
+2022-05-11 10:13:00,066	| (4847, 170, 1, 347, [1927, 1925, -1, -1], 2.041176470588235)
+2022-05-11 10:13:00,066	| 4847 Miscount detected. Average_rotation:170 Current_rotation:347 Counting_added:1
+2022-05-11 10:13:00,178	| (4935, 170, 0, 346, [1927, 1927, -1, -1], 2.0352941176470587)
+2022-05-11 10:13:00,178	| 4935 Miscount detected. Average_rotation:170 Current_rotation:346 Counting_added:1
+2022-05-11 10:13:00,563	| (5188, 170, 1, 341, [1929, 1927, -1, -1], 2.0058823529411764)
+2022-05-11 10:13:00,564	| 5188 Miscount detected. Average_rotation:170 Current_rotation:341 Counting_added:1
+2022-05-11 10:13:00,710	| (5285, 170, 0, 350, [1929, 1929, -1, -1], 2.0588235294117645)
+2022-05-11 10:13:00,710	| 5285 Miscount detected. Average_rotation:170 Current_rotation:350 Counting_added:1
+2022-05-11 10:13:01,079	| (5535, 170, 1, 347, [1931, 1929, -1, -1], 2.041176470588235)
+2022-05-11 10:13:01,079	| 5535 Miscount detected. Average_rotation:170 Current_rotation:347 Counting_added:1
+2022-05-11 10:13:01,214	| (5624, 170, 0, 339, [1931, 1931, -1, -1], 1.9941176470588236)
+2022-05-11 10:13:01,215	| 5624 Miscount detected. Average_rotation:170 Current_rotation:339 Counting_added:1
+2022-05-11 10:13:01,574	| (5875, 170, 1, 340, [1933, 1931, -1, -1], 2.0)
+2022-05-11 10:13:01,574	| 5875 Miscount detected. Average_rotation:170 Current_rotation:340 Counting_added:1
+2022-05-11 10:13:01,709	| (5968, 170, 0, 344, [1933, 1933, -1, -1], 2.023529411764706)
+2022-05-11 10:13:01,710	| 5968 Miscount detected. Average_rotation:170 Current_rotation:344 Counting_added:1
+2022-05-11 10:13:01,831	| https://tg-iot-aivc-r1.azure-devices.net/devices/AIVC-Master-01/messages/events?api-version=2018-06-30 | IotHubData[-12:]=>[{'StartDateTime': '2022-05-11T10:00:00.039290', 'EndDateTime': '2022-05-11T10:13:01.831313', 'UTCDateTime': '2022-05-11T02:13:01.831313', 'Mode': 1, 'Plant': 'F32', 'ProductionLine': 'L11', 'ProductionLineStatus': 'Running', 'CarrierSet': 999, 'ProductionLineRow': 'Left In', 'Class_Value_JSON': {'Good Glove': 1500, 'Produced Glove': 1517, 'Empty Link': 10, 'Cuff TR': 1, 'No beading ': 1, 'Palm TR': 1, 'Unstripped': 6, 'No glove ': 2, 'Functional': 0, 'Others': 6}}, {'StartDateTime': '2022-05-11T10:00:00.039290', 'EndDateTime': '2022-05-11T10:13:01.831313', 'UTCDateTime': '2022-05-11T02:13:01.831313', 'Mode': 1, 'Plant': 'F32', 'ProductionLine': 'L11', 'ProductionLineStatus': 'Running', 'CarrierSet': 999, 'ProductionLineRow': 'Right In', 'Class_Value_JSON': {'Good Glove': 1504, 'Produced Glove': 1512, 'Empty Link': 17, 'Cuff TR': 3, 'No beading ': 0, 'Palm TR': 0, 'Unstripped': 1, 'No glove ': 2, 'Functional': 0, 'Others': 2}}, {'StartDateTime': '2022-05-11T10:00:00.039290', 'EndDateTime': '2022-05-11T10:13:01.831313', 'UTCDateTime': '2022-05-11T02:13:01.831313', 'Mode': 1, 'Plant': 'F32', 'ProductionLine': 'L11', 'ProductionLineStatus': 'Running', 'CarrierSet': 999, 'ProductionLineRow': 'Left Out', 'Class_Value_JSON': {'Good Glove': 1499, 'Produced Glove': 1514, 'Empty Link': 14, 'Cuff TR': 0, 'No beading ': 0, 'Palm TR': 1, 'Unstripped': 7, 'No glove ': 0, 'Functional': 0, 'Others': 7}}, {'StartDateTime': '2022-05-11T10:00:00.039290', 'EndDateTime': '2022-05-11T10:13:01.831313', 'UTCDateTime': '2022-05-11T02:13:01.831313', 'Mode': 1, 'Plant': 'F32', 'ProductionLine': 'L11', 'ProductionLineStatus': 'Running', 'CarrierSet': 999, 'ProductionLineRow': 'Right Out', 'Class_Value_JSON': {'Good Glove': 1495, 'Produced Glove': 1514, 'Empty Link': 14, 'Cuff TR': 2, 'No beading ': 0, 'Palm TR': 0, 'Unstripped': 7, 'No glove ': 3, 'Functional': 0, 'Others': 7}}]
+2022-05-11 10:13:02,008	| <Response [204]>

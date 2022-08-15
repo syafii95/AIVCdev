@@ -1,0 +1,573 @@
+2022-01-19 16:05:47,891	| User tan_ser_yee [8] Logged In
+2022-01-19 16:08:47,677	| Config Changed | PURGER_SENSOR: [1, 0, 1, 1]
+2022-01-19 16:08:48,140	| Config Changed | PURGER_SENSOR: [1, 0, 1, 0]
+2022-01-19 16:13:58,416	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-01-19 16:13:59,326	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-01-19 16:20:55,991	| User tan_ser_yee [8] Logged Out
+2022-01-19 16:24:09,029	| User user1 [1] Logged In
+2022-01-19 16:32:12,131	| User tan_ser_yee [8] Logged In
+2022-01-19 16:47:21,745	| User tan_ser_yee [8] Logged Out
+2022-01-19 16:50:34,916	| User tan_ser_yee [8] Logged In
+2022-01-19 16:51:22,588	| User tan_ser_yee [8] Logged Out
+2022-01-19 16:52:22,423	| User user1 [1] Logged In
+2022-01-19 16:55:34,784	| User user1 [1] Logged Out
+2022-01-19 16:58:06,768	| User tan_ser_yee [8] Logged In
+2022-01-19 16:58:26,564	| User tan_ser_yee [8] Logged Out
+2022-01-20 09:49:25,734	| User tan_ser_yee [8] Logged In
+2022-01-20 10:04:28,359	| User tan_ser_yee [8] Logged Out
+2022-01-20 17:54:04,967	| User tan_ser_yee [8] Logged In
+2022-01-20 17:54:27,125	| User tan_ser_yee [8] Logged Out
+2022-01-21 09:06:59,724	| User nuraiman [7] Logged In
+2022-01-21 09:18:13,403	| Config Changed | PERI_DISTANCE: [[10, 10, 10, 145], [15, 14, 14, 14], [3, 7, 7, 3], [10, 10, 10, 88]]
+2022-01-21 09:22:03,874	| User nuraiman [7] Logged Out
+2022-01-21 09:22:16,807	| User nuraiman [7] Logged In
+2022-01-21 09:26:38,186	| Config Changed | PERI_DISTANCE: [[10, 10, 10, 145], [15, 14, 14, 14], [3, 7, 7, 3], [10, 10, 10, 88]]
+2022-01-21 09:26:40,543	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-01-21 09:26:40,918	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-01-21 09:37:24,055	| User nuraiman [7] Logged Out
+2022-01-21 09:38:09,063	| User nuraiman [7] Logged In
+2022-01-21 09:38:13,183	| Config Changed | PERI_CLASS: [16, 30, 14, 0]
+2022-01-21 09:38:17,718	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-01-21 09:38:17,910	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-01-21 09:52:34,740	| Config Changed | PERI_CLASS: [0, 30, 14, 0]
+2022-01-21 09:53:14,299	| User nuraiman [7] Logged Out
+2022-01-21 14:44:38,470	| User tan_ser_yee [8] Logged In
+2022-01-21 14:44:43,898	| User tan_ser_yee [8] Logged Out
+2022-01-21 14:44:51,017	| User tan_ser_yee [8] Logged In
+2022-01-21 14:45:01,114	| User tan_ser_yee [8] Logged Out
+2022-01-21 16:08:17,022	| User nuraiman [7] Logged In
+2022-01-21 16:16:26,066	| User nuraiman [7] Logged Out
+2022-01-22 13:37:04,815	| User nuraiman [7] Logged In
+2022-01-22 13:37:22,284	| Config Changed | CLASS_TO_DISPOSE: 4
+2022-01-22 13:37:22,375	| Config Changed | CLASS_TO_DISPOSE: 0
+2022-01-22 13:46:39,699	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-01-22 13:46:40,363	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-01-22 13:52:11,880	| User nuraiman [7] Logged Out
+2022-01-24 08:13:32,604	| User nuraiman [7] Logged In
+2022-01-24 08:19:31,596	| User nuraiman [7] Logged Out
+2022-01-24 08:22:00,587	| User nuraiman [7] Logged In
+2022-01-24 08:26:05,131	| Config Changed | PERI_CLASS: [0, 286, 14, 0]
+2022-01-24 08:26:14,835	| Config Changed | PERI_DISTANCE: [[10, 10, 10, 145], [15, 14, 14, 14], [3, 7, 7, 3], [10, 10, 10, 88]]
+2022-01-24 08:26:15,232	| Config Changed | PERI_DISTANCE: [[10, 10, 10, 145], [15, 14, 14, 14], [3, 7, 7, 3], [10, 10, 10, 88]]
+2022-01-24 08:26:17,707	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-01-24 08:26:18,283	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-01-24 08:37:08,704	| User nuraiman [7] Logged Out
+2022-01-24 08:42:16,037	| User nuraiman [7] Logged In
+2022-01-24 08:47:58,594	| Config Changed | PERI_DISTANCE: [[10, 10, 10, 144], [15, 14, 14, 14], [3, 7, 7, 3], [10, 10, 10, 88]]
+2022-01-24 08:48:13,451	| Config Changed | PERI_DISTANCE: [[144, 10, 10, 144], [15, 14, 14, 14], [3, 7, 7, 3], [10, 10, 10, 88]]
+2022-01-24 08:48:14,170	| Config Changed | PERI_DISTANCE: [[144, 144, 10, 144], [15, 14, 14, 14], [3, 7, 7, 3], [10, 10, 10, 88]]
+2022-01-24 08:48:14,771	| Config Changed | PERI_DISTANCE: [[144, 144, 144, 144], [15, 14, 14, 14], [3, 7, 7, 3], [10, 10, 10, 88]]
+2022-01-24 08:48:15,324	| Config Changed | PERI_DISTANCE: [[144, 144, 144, 144], [15, 14, 14, 14], [3, 7, 7, 3], [10, 10, 10, 88]]
+2022-01-24 08:48:17,201	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-01-24 08:48:18,474	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-01-24 08:53:30,318	| Config Changed | PERI_CLASS: [0, 286, 270, 0]
+2022-01-24 08:56:46,373	| Config Changed | PERI_CLASS: [0, 286, 14, 0]
+2022-01-24 08:57:18,902	| User nuraiman [7] Logged Out
+2022-01-24 09:04:50,334	| User nuraiman [7] Logged In
+2022-01-24 09:19:49,367	| User nuraiman [7] Logged Out
+2022-01-25 08:16:12,109	| User nuraiman [7] Logged In
+2022-01-25 08:23:36,244	| User nuraiman [7] Logged Out
+2022-01-25 08:40:27,814	| User nuraiman [7] Logged In
+2022-01-25 08:40:38,078	| Config Changed | PERI_CLASS: [0, 286, 270, 0]
+2022-01-25 08:45:51,967	| Config Changed | PERI_CLASS: [16, 286, 270, 0]
+2022-01-25 08:45:54,056	| Config Changed | PERI_CLASS: [272, 286, 270, 0]
+2022-01-25 08:55:34,567	| User nuraiman [7] Logged Out
+2022-01-25 08:55:55,648	| User nuraiman [7] Logged In
+2022-01-25 08:56:00,390	| Config Changed | PERI_CLASS: [272, 284, 270, 0]
+2022-01-25 08:56:01,355	| Config Changed | PERI_CLASS: [272, 280, 270, 0]
+2022-01-25 08:56:02,238	| Config Changed | PERI_CLASS: [272, 272, 270, 0]
+2022-01-25 08:56:03,192	| Config Changed | PERI_CLASS: [272, 256, 270, 0]
+2022-01-25 08:56:04,061	| Config Changed | PERI_CLASS: [272, 0, 270, 0]
+2022-01-25 09:11:04,698	| User nuraiman [7] Logged Out
+2022-01-25 11:58:45,898	| User nuraiman [7] Logged In
+2022-01-25 12:13:47,456	| User nuraiman [7] Logged Out
+2022-01-25 18:03:15,616	| User nuraiman [7] Logged In
+2022-01-25 18:03:19,222	| Config Changed | PERI_CLASS: [272, 0, 14, 0]
+2022-01-25 18:03:20,316	| Config Changed | PERI_CLASS: [272, 16, 14, 0]
+2022-01-25 18:03:20,702	| Config Changed | PERI_CLASS: [272, 272, 14, 0]
+2022-01-25 18:03:22,258	| Config Changed | PERI_CLASS: [16, 272, 14, 0]
+2022-01-25 18:03:22,697	| Config Changed | PERI_CLASS: [0, 272, 14, 0]
+2022-01-25 18:03:41,167	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-01-25 18:18:19,413	| User nuraiman [7] Logged Out
+2022-01-27 08:34:49,033	| User nuraiman [7] Logged In
+2022-01-27 08:49:42,138	| User nuraiman [7] Logged Out
+2022-01-27 08:59:07,186	| User nuraiman [7] Logged In
+2022-01-27 09:00:29,912	| Config Changed | PERI_CLASS: [0, 272, 30, 0]
+2022-01-27 09:00:30,318	| Config Changed | PERI_CLASS: [0, 272, 14, 0]
+2022-01-27 09:00:33,371	| Config Changed | PERI_CLASS: [0, 272, 30, 0]
+2022-01-27 09:01:23,140	| Config Changed | PERI_CLASS: [0, 272, 14, 0]
+2022-01-27 09:14:14,843	| User nuraiman [7] Logged Out
+2022-01-27 11:02:39,544	| User nuraiman [7] Logged In
+2022-01-27 11:17:45,946	| User nuraiman [7] Logged Out
+2022-01-27 13:48:49,482	| User nuraiman [7] Logged In
+2022-01-27 13:48:58,303	| Config Changed | PERI_CLASS: [16, 272, 14, 0]
+2022-01-27 13:49:08,193	| Config Changed | PERI_CLASS: [16, 256, 14, 0]
+2022-01-27 13:49:16,880	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-01-27 13:49:17,032	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-01-27 13:49:17,336	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-01-27 13:49:17,496	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-01-27 13:49:17,633	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-01-27 13:49:17,784	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-01-27 13:49:17,960	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-01-27 13:49:18,104	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-01-27 13:49:21,273	| User nuraiman [7] Logged Out
+2022-01-27 14:25:22,058	| User nuraiman [7] Logged In
+2022-01-27 14:25:30,285	| Config Changed | PERI_CLASS: [16, 256, 30, 0]
+2022-01-27 14:25:41,941	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-01-27 14:25:42,285	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-01-27 14:25:42,438	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-01-27 14:25:43,396	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-01-27 14:25:45,846	| User nuraiman [7] Logged Out
+2022-01-27 18:17:47,033	| User mohd_anas [7] Logged In
+2022-01-27 18:17:56,100	| Config Changed | PERI_CLASS: [0, 256, 30, 0]
+2022-01-27 18:18:07,148	| Config Changed | PERI_CLASS: [0, 272, 30, 0]
+2022-01-27 18:18:20,566	| Config Changed | PERI_DISTANCE: [[144, 144, 144, 144], [15, 14, 14, 14], [3, 7, 7, 3], [10, 10, 10, 88]]
+2022-01-27 18:18:25,109	| User mohd_anas [7] Logged Out
+2022-01-27 22:10:01,051	| User maminuddin [7] Logged In
+2022-01-27 22:10:14,883	| Config Changed | PERI_CLASS: [0, 272, 14, 0]
+2022-01-27 22:10:26,856	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-01-27 22:10:28,471	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-01-27 22:10:40,942	| User maminuddin [7] Logged Out
+2022-01-28 08:40:51,625	| User maminuddin [7] Logged In
+2022-01-28 08:41:54,931	| User maminuddin [7] Logged Out
+2022-01-28 08:47:56,826	| User maminuddin [7] Logged In
+2022-01-28 08:48:09,132	| User maminuddin [7] Logged Out
+2022-01-28 16:11:50,338	| User maminuddin [7] Logged In
+2022-01-28 16:12:04,994	| User maminuddin [7] Logged Out
+2022-02-03 08:22:49,702	| User maminuddin [7] Logged In
+2022-02-03 08:23:03,250	| User maminuddin [7] Logged Out
+2022-02-04 09:56:06,032	| User nuraiman [7] Logged In
+2022-02-04 09:56:18,442	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-04 09:56:18,603	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-04 09:56:18,762	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-04 09:56:18,922	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-04 09:56:19,067	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-04 09:56:19,218	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-04 09:56:19,386	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-04 09:56:19,570	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-04 09:56:49,579	| User nuraiman [7] Logged Out
+2022-02-04 15:08:06,027	| User nuraiman [7] Logged In
+2022-02-04 15:23:16,654	| User nuraiman [7] Logged Out
+2022-02-04 15:44:54,535	| User nuraiman [7] Logged In
+2022-02-04 15:45:27,627	| Config Changed | PERI_CLASS: [0, 256, 14, 0]
+2022-02-04 15:45:31,235	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-04 15:45:31,392	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-04 15:45:31,540	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-04 15:45:31,700	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-04 15:45:32,492	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-04 15:47:35,412	| User nuraiman [7] Logged Out
+2022-02-04 16:53:23,677	| User mohd_anas [7] Logged In
+2022-02-04 16:53:32,889	| Config Changed | PERI_CLASS: [0, 272, 14, 0]
+2022-02-04 16:54:06,058	| User mohd_anas [7] Logged Out
+2022-02-07 15:19:08,805	| User maminuddin [7] Logged In
+2022-02-07 15:19:16,224	| Config Changed | CONF_LEVEL_TO_PURGE: 0.85
+2022-02-07 15:19:28,102	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-07 15:19:34,598	| User maminuddin [7] Logged Out
+2022-02-08 09:47:00,379	| User maminuddin [7] Logged In
+2022-02-08 09:47:10,976	| User maminuddin [7] Logged Out
+2022-02-08 15:55:03,547	| User nuraiman [7] Logged In
+2022-02-08 15:57:21,587	| Config Changed | PERI_CLASS: [0, 256, 14, 0]
+2022-02-08 15:57:23,350	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-08 15:57:23,495	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-08 15:57:23,650	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-08 15:57:23,803	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-08 16:10:07,496	| User nuraiman [7] Logged Out
+2022-02-08 16:36:47,007	| User nuraiman [7] Logged In
+2022-02-08 16:36:49,671	| Config Changed | ENABLE_PERIPHERAL: [False, True, True, True]
+2022-02-08 16:36:50,347	| Config Changed | ENABLE_PERIPHERAL: [False, False, True, True]
+2022-02-08 16:36:51,224	| Config Changed | ENABLE_PERIPHERAL: [False, False, True, False]
+2022-02-08 16:36:51,776	| Config Changed | ENABLE_PERIPHERAL: [False, False, False, False]
+2022-02-08 16:36:52,714	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-08 16:36:53,024	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-08 16:36:53,184	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-08 16:36:54,024	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-08 16:39:20,962	| Config Changed | ENABLE_PERIPHERAL: [True, False, False, False]
+2022-02-08 16:39:21,536	| Config Changed | ENABLE_PERIPHERAL: [True, True, False, False]
+2022-02-08 16:39:22,257	| Config Changed | ENABLE_PERIPHERAL: [True, True, True, False]
+2022-02-08 16:39:22,880	| Config Changed | ENABLE_PERIPHERAL: [True, True, True, True]
+2022-02-08 16:39:23,833	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-08 16:39:23,994	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-08 16:39:24,432	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-08 16:51:47,985	| User nuraiman [7] Logged Out
+2022-02-08 17:39:15,698	| User nuraiman [7] Logged In
+2022-02-08 17:39:35,443	| Config Changed | ENABLE_PERIPHERAL: [False, True, True, True]
+2022-02-08 17:39:36,123	| Config Changed | ENABLE_PERIPHERAL: [False, False, True, True]
+2022-02-08 17:39:36,773	| Config Changed | ENABLE_PERIPHERAL: [False, False, True, False]
+2022-02-08 17:39:37,563	| Config Changed | ENABLE_PERIPHERAL: [False, False, False, False]
+2022-02-08 17:39:38,339	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-08 17:43:12,517	| Config Changed | ENABLE_PERIPHERAL: [True, False, False, False]
+2022-02-08 17:43:14,388	| Config Changed | ENABLE_PERIPHERAL: [True, True, False, False]
+2022-02-08 17:43:15,070	| Config Changed | ENABLE_PERIPHERAL: [True, True, True, False]
+2022-02-08 17:43:15,546	| Config Changed | ENABLE_PERIPHERAL: [True, True, True, True]
+2022-02-08 17:43:16,404	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-08 17:43:16,590	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-08 17:43:16,741	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-08 17:43:17,181	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-08 17:43:26,894	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-08 17:43:27,062	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-08 17:43:27,244	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-08 17:43:28,052	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-08 17:54:18,319	| User nuraiman [7] Logged Out
+2022-02-08 19:58:35,041	| User nuraiman [7] Logged In
+2022-02-08 19:58:40,606	| Config Changed | PERI_CLASS: [0, 272, 14, 0]
+2022-02-08 19:58:44,543	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-08 19:58:44,703	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-08 19:58:44,891	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-08 19:58:45,583	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-08 19:58:48,206	| User nuraiman [7] Logged Out
+2022-02-10 02:25:00,885	| User user1 [1] Logged In
+2022-02-10 02:40:07,541	| User user1 [1] Logged Out
+2022-02-10 04:39:17,687	| User user1 [1] Logged In
+2022-02-10 04:54:21,790	| User user1 [1] Logged Out
+2022-02-10 19:58:40,267	| User user1 [1] Logged In
+2022-02-10 19:58:50,361	| Config Changed | ENABLE_FORMER_MARKING: False
+2022-02-10 19:58:51,938	| Config Changed | ENABLE_FORMER_MARKING: False
+2022-02-10 19:59:01,574	| Config Changed | ENABLE_FORMER_MARKING: False
+2022-02-10 20:01:10,686	| User user1 [1] Logged Out
+2022-02-10 20:01:32,000	| User user1 [1] Logged In
+2022-02-10 20:01:39,644	| Config Changed | ENABLE_FORMER_MARKING: True
+2022-02-10 20:01:43,861	| Config Changed | ENABLE_FORMER_MARKING: False
+2022-02-10 20:02:43,237	| Config Changed | FORMER_MARKING_DISTANCE: [10, 11, 10, 10]
+2022-02-10 20:16:37,521	| User user1 [1] Logged Out
+2022-02-11 08:56:14,140	| User user1 [1] Logged In
+2022-02-11 10:04:48,430	| User user1 [1] Logged In
+2022-02-11 10:19:48,850	| User user1 [1] Logged Out
+2022-02-11 14:52:33,817	| User maminuddin [7] Logged In
+2022-02-11 14:53:20,504	| User maminuddin [7] Logged Out
+2022-02-11 14:58:12,161	| User nuraiman [7] Logged In
+2022-02-11 14:58:17,078	| Config Changed | PERI_CLASS: [0, 256, 14, 0]
+2022-02-11 14:58:19,557	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-11 14:58:19,731	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-11 14:58:19,888	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-11 14:58:20,075	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-11 14:58:21,047	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-11 15:13:20,935	| User nuraiman [7] Logged Out
+2022-02-11 17:00:53,293	| User nuraiman [7] Logged In
+2022-02-11 17:02:17,833	| Config Changed | ENABLE_PERIPHERAL: [True, False, True, True]
+2022-02-11 17:02:18,929	| Config Changed | ENABLE_PERIPHERAL: [True, False, True, False]
+2022-02-11 17:02:19,585	| Config Changed | ENABLE_PERIPHERAL: [True, False, False, False]
+2022-02-11 17:02:20,424	| Config Changed | ENABLE_PERIPHERAL: [False, False, False, False]
+2022-02-11 17:02:21,356	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-11 17:02:21,539	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-11 17:02:21,663	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-11 17:02:21,833	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-11 17:02:22,029	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-11 17:15:47,050	| Config Changed | ENABLE_PERIPHERAL: [True, False, False, False]
+2022-02-11 17:15:48,707	| Config Changed | ENABLE_PERIPHERAL: [True, True, False, False]
+2022-02-11 17:15:50,257	| Config Changed | ENABLE_PERIPHERAL: [True, True, False, True]
+2022-02-11 17:15:52,297	| Config Changed | ENABLE_PERIPHERAL: [True, True, True, True]
+2022-02-11 17:15:56,972	| User nuraiman [7] Logged Out
+2022-02-11 17:16:11,826	| User nuraiman [7] Logged In
+2022-02-11 17:16:18,929	| Config Changed | PERI_CLASS: [0, 272, 14, 0]
+2022-02-11 17:16:23,312	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-11 17:16:23,468	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-11 17:16:23,656	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-11 17:16:23,825	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-11 17:16:29,601	| User nuraiman [7] Logged Out
+2022-02-16 07:49:57,625	| User amirul_iman [7] Logged In
+2022-02-16 08:04:58,255	| User amirul_iman [7] Logged Out
+2022-02-17 16:24:47,059	| User mohd_anas [7] Logged In
+2022-02-17 16:24:56,088	| Config Changed | PERI_CLASS: [0, 256, 14, 0]
+2022-02-17 16:25:00,120	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-17 16:25:21,378	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-17 16:25:45,513	| User mohd_anas [7] Logged Out
+2022-02-17 18:03:58,783	| User user1 [1] Logged In
+2022-02-17 18:04:10,033	| Config Changed | ENABLE_FORMER_MARKING: True
+2022-02-17 18:04:10,203	| Config Changed | ENABLE_FORMER_MARKING: False
+2022-02-17 18:06:48,144	| User user1 [1] Logged Out
+2022-02-17 18:07:26,737	| User user1 [1] Logged In
+2022-02-17 18:18:16,220	| User user1 [1] Logged Out
+2022-02-17 18:21:26,971	| User user1 [1] Logged In
+2022-02-17 18:36:32,114	| User user1 [1] Logged Out
+2022-02-21 11:15:08,485	| User maminuddin [7] Logged In
+2022-02-21 11:15:14,989	| Config Changed | PERI_CLASS: [0, 272, 14, 0]
+2022-02-21 11:15:18,541	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-21 11:15:19,288	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-02-21 11:15:21,712	| User maminuddin [7] Logged Out
+2022-02-28 09:45:01,896	| User maminuddin [7] Logged In
+2022-02-28 09:45:12,042	| Config Changed | CAM_SENSOR_ALL: [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [2, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+2022-02-28 09:45:12,764	| Config Changed | CAM_SENSOR_ALL: [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+2022-02-28 09:45:12,951	| Config Changed | CAM_SENSOR_ALL: [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+2022-02-28 09:45:14,814	| Config Changed | CAM_SENSOR_ALL: [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+2022-02-28 09:45:17,345	| Config Changed | CAM_SENSOR_ALL: [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+2022-02-28 09:45:21,093	| Config Changed | CAM_SENSOR_ALL: [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+2022-02-28 09:56:43,222	| User maminuddin [7] Logged Out
+2022-02-28 10:45:11,035	| User maminuddin [7] Logged In
+2022-02-28 10:45:32,923	| User maminuddin [7] Logged Out
+2022-02-28 17:16:47,726	| User user1 [1] Logged In
+2022-02-28 17:31:49,904	| User user1 [1] Logged Out
+2022-03-02 09:29:01,941	| User mohd_anas [7] Logged In
+2022-03-02 09:29:07,509	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-03-02 09:39:04,900	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-03-02 09:40:40,737	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-03-02 09:40:41,250	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-03-02 09:44:10,052	| User mohd_anas [7] Logged Out
+2022-03-02 09:44:59,846	| User mohd_anas [7] Logged In
+2022-03-02 10:00:00,137	| User mohd_anas [7] Logged Out
+2022-03-02 10:00:44,254	| User nuraiman [7] Logged In
+2022-03-02 10:00:51,024	| Config Changed | PERI_CLASS: [0, 256, 14, 0]
+2022-03-02 10:00:53,742	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-03-02 10:00:53,900	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-03-02 10:00:54,045	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-03-02 10:00:54,213	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-03-02 10:00:54,898	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-03-02 10:00:58,317	| User nuraiman [7] Logged Out
+2022-03-02 11:15:47,514	| User mohd_anas [7] Logged In
+2022-03-02 11:16:52,552	| Config Changed | PERI_CLASS: [0, 256, 14, 2]
+2022-03-02 11:16:56,330	| Config Changed | PERI_DISTANCE: [[144, 144, 144, 144], [15, 14, 14, 14], [3, 7, 7, 3], [10, 10, 10, 88]]
+2022-03-02 11:24:41,025	| Config Changed | PERI_DISTANCE: [[144, 144, 144, 144], [15, 14, 14, 14], [3, 7, 7, 3], [10, 10, 10, 88]]
+2022-03-02 11:24:45,035	| Config Changed | PERI_CLASS: [0, 256, 14, 0]
+2022-03-02 11:24:51,357	| Config Changed | PERI_DISTANCE: [[144, 144, 144, 144], [15, 14, 14, 14], [3, 7, 7, 3], [10, 10, 10, 88]]
+2022-03-02 11:28:31,239	| Config Changed | PERI_CLASS: [0, 272, 14, 0]
+2022-03-02 11:28:33,567	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-03-02 11:28:33,734	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-03-02 11:28:33,902	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-03-02 11:30:50,386	| User mohd_anas [7] Logged Out
+2022-03-02 15:10:06,823	| User mohd_anas [7] Logged In
+2022-03-02 15:10:11,722	| Config Changed | PERI_CLASS: [0, 272, 14, 2]
+2022-03-02 15:10:12,959	| Config Changed | PERI_CLASS: [0, 272, 14, 6]
+2022-03-02 15:10:13,876	| Config Changed | PERI_CLASS: [0, 272, 14, 14]
+2022-03-02 15:10:15,340	| Config Changed | PERI_DISTANCE: [[144, 144, 144, 144], [15, 14, 14, 14], [3, 7, 7, 3], [10, 10, 10, 88]]
+2022-03-02 15:11:59,920	| Config Changed | PERI_CLASS: [0, 256, 14, 14]
+2022-03-02 15:14:51,027	| Config Changed | PERI_DISTANCE: [[144, 144, 144, 144], [15, 14, 14, 14], [3, 7, 7, 3], [10, 10, 10, 88]]
+2022-03-02 15:15:18,206	| Config Changed | PERI_CLASS: [0, 272, 14, 14]
+2022-03-02 15:15:18,376	| Config Changed | PERI_CLASS: [0, 256, 14, 14]
+2022-03-02 15:15:28,738	| Config Changed | PERI_DISTANCE: [[144, 144, 144, 144], [15, 14, 14, 14], [3, 7, 7, 3], [10, 10, 10, 88]]
+2022-03-02 15:25:11,481	| User mohd_anas [7] Logged Out
+2022-03-02 16:41:32,445	| User nuraiman [7] Logged In
+2022-03-02 16:41:37,727	| Config Changed | PERI_CLASS: [0, 272, 14, 14]
+2022-03-02 16:41:41,880	| User nuraiman [7] Logged Out
+2022-03-03 18:02:27,576	| User amirul_iman [7] Logged In
+2022-03-03 18:03:00,362	| User amirul_iman [7] Logged Out
+2022-03-07 09:33:56,793	| User user1 [1] Logged In
+2022-03-07 09:48:59,993	| User user1 [1] Logged Out
+2022-03-07 11:17:17,068	| User user1 [1] Logged In
+2022-03-07 11:32:21,435	| User user1 [1] Logged Out
+2022-03-07 11:41:00,037	| User user1 [1] Logged In
+2022-03-07 11:56:01,655	| User user1 [1] Logged Out
+2022-03-08 09:12:14,514	| User nuraiman [7] Logged In
+2022-03-08 09:27:18,582	| User nuraiman [7] Logged Out
+2022-03-08 16:45:02,049	| User tan_ser_yee [8] Logged In
+2022-03-08 17:00:04,084	| User tan_ser_yee [8] Logged Out
+2022-03-10 14:48:26,501	| User tan_ser_yee [8] Logged In
+2022-03-10 14:59:10,892	| User tan_ser_yee [8] Logged Out
+2022-03-10 15:00:05,991	| User user1 [1] Logged In
+2022-03-10 15:06:44,604	| User user1 [1] Logged Out
+2022-03-10 15:07:13,825	| User user1 [1] Logged In
+2022-03-10 15:18:00,049	| User user1 [1] Logged Out
+2022-03-10 15:18:29,428	| User user1 [1] Logged In
+2022-03-10 15:33:37,990	| User user1 [1] Logged Out
+2022-03-10 15:42:42,805	| User user1 [1] Logged In
+2022-03-10 15:57:48,031	| User user1 [1] Logged Out
+2022-03-15 17:28:59,217	| User mohd_anas [7] Logged In
+2022-03-15 17:29:23,654	| Config Changed | PERI_CLASS: [0, 272, 14, 12]
+2022-03-15 17:29:24,229	| Config Changed | PERI_CLASS: [0, 272, 14, 8]
+2022-03-15 17:29:25,157	| Config Changed | PERI_CLASS: [0, 272, 14, 0]
+2022-03-15 17:29:26,507	| Config Changed | PERI_DISTANCE: [[144, 144, 144, 144], [15, 14, 14, 14], [3, 7, 7, 3], [10, 10, 10, 88]]
+2022-03-15 17:29:52,624	| User mohd_anas [7] Logged Out
+2022-03-16 10:34:58,909	| User mohd_anas [7] Logged In
+2022-03-16 10:49:59,733	| User mohd_anas [7] Logged Out
+2022-03-17 16:19:59,671	| User amirul_iman [7] Logged In
+2022-03-17 16:20:19,416	| User amirul_iman [7] Logged Out
+2022-03-17 22:04:22,132	| User amirul_iman [7] Logged In
+2022-03-17 22:04:54,668	| Config Changed | PERI_CLASS: [0, 256, 14, 0]
+2022-03-17 22:04:58,607	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-03-17 22:04:58,780	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-03-17 22:04:58,964	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-03-17 22:04:59,606	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-03-17 22:05:03,806	| User amirul_iman [7] Logged Out
+2022-03-17 22:08:16,754	| User amirul_iman [7] Logged In
+2022-03-17 22:08:21,134	| Config Changed | PERI_CLASS: [0, 272, 14, 0]
+2022-03-17 22:08:25,237	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-03-17 22:08:25,439	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-03-17 22:08:25,614	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-03-17 22:08:26,230	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-03-17 22:08:29,342	| User amirul_iman [7] Logged Out
+2022-03-20 10:21:52,723	| User maminuddin [7] Logged In
+2022-03-20 10:22:11,204	| User maminuddin [7] Logged Out
+2022-03-22 10:07:22,333	| User nuraiman [7] Logged In
+2022-03-22 10:07:52,150	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-03-22 10:07:52,383	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-03-22 10:07:52,530	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-03-22 10:07:52,711	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-03-22 10:07:52,887	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-03-22 10:07:53,089	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-03-22 10:07:53,290	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-03-22 10:07:53,474	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-03-22 10:07:53,658	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-03-22 10:07:53,859	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-03-22 10:07:54,059	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-03-22 10:07:54,274	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-03-22 10:07:55,397	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-03-22 10:22:30,361	| User nuraiman [7] Logged Out
+2022-03-22 10:58:02,982	| User nuraiman [7] Logged In
+2022-03-22 10:58:42,322	| Config Changed | ENABLE_FORMER_MARKING: True
+2022-03-22 10:58:52,907	| Config Changed | ENABLE_FORMER_MARKING: False
+2022-03-22 10:58:59,507	| User nuraiman [7] Logged Out
+2022-03-23 11:46:56,786	| User nuraiman [7] Logged In
+2022-03-23 11:47:07,275	| User nuraiman [7] Logged Out
+2022-03-24 08:52:30,457	| User user1 [1] Logged In
+2022-03-24 08:52:35,971	| User user1 [1] Logged Out
+2022-03-24 08:52:39,088	| User user1 [1] Logged In
+2022-03-24 09:03:03,404	| User user1 [1] Logged Out
+2022-03-24 09:05:12,444	| User user1 [1] Logged In
+2022-03-24 09:09:13,660	| User user1 [1] Logged Out
+2022-03-24 09:09:36,447	| User user1 [1] Logged In
+2022-03-24 09:22:59,677	| User user1 [1] Logged In
+2022-03-24 09:23:03,602	| Config Changed | CHAIN_ANCHOR_OFFSET: [0, 0, 3, 0]
+2022-03-24 09:38:02,300	| User user1 [1] Logged Out
+2022-03-24 17:59:21,241	| User tan_ser_yee [8] Logged In
+2022-03-24 18:14:23,376	| User tan_ser_yee [8] Logged Out
+2022-03-29 14:33:37,654	| User nuraiman [7] Logged In
+2022-03-29 14:48:44,504	| User nuraiman [7] Logged Out
+2022-03-29 15:27:01,079	| User maminuddin [7] Logged In
+2022-03-29 15:27:16,995	| User maminuddin [7] Logged Out
+2022-04-01 15:27:07,407	| User nuraiman [7] Logged In
+2022-04-01 15:27:18,117	| Config Changed | PERI_DISTANCE: [[144, 144, 144, 144], [15, 14, 14, 14], [3, 7, 7, 3], [10, 10, 10, 88]]
+2022-04-01 15:27:18,309	| Config Changed | PERI_DISTANCE: [[144, 144, 144, 144], [15, 14, 14, 14], [3, 7, 7, 3], [10, 10, 10, 88]]
+2022-04-01 15:27:18,501	| Config Changed | PERI_DISTANCE: [[144, 144, 144, 144], [15, 14, 14, 14], [3, 7, 7, 3], [10, 10, 10, 88]]
+2022-04-01 15:27:18,669	| Config Changed | PERI_DISTANCE: [[144, 144, 144, 144], [15, 14, 14, 14], [3, 7, 7, 3], [10, 10, 10, 88]]
+2022-04-01 15:27:22,031	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-01 15:27:22,185	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-01 15:42:11,578	| User nuraiman [7] Logged Out
+2022-04-02 10:51:08,445	| User nuraiman [7] Logged In
+2022-04-02 10:51:13,999	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-02 10:51:14,205	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-02 10:51:14,393	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-02 10:51:14,622	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-02 10:51:14,816	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-02 10:51:15,026	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-02 10:51:15,193	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-02 10:51:15,392	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-02 10:51:15,572	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-02 10:51:23,878	| Config Changed | PERI_DISTANCE: [[144, 144, 144, 144], [15, 14, 14, 14], [3, 7, 7, 3], [10, 10, 10, 88]]
+2022-04-02 10:51:24,070	| Config Changed | PERI_DISTANCE: [[144, 144, 144, 144], [15, 14, 14, 14], [3, 7, 7, 3], [10, 10, 10, 88]]
+2022-04-02 10:51:24,302	| Config Changed | PERI_DISTANCE: [[144, 144, 144, 144], [15, 14, 14, 14], [3, 7, 7, 3], [10, 10, 10, 88]]
+2022-04-02 10:51:27,798	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-02 10:51:27,992	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-02 10:51:28,212	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-02 10:51:38,151	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-02 10:57:57,607	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-02 10:57:58,769	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-02 11:06:11,823	| User nuraiman [7] Logged Out
+2022-04-04 10:25:02,413	| User nuraiman [7] Logged In
+2022-04-04 10:25:48,751	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-04 10:25:48,927	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-04 10:25:49,098	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-04 10:25:49,290	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-04 10:25:49,422	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-04 10:25:49,611	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-04 10:33:09,720	| User nuraiman [7] Logged Out
+2022-04-04 11:23:00,637	| User maminuddin [7] Logged In
+2022-04-04 11:23:20,255	| User maminuddin [7] Logged Out
+2022-04-04 11:27:03,593	| User nuraiman [7] Logged In
+2022-04-04 11:27:50,028	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-04 11:27:51,096	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-04 11:29:48,594	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-04 11:29:49,549	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-04 11:42:05,791	| User nuraiman [7] Logged Out
+2022-04-04 11:43:11,850	| User nuraiman [7] Logged In
+2022-04-04 11:58:15,969	| User nuraiman [7] Logged Out
+2022-04-04 15:45:13,535	| User nuraiman [7] Logged In
+2022-04-04 16:00:16,065	| User nuraiman [7] Logged Out
+2022-04-12 15:26:27,629	| User maminuddin [7] Logged In
+2022-04-12 15:28:04,452	| User maminuddin [7] Logged Out
+2022-04-12 15:44:28,397	| Config Changed | PLC_CONFIG: [['D55', 'sss', 2], ['M298', 'TAC-ASM', False], ['M299', 'ASM rejection', False]]
+2022-04-19 11:09:17,599	| User nuraiman [7] Logged In
+2022-04-19 11:18:04,857	| Config Changed | ENABLE_PERIPHERAL: [True, True, True, False]
+2022-04-19 11:18:08,097	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-19 11:18:08,744	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-19 11:24:21,119	| User nuraiman [7] Logged Out
+2022-04-19 11:38:40,433	| User nuraiman [7] Logged In
+2022-04-19 11:53:41,126	| User nuraiman [7] Logged Out
+2022-04-19 14:00:02,618	| User nuraiman [7] Logged In
+2022-04-19 14:15:07,449	| User nuraiman [7] Logged Out
+2022-04-19 15:23:46,123	| User nuraiman [7] Logged In
+2022-04-19 15:27:28,170	| Config Changed | ENABLE_PERIPHERAL: [True, True, True, True]
+2022-04-19 15:27:28,170	| Config Changed | ENABLE_PERIPHERAL: [True, True, True, False]
+2022-04-19 15:27:40,554	| Config Changed | ENABLE_PERIPHERAL: [True, True, True, True]
+2022-04-19 15:27:40,554	| Config Changed | ENABLE_PERIPHERAL: [True, True, True, False]
+2022-04-19 15:27:40,562	| Config Changed | ENABLE_PERIPHERAL: [True, True, True, True]
+2022-04-19 15:27:40,562	| Config Changed | ENABLE_PERIPHERAL: [True, True, True, False]
+2022-04-19 15:27:40,562	| Config Changed | ENABLE_PERIPHERAL: [True, True, True, True]
+2022-04-19 15:27:40,570	| Config Changed | ENABLE_PERIPHERAL: [True, True, True, False]
+2022-04-19 15:27:40,570	| Config Changed | ENABLE_PERIPHERAL: [True, True, True, True]
+2022-04-19 15:27:40,570	| Config Changed | ENABLE_PERIPHERAL: [True, True, True, False]
+2022-04-19 15:27:46,886	| Config Changed | ENABLE_PERIPHERAL: [True, True, True, True]
+2022-04-19 15:27:48,325	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-19 15:33:49,455	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-19 15:38:51,486	| User nuraiman [7] Logged Out
+2022-04-19 16:05:47,783	| User nuraiman [7] Logged In
+2022-04-19 16:05:53,731	| Config Changed | ENABLE_PERIPHERAL: [True, True, True, False]
+2022-04-19 16:05:56,899	| Config Changed | PERI_CLASS: [0, 256, 14, 0]
+2022-04-19 16:05:58,851	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-19 16:05:59,772	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-19 16:20:53,330	| User nuraiman [7] Logged Out
+2022-04-20 07:32:31,254	| User nuraiman [7] Logged In
+2022-04-20 07:47:38,443	| User nuraiman [7] Logged Out
+2022-04-21 10:35:56,102	| User nuraiman [7] Logged In
+2022-04-21 10:50:56,817	| User nuraiman [7] Logged Out
+2022-04-22 08:52:27,376	| User user1 [1] Logged In
+2022-04-22 09:01:21,085	| User user1 [1] Logged In
+2022-04-22 09:03:53,694	| User user1 [1] Logged In
+2022-04-22 09:04:00,146	| Config Changed | ENABLE_FORMER_MARKING: True
+2022-04-22 09:04:04,703	| Config Changed | ENABLE_FORMER_MARKING: False
+2022-04-22 09:04:13,227	| Config Changed | FORMER_MARKING_DISTANCE: [10, 11, 10, 11]
+2022-04-22 09:04:29,986	| Config Changed | CHAIN_ANCHOR_OFFSET: [0, 0, 3, 1]
+2022-04-22 09:18:59,401	| User user1 [1] Logged Out
+2022-04-22 09:44:08,350	| User user1 [1] Logged In
+2022-04-22 09:59:13,618	| User user1 [1] Logged Out
+2022-04-23 08:19:31,459	| User nuraiman [7] Logged In
+2022-04-23 08:34:35,756	| User nuraiman [7] Logged Out
+2022-04-26 07:41:57,766	| User nuraiman [7] Logged In
+2022-04-26 07:42:35,587	| Config Changed | ENABLE_PERIPHERAL: [True, True, True, True]
+2022-04-26 07:42:36,988	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-26 07:42:37,666	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-26 07:57:00,991	| User nuraiman [7] Logged Out
+2022-04-26 08:22:05,131	| User nuraiman [7] Logged In
+2022-04-26 08:37:12,598	| User nuraiman [7] Logged Out
+2022-04-26 10:42:55,018	| User nuraiman [7] Logged In
+2022-04-26 10:58:04,327	| User nuraiman [7] Logged Out
+2022-04-26 14:20:04,616	| User nuraiman [7] Logged In
+2022-04-26 14:35:04,935	| User nuraiman [7] Logged Out
+2022-04-27 17:05:38,167	| User user1 [1] Logged In
+2022-04-27 17:20:47,869	| User user1 [1] Logged Out
+2022-04-28 08:34:58,803	| User maminuddin [7] Logged In
+2022-04-28 08:35:15,165	| Config Changed | CONF_LEVEL_TO_PURGE: 0.9
+2022-04-28 08:35:37,072	| User maminuddin [7] Logged Out
+2022-04-28 17:33:29,740	| User nuraiman [7] Logged In
+2022-04-28 17:34:11,025	| Config Changed | CLASS_TO_DISPOSE: 2
+2022-04-28 17:34:11,885	| Config Changed | CLASS_TO_DISPOSE: 6
+2022-04-28 17:34:13,966	| Config Changed | CLASS_TO_DISPOSE: 14
+2022-04-28 17:35:44,366	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-28 17:35:46,043	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-28 17:37:09,498	| Config Changed | CLASS_TO_DISPOSE: 12
+2022-04-28 17:37:10,262	| Config Changed | CLASS_TO_DISPOSE: 8
+2022-04-28 17:37:11,846	| Config Changed | CLASS_TO_DISPOSE: 0
+2022-04-28 17:37:17,454	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-28 17:37:18,037	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-04-28 17:48:37,076	| User nuraiman [7] Logged Out
+2022-05-06 10:37:53,543	| User user1 [1] Logged In
+2022-05-06 10:38:56,588	| User user1 [1] Logged Out
+2022-05-10 10:02:56,036	| User nuraiman [7] Logged In
+2022-05-10 10:03:49,424	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-05-10 10:03:50,698	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-05-10 10:09:05,982	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-05-10 10:09:07,042	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-05-10 10:17:59,573	| User nuraiman [7] Logged Out
+2022-05-10 10:18:47,460	| User nuraiman [7] Logged In
+2022-05-10 10:19:03,028	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-05-10 10:19:03,174	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-05-10 10:19:03,327	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-05-10 10:19:03,495	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-05-10 10:19:03,834	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-05-10 10:20:05,884	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-05-10 10:20:06,861	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-05-10 10:33:50,181	| User nuraiman [7] Logged Out
+2022-05-10 10:42:48,389	| User nuraiman [7] Logged In
+2022-05-10 10:51:37,190	| User nuraiman [7] Logged Out
+2022-05-10 10:55:49,132	| User nuraiman [7] Logged In
+2022-05-10 10:55:55,321	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-05-10 10:56:10,221	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-05-10 10:56:10,229	| Config Changed | PURGER_SETTING: [[3, 0, 0, 2], [7, 0, 0, 2], [7, 0, 0, 2], [3, 0, 0, 2]]
+2022-05-10 11:10:56,387	| User nuraiman [7] Logged Out
