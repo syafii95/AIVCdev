@@ -25,8 +25,6 @@ import ctypes
 import re
 import ssl
 import socket
-from PIL import Image
-from numpy import asarray
 from tqdm import tqdm
 from packaging import version
 import hashlib
@@ -119,7 +117,7 @@ ASM_SHIFT_ADDR=650
 SIDE_SEP=10000
 TOTAL_FORMER=CFG.CHAIN_FORMER_NUM##replace
 IMG_FORMAT='jpg'
-BASE_DIR='D:/Junk/'
+BASE_DIR='D:/AIVCdata/'
 RASM_NO_DETECT_DIR='tag_no_detection_RASM/'
 FKTH_NO_DETECT_DIR='tag_no_detection_FKTH/'
 SAMPLING_DIR='tag_sampling/'
@@ -138,7 +136,6 @@ CLASSES=[]
 SMALL_SCREEN=False
 NARROW_SCREEN=False
 BYPASS_CLASS=5 #5 No glove
-PROBLEMATIC_FORMER_URL="https://prod-06.southeastasia.logic.azure.com:443/workflows/7ea0f5d40532405fbf45a2893bf4efa5/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=-emJj8JHuRN4QYeWEqrThpDMkID0Kpf0hzP7KTvqaGA"
 IOTHUB_URI="tg-iot-aivc-r1.azure-devices.net/devices/AIVC-Master-01"
 IOTHUB_REST_URI= "https://" + IOTHUB_URI + "/messages/events?api-version=2018-06-30"
 IOTHUB_KEY= "mOMRhVDnXhk4f0c8zEPlpYDsHgXbjLRdLUXkJsVvlK8="
@@ -1126,13 +1123,9 @@ class MinuteDataRecorder(QThread):
             if self.dHandler.dataRecordState==4:
                 self.dHandler.updateStartTime.emit(time.strftime("%m/%d %H:%M:%S"))
 
-            if (time.time()//60)%2==0:#Trigger every 5min to send former defect rate to powerBI
-                if self.dHandler.state<4:
-                    self.dHandler.uploadProblematic()
-                
             if (time.time()//60)%15==0:#Trigger every 15min
                 self.dHandler.trigger15min.emit()
-                if self.dHandler.state<6:
+                if self.dHandler.state<2:
                     self.dHandler.save15minSideRecord()
                     self.dHandler.uploadDatabase()
 
@@ -1185,14 +1178,12 @@ class DataHandler_Thread(QThread):
     setListItem=pyqtSignal(str,str)
     updateRasmGridOfLine=pyqtSignal(int, int, np.ndarray, str)
     chainGridAddArm=pyqtSignal(int, int, np.ndarray, str)
-    contGoodBadCycle=pyqtSignal(int, int, np.ndarray, np.ndarray, np.ndarray)
     updateTable=pyqtSignal(int,int,str)
     refreshChainGrids=pyqtSignal(list,bool)
     updateStartTime=pyqtSignal(str)
     yoloResultQue=q.Queue()
     data=np.zeros((5,Data_Num), dtype = int)
     prevData=np.zeros((5,Data_Num), dtype = int)
-    prevDataLow=np.zeros((5,Data_Num), dtype = int)
     dataStart=np.zeros((5,Data_Num), dtype = int)
     dataDay=np.zeros((5,Data_Num), dtype = int)
     dataHour=np.zeros((5,Data_Num), dtype = int)
@@ -1206,7 +1197,6 @@ class DataHandler_Thread(QThread):
     dataHandlerRunning=True
     lineBypassings=[False for _ in range(4)]
     dataRecordState=0 # 0:Start 1:Day 2:Hour 3:15Minute  4:Minute
-    appendProblematicFormer=[]
 
     def __init__(self, parent=None):
         super().__init__(parent=parent)
@@ -1245,12 +1235,7 @@ class DataHandler_Thread(QThread):
         self.samplingCountDown=50
         self.nasConnected=False
         self.firstAnchor=False
-        self.classDatas=[0]*len(CLASSES)
         self.startCapture()
-
-    def cycleCount(self,cycleNum):
-        self.numCycle = cycleNum
-        print(f'Number of cycle is: {self.numCycle}')
 
     def lineSpeedAlert(self, aveSecPerGlove):
         longestPurgingDuration=max([purgerSetting[3] for purgerSetting in CFG.PURGER_SETTING])/10
@@ -1263,18 +1248,6 @@ class DataHandler_Thread(QThread):
         self.minuteDataRecorder.pushIotHub(self.databasePrevState)
         self.databasePrevState=STATE[self.state]
     
-    def appendProblematic(self,dictDataDefect):
-        self.appendProblematicFormer.append(dictDataDefect)
-        
-    def uploadProblematic(self):
-        if CFG.AIVC_MODE==0:
-            #Sample_jsonstring = json.dumps(self.appendProblematicFormer)
-            #req = requests.post(PROBLEMATIC_FORMER_URL, data=Sample_jsonstring) #upload to power BI\
-            #print(req)
-            #print(type(self.appendProblematicFormer))
-            print(f'Succesfully upload {len(self.appendProblematicFormer)} defect Former')
-            self.appendProblematicFormer.clear()
-
     def saveSegmentedRecord(self):
         dataSegment=self.data-self.lastData
         endTime=time.strftime("%Y-%m-%d_%H:%M:%S")
@@ -1342,7 +1315,6 @@ class DataHandler_Thread(QThread):
 
     def closeThread(self):
         self.uploadDatabase()#Upload last data segment to SQL & IotHub before closing
-        self.uploadProblematic()
         self.saveSegmentedRecord()
         self.minuteDataRecorder.que.put(None)
         self.teamsMessenger.queue.put(None)
@@ -1386,7 +1358,6 @@ class DataHandler_Thread(QThread):
 
     def incrementData(self, line, row):
         self.data[line][row]+=1
-        self.dataLow[line][row]+=1
         self.updateTable.emit(row+1,line, str(self.data[line][row]-self.prevData[line][row]))
 
     def refreshDataTable(self):
@@ -1394,37 +1365,8 @@ class DataHandler_Thread(QThread):
             self.updateTable.emit(row+1,line, str(self.data[line][row]-self.prevData[line][row]))
         self.updateTotal()
 
-    def incrementContBad(self,side,former):
-        if self.numCycle >= 3:
-            self.contBadData[side][former]+=1
-            self.contBadDataSend = self.contBadData[side][former]
-            #print(f'FormerID: {former} : Side: {side} | Cont Bad: {self.contBadData[side][former]} | Cont Good: {self.contGoodData[side][former]} | Cycle: {self.numCycle}')
-
-    def incrementContGood(self,side,former):
-        if self.numCycle >= 3:
-            self.contGoodData[side][former]+=1
-            self.contGoodDataSend = self.contGoodData[side][former]
-            #print(f'FormerID: {former} : Side: {side} | Cont Bad: {self.contBadData[side][former]} | Cont Good: {self.contGoodData[side][former]} | Cycle: {self.numCycle}')
-
-    def resetConsecutiveCount(self,side,former,condition):
-        if condition == 0: #Empty Link
-            self.contBadData[side][former] = 0
-            self.contGoodData[side][former] = 0
-            self.formerEmptyLink[side][former] = True
-        elif condition == 1: #Defective Glove
-            self.contGoodData[side][former] = 0
-            self.formerEmptyLink[side][former] = False
-        elif condition == 2: #Good Glove
-            self.contBadData[side][former] = 0
-            self.formerEmptyLink[side][former] = False
-        #print(f'====================={type(self.contGoodData)}')
-        #if self.numCycle >= 3:
-        self.contGoodBadCycle.emit(side, self.numCycle, self.contBadData, self.contGoodData, self.formerEmptyLink)
-        #print(f'-------------Good: {self.contGoodData[side][former]} | Bad: {self.contBadData[side][former]} -----FormerID: {former}----Side: {side}----')
-
-    def setGloveDefectionRecord(self, side, formerID, record, lab, classRecord):
+    def setGloveDefectionRecord(self, side, formerID, record, lab):
         r=np.zeros(CLASS_NUM,dtype=int)
-        #print(f'======================================================{classRecord}======================================================================')
         if record>1:#Defective glove
             for i in range(1,CLASS_NUM):
                 if (1<<i) & record:
@@ -1435,15 +1377,9 @@ class DataHandler_Thread(QThread):
 
         if record < 1: #No Detection -> empty link
             self.incrementData(side,2)
-            self.resetConsecutiveCount(side,formerID%SIDE_SEP,0)
-            #print(f'----------------------------------------{formerID}------------------------------------------------')
         else: #Increment Produced Glove
             self.incrementData(side,1) 
         if record >1: #Defective glove
-            if classRecord in CHAIN_CLASS:
-                self.incrementContBad(side,formerID%SIDE_SEP)
-            #self.contGoodData[side][formerID%SIDE_SEP]=0
-            self.resetConsecutiveCount(side,formerID%SIDE_SEP,1)
             for i in range(CLASS_NUM-1):
                 if record & (1<<i+1) > 0:#Check for class flag ##May need to add priority instead of recording all
                     self.incrementData(side,i+3)#Defection row start on row 4
@@ -1459,15 +1395,9 @@ class DataHandler_Thread(QThread):
         elif record & 1 == 1: #Good Glove
             #(TOREDO)self.gloveDefectionRecords[side][formerID][1]+=1
             self.incrementData(side,0)
-            self.incrementContGood(side,formerID%SIDE_SEP)
-            self.resetConsecutiveCount(side,formerID%SIDE_SEP,2)
-            #self.contBadData[side][formerID%SIDE_SEP]=0
 
         if formerID%10==0 and side==0: #calculate total and defective rate every 10 former 
             self.updateTotal()
-
-        if formerID%1==0 and side==0: #calculate total and defective rate every 1 former 
-            self.updateTotalLowConf()
 
         if formerID==0 and side==0:#update the whole grid once for every former iteration
             chainDefectionRecords=[self.chainIndexers[i].getAllData() for i in range(4)]
@@ -1481,44 +1411,13 @@ class DataHandler_Thread(QThread):
     def updateTotal(self):        
         self.data[-1,:]=np.sum(self.data[:-1,:],axis=0)
         self.dataDiff=self.data-self.prevData
-        self.total=self.dataDiff[-1,:]
+        total=self.dataDiff[-1,:]
         for i in range(Data_Num):#Total
-            self.updateTable.emit(i+1,4, str(self.total[i]))
+            self.updateTable.emit(i+1,4, str(total[i]))
         np.seterr(divide='ignore', invalid='ignore')
         dr=1-self.dataDiff[:,0]/self.dataDiff[:,1]  #1-GoodGlove/ProducedGlove
         for i in range(5):#Defective rate (1st row)
             self.updateTable.emit(0,i, str(f'{dr[i]*100:.2f}%'))
-    
-    def updateTotalLowConf(self):
-        self.dataLow[-1,:]=np.sum(self.dataLow[:-1,:],axis=0)
-        self.dataDiffLow=self.dataLow-self.prevDataLow
-        self.totalLow=self.dataDiffLow[-1,:]
-
-    def getLowConfidence(self,classIds,lowConfRate):
-        total = self.totalLow
-        appendLowConfidence=[]
-        for i in range (len(DATA_NAMES)):
-            if i<1:
-                appendLowConfidence.append(total[i])
-            elif i>2:
-                appendLowConfidence.append(total[i])
-        #print(f'---------------{total}')
-        #print(f'---------------{appendLowConfidence}')
-        #appendLowConfidences = appendLowConfidence
-        for i in range(len(CLASSES)):
-            #print(f'--{i}')
-            if classIds == i:
-                #print(f'--------------------------{i}')
-                self.classDatas[i]=1
-                #print(f'')                
-                #print(f'\n| Low Confidence Classes : {CLASSES[classIds]}\n| Low Confidence Count Detected : {self.classDatas[i]}\n| Low Confidence Value Detected : {lowConfRate:.2f}%\n| Total {CLASSES[classIds]} : {appendLowConfidence[classIds]}\n| Model Effective Rate Over Classes : {self.classDatas[i]/appendLowConfidence[classIds]*100:.2f}%\n')
-                #print(f'')
-                lowConfRateData = f'{self.classDatas[i]/appendLowConfidence[classIds]*100:.2f}%'
-        if self.classDatas[i]/appendLowConfidence[classIds]*100:
-            return f'100%'
-        else:
-            return lowConfRateData
-
 
     def startCapture(self):
         self.capturing=not self.capturing
@@ -1577,7 +1476,6 @@ class DataHandler_Thread(QThread):
             chainIndexer.anchorReached()
         self.firstAnchor=True
     def run(self):
-        b=[0,0,0,0,0,100]# dummy class for initial start
         while self.dataHandlerRunning:
             try:
                 camSeq, frame, pred_bbox, formerID, isRasmAnchor= self.yoloResultQue.get(timeout=0.5) 
@@ -1613,8 +1511,7 @@ class DataHandler_Thread(QThread):
                 self.state=3 #line stopped state
             elif self.lineBypassings[side]:#Skip data recording
                 img=self.drawBBoxes(frame, bboxes, ch, w, h)
-                rasmID2=self.rasmRecords[side].getActualIndex()+1
-                self.updateCamBox.emit(img, f'{SIDE_NAME[side]} Bypassing. | Former ID: {formerID} | RASM ID: {rasmID2}', camSeq)
+                self.updateCamBox.emit(img, f'{SIDE_NAME[side]} Bypassing', camSeq)
                 if self.lineBypassings==[True,True,True,True]:
                     self.state=2 #bypassing state
                 else:
@@ -1626,7 +1523,6 @@ class DataHandler_Thread(QThread):
             if self.state!=self.prevState:
                 self.saveSegmentedRecord()
                 self.uploadDatabase()
-                self.uploadProblematic()
 
             if not self.isRunning():
                 self.occu.end()
@@ -1673,7 +1569,7 @@ class DataHandler_Thread(QThread):
 
             if not isFKTH(camSeq): #last cam, update data, pop temp
                 record=self.tempDefectRecord.pop(formerID)
-                self.setGloveDefectionRecord(side, formerID, record, camStr, int(b[5]))
+                self.setGloveDefectionRecord(side, formerID, record, camStr)
             #if classFlag>1: #Defective Glove
             rework=False
             dispose=False
@@ -1846,32 +1742,6 @@ class Camera_Thread(QThread):
                     continue
                 if CFG.ROTATE:
                     frame=cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
-
-                #image = Image.open('test.jpg')  # bypass camera using test.jpg image
-                #frame = asarray(image)          # bypass camera using test.jpg image
-                #syafii Edit
-                convSTR1 = CFG.RASM_TEST_IMAGE.replace("/", "\\")
-                path = r""f'{convSTR1}'
-                random_filename = random.choice([
-                    x for x in os.listdir(path)
-                    if os.path.isfile(os.path.join(path, x))
-                ])
-
-                convSTR2 = CFG.FKTH_TEST_IMAGE.replace("/", "\\")
-                path2 = r""f'{convSTR2}'
-                random_filename2 = random.choice([
-                    y for y in os.listdir(path2)
-                    if os.path.isfile(os.path.join(path2, y))
-                ])
-
-                if camSeq >= 8:
-                    image = Image.open(f'{CFG.RASM_TEST_IMAGE}/{random_filename}')
-                else:
-                    image = Image.open(f'{CFG.FKTH_TEST_IMAGE}/{random_filename2}')
-            
-                frame = asarray(image)
-                ## syafii edit
-
                 image_processed = np.asarray(utils.image_preporcess(frame, [FIXED_INPUT_SIZE, FIXED_INPUT_SIZE])[np.newaxis, ...],dtype=np.float32)
                 self.feedCaptureQue.emit(camSeq, frame, image_processed, formerID, isRasmAnchor)
             else:
@@ -1889,11 +1759,7 @@ class Capture_Thread(QThread):
     noneCamera=pyqtSignal()
     firstChainAnchorReached=pyqtSignal()
     setAnchorID=pyqtSignal(list)
-    cycleCount=pyqtSignal(int)
     camThreadRunning=True
-    cycleNum=0
-    sendCycle=True
-
 
     def __init__(self, parent, plc):
         super().__init__(parent=parent)
@@ -2029,15 +1895,10 @@ class Capture_Thread(QThread):
                             except Exception as e:
                                 recorder.debug(f"Encoder Exception: {e}\n{format_exc()}")
                             #-----------------------
-                            
+                                
                             if s == 0:#Check Chain Anchor
-                                if self.cycleNum == 0 and self.sendCycle == True:
-                                    self.cycleCount.emit(self.cycleNum)
-                                    self.sendCycle=False
                                 if self.plc.readChainAnchor(CFG.AIVC_MODE) ==1: #1:anchor 0:none -1:error
                                     recorder.debug(f"Reached Chain Anchor {CFormerIDs} {CFG.CHAIN_FORMER_NUM}")
-                                    self.cycleNum+=1
-                                    self.cycleCount.emit(self.cycleNum)
                                     if firstAnchor:
                                         recorder.debug("First Anchor")
                                         firstAnchor=False
@@ -2067,11 +1928,10 @@ class Capture_Thread(QThread):
                                         self.setCurLineSpeedTxt.emit(f"{gloveSpeed:.3f} pc/s")
                                         aveGloveSpeed=Side_Num/self.aveSecPerGlove
                                         self.setAveLineSpeedTxt.emit(f"{aveGloveSpeed:.3f} pc/s")
-                        elif self.secPerGloves[s] >1: #Avoid Windows auto adjust time resulting negative value here => 0~0.25s
+                        elif self.secPerGloves[s] >0: #Avoid Windows auto adjust time resulting negative value here => 0~0.25s
                             print(f"Warning: M{s+CFG.SENSOR_M} Sensor Bouncing! {self.secPerGloves[s]:.3f} sec")
                         for num_cam in range(Cams_Num):
                             camSensor=Cam_Sensor[Cam_Seq[num_cam]]
-                            #print(f'This is CamSensor: {camSensor}')
                             if s==camSensor and prev_times[s]!=0:
                                 camTriggereds[num_cam]=True
                                 triggerTimes[camSensor]=time.time()
@@ -2228,7 +2088,6 @@ class MainWindow(QMainWindow):
             gloveDefectionGrid=DefectionGrid(i,parent=self)
             self.ui.grid_chain_data.addWidget(gloveDefectionGrid, i/2, i%2, 1, 1)
             self.gloveDefectionGrids.append(gloveDefectionGrid)
-            gloveDefectionGrid.sendProblematic.connect(self.receiveProblematic)
         self.authenticated=False
         self.pPressures=[deque(maxlen=10) for _ in range(4)]
 
@@ -2247,7 +2106,6 @@ class MainWindow(QMainWindow):
         self.dataThread.feedPeripheralStack.connect(self.purgingThread.feedPeripheralStack)
         self.dataThread.updateRasmGridOfLine.connect(self.updateRasmGridOfLine)
         self.dataThread.chainGridAddArm.connect(self.chainGridAddArm)
-        self.dataThread.contGoodBadCycle.connect(self.contGoodBadCycle)
         self.dataThread.updateTable.connect(self.updateTable)
         self.dataThread.refreshChainGrids.connect(self.refreshChainGrids)
         self.dataThread.updateStartTime.connect(self.updateStartTime)
@@ -2260,7 +2118,6 @@ class MainWindow(QMainWindow):
         self.captureThread.noneCamera.connect(self.dataThread.noneCamera)
         self.captureThread.firstChainAnchorReached.connect(self.dataThread.firstChainAnchorReached)
         self.captureThread.setAnchorID.connect(self.purgingThread.setAnchorID)
-        self.captureThread.cycleCount.connect(self.dataThread.cycleCount)
 
         self.inferenceThread.feedYoloResult.connect(self.dataThread.feedYoloResult)
         self.inferenceThread.clearCamBox.connect(self.clearCamBox)
@@ -2611,7 +2468,7 @@ class MainWindow(QMainWindow):
                     pf.itemAt(i,QFormLayout.LabelRole).widget().show()
                 pf.itemAt(5,QFormLayout.FieldRole).widget().show()
                 pf.itemAt(5,QFormLayout.LabelRole).widget().show()
-
+            
         elif CFG.AIVC_MODE==1:#TAC
             for i in range(self.ui.tab_main.count()):
                 self.ui.tab_main.removeTab(0)
@@ -2734,7 +2591,7 @@ class MainWindow(QMainWindow):
         self.dataThread.teamsMessenger.emit("ChangeTeamsAddr"+addr)
 
     def changeRasmLen(self):
-        length=self,.sender().val
+        length=self.sender().val
         if length != CFG.RASM_ARM_NUM:
             for rasmRecord in self.dataThread.rasmRecords:
                 rasmRecord.changeLength(length)
@@ -2934,15 +2791,10 @@ class MainWindow(QMainWindow):
     def updateTable(self, row, line, val):
         self.ui.table_defect_data.item(row,line).setText(val)
 
-    def receiveProblematic(self,dictDataDefect):
-        self.dataThread.appendProblematic(dictDataDefect)
-
     def updateRasmGridOfLine(self, line, index, armRecord, label):
         self.rasmDefectionGrids[line].updateRasmGrid(index, armRecord, label)
     def chainGridAddArm(self, line, index, record, label):
         self.gloveDefectionGrids[line].addChainArm(index, record, label)
-    def contGoodBadCycle(self, line, cycle, contBad, contGood, emptyLink):
-        self.gloveDefectionGrids[line].addContGoodBadCycle(line, cycle, contBad, contGood, emptyLink)
 
     def moveCamToRight(self):
         seq=self.sender().parent().seq
@@ -3293,7 +3145,6 @@ class CamBox(QWidget):
 
 class DefectionGrid(QWidget):
     preColor='lightgreen'
-    sendProblematic=pyqtSignal(dict)
     def __init__(self, seq, parent=None, armNum=0):
         super(DefectionGrid,self).__init__(parent=parent)
         self.parent=parent
@@ -3313,7 +3164,6 @@ class DefectionGrid(QWidget):
             vbox.setContentsMargins(30,0,0,0)
             self.label.setFont(QFont('Arial', 12)) 
 
-        self.probleMaticFormer={}
         self.setMaximumHeight(maxHeight)
         self.armsID=[]
         self.items=[]
@@ -3346,9 +3196,7 @@ class DefectionGrid(QWidget):
         rdg=0
         odg=0
         tt=''
-        defectRecord={}
         total=0
-        defectRecord.update({f'Good Glove': gg})
         if chain:
             rClass=CHAIN_CLASS
             name='Chain'
@@ -3362,16 +3210,12 @@ class DefectionGrid(QWidget):
                 if i in rClass:
                     rdg+=record
                     tt+=f'{CLASSES[i]}: {record}\n'
-                    defectRecord.update({CLASSES[i]: record})
                 else:
                     odg+=record
-        defectRecord.update({f'Non-{name}-Related': odg})
         tt+=f'Non-{name}-Related: {odg}\n'
         rdr=float(rdg)/(total) if total!=0 else 1
         tt+=f'Good Glove: {gg}\n{name} Defective Rate: {rdr*100:.2f}%'
 
-        if chain:
-            tt+=f'\nCycle: {cycle}\nConsecutive Bad: {contBad}\nConsecutive Good: {contGood}\nEmpty Link: {emptyLink}'
         if lab:
             self.label.setText(lab)
         self.items[index].id=armID
@@ -3379,54 +3223,15 @@ class DefectionGrid(QWidget):
         self.items[index].setToolTip(tt)
         self.items[index].setText( f"<span style='font-size:8pt; font-weight:500;'>{armID}\n</span><br><span style='font-size:7pt; font-weight:400;'>{rdr*100:.2f}%</span>" )
 
-        if not chain:#Set Color by Defective Rate for RASM
-            if(rdr<0.05):
-                color='lightgreen'
-            elif(rdr<0.1):
-                color='yellow'
-            elif(rdr<0.3):
-                color='orange'
-            else:
-                color='red'
-
-        else:#Set Color by Defective Rate for RASM
-            if(rdr<0.05):
-                if contBad >= 3:
-                    color='red'
-                    if emptyLink:
-                        color='cyan'
-                else:
-                    color='lightgreen'
-                    if emptyLink:
-                        color='cyan'
-            elif(rdr<0.1):
-                if contBad >= 3:
-                    color='red'
-                    if emptyLink:
-                        color='cyan'
-                else:
-                    color='yellow'
-                    if emptyLink:
-                        color='cyan'
-            elif(rdr<0.3):
-                if contBad >= 3:
-                    color='red'
-                    if emptyLink:
-                        color='cyan'
-                else:
-                    color='orange'
-                    if emptyLink:
-                        color='cyan'
-            else:
-                if contGood >= 3:
-                    color='gray'
-                    if emptyLink:
-                        color='cyan'
-                else:
-                    color='red'
-                    if emptyLink:
-                        color='cyan'
-
+        #Set Color by Defective Rate
+        if(rdr<0.05):
+            color='lightgreen'
+        elif(rdr<0.1):
+            color='yellow'
+        elif(rdr<0.3):
+            color='orange'
+        else:
+            color='red'
         if highlight:
             self.items[index].setStyleSheet(f"QLabel {{background-color: {color}; border: 3px solid orange; border-radius: 5px;}}") 
         else:
@@ -3434,23 +3239,9 @@ class DefectionGrid(QWidget):
 
         self.preColor=color
 
-    def updateProblematicFormer(self,seq,armID,defectRecord):
-        DateTime=datetime.datetime.now().isoformat()
-        self.probleMaticFormer = {
-                "DateTime": DateTime, 
-                "Mode": CFG.AIVC_MODE, 
-                "Factory": CFG.FACTORY_NAME, 
-                "ProductionLine": f'L{CFG.LINE_NUM}', 
-                "ProductionLineRow": SIDE_NAME[seq], 
-                "FormerID": armID, 
-                "Defect_Classes": defectRecord
-            }
-        self.sendProblematic.emit(self.probleMaticFormer)
-        
-
     def addChainArm(self, formerID, record, lab):
         if formerID in self.armsID:
-            self.updateArm(self.armsID.index(formerID), formerID, record, self.emptyLink[self.side][formerID], self.cycle, self.contBad[self.side][formerID], self.contGood[self.side][formerID], lab, highlight=True, chain=True)
+            self.updateArm(self.armsID.index(formerID), formerID, record, lab, highlight=True, chain=True)
         else:
             lastIndex=len(self.armsID)
             self.armsID.append(formerID)
@@ -3459,15 +3250,7 @@ class DefectionGrid(QWidget):
             arm.armClicked.connect(self.parent.armClicked)
             self.gridLayout.addWidget(arm,int(lastIndex/10),lastIndex%10)
             self.items.append(arm)
-            self.updateArm(lastIndex, formerID, record, self.emptyLink[self.side][formerID], self.cycle, self.contBad[self.side][formerID], self.contGood[self.side][formerID], lab, highlight=True, chain=True)
-
-    def addContGoodBadCycle(self, side, cycle, contBad, contGood, emptyLink):
-        self.side = side
-        self.cycle = cycle
-        self.contBad = contBad
-        self.contGood = contGood
-        self.emptyLink = emptyLink
-        #print(f'Number of cycle: {cycle} | Number of Consecutive Bad: {contBad} | Number of Consecutive Good: {contGood}')
+            self.updateArm(lastIndex, formerID, record, lab, highlight=True, chain=True)
 
     def updateRasmGrid(self, rasmID1, armRecord, lab):
         #Remove previous border highlight
