@@ -1140,7 +1140,7 @@ class MinuteDataRecorder(QThread):
             if self.dHandler.dataRecordState==4:
                 self.dHandler.updateStartTime.emit(time.strftime("%m/%d %H:%M:%S"))
 
-            if (time.time()//60)%2==0:#Trigger time to send former defect rate to powerBI
+            if (time.time()//60)%15==0:#Trigger time to send former defect rate to powerBI
                 if self.dHandler.state<4:
                     self.dHandler.uploadProblematic()
                 
@@ -1223,6 +1223,7 @@ class DataHandler_Thread(QThread):
     lineBypassings=[False for _ in range(4)]
     dataRecordState=0 # 0:Start 1:Day 2:Hour 3:15Minute  4:Minute
     appendProblematicFormer=[]
+    dictFormerSend = []
 
     def __init__(self, parent=None):
         super().__init__(parent=parent)
@@ -1283,12 +1284,21 @@ class DataHandler_Thread(QThread):
         
     def uploadProblematic(self):
         if CFG.AIVC_MODE==0:
-            #Sample_jsonstring = json.dumps(self.appendProblematicFormer)
-            #req = requests.post(PROBLEMATIC_FORMER_URL, data=Sample_jsonstring) #upload to power BI\
-            #print(req)
-            #print(type(self.appendProblematicFormer))
-            print(f'Succesfully upload {len(self.appendProblematicFormer)} defect Former')
-            self.appendProblematicFormer.clear()
+            try:
+                for i in range (len(self.appendProblematicFormer)):
+                    listFormerSend = self.appendProblematicFormer[i]['FormerID']
+                    self.dictFormerSend.append(listFormerSend)
+
+                Sample_jsonstring = json.dumps(self.appendProblematicFormer)
+                req = requests.post(PROBLEMATIC_FORMER_URL, data=Sample_jsonstring) #upload to power BI\
+                recorder.info(req)
+                recorder.info(f'Uploaded Problematic Former ID: {self.dictFormerSend}')
+                recorder.info(f'Succesfully upload {len(self.appendProblematicFormer)} defect Former')
+                
+                self.dictFormerSend.clear()
+                self.appendProblematicFormer.clear()
+            except Exception as e:
+                recorder.info(f'Failed to upload Problematic Former data to {PROBLEMATIC_FORMER_URL}')
 
     def saveSegmentedRecord(self):
         dataSegment=self.data-self.lastData
@@ -3349,7 +3359,7 @@ class DefectionGrid(QWidget):
                         self.sendFormerLamp.emit(armID,side)
         if chain:
             if CFG.AIVC_MODE == 0:
-                tt+=f'\nCycle: {cycle}\nContinuous Bad: {contBad}\nContinuous Good: {contGood}'
+                tt+=f'\nNum. of Cycle: {cycle}\nContinuous Bad: {contBad}\nContinuous Good: {contGood}'
         if lab:
             self.label.setText(lab)
         self.items[index].id=armID
