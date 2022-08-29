@@ -845,6 +845,7 @@ class Purging_Thread(QThread):
         self.purgingStacks=[{} for _ in range(4)]
         self.periSets=[[set() for _ in range(4)] for _ in CFG.PERI_NAME]
         self.testMarkSets=[set() for _ in range(4)]
+        self.markIdSignal=[set() for _ in range(4)]
         self.purgerDistance=[p[0] for p in CFG.PURGER_SETTING]
         self.firstAnchorIDs=[0]*4
         self.purgerFormerIDs=[-1]*4
@@ -854,6 +855,13 @@ class Purging_Thread(QThread):
         self.testBin=False
         if CFG.ENABLE_HMPLC:
             self.hmPlc=plcLib.HalfmoonPLC(CFG.HM_PLC_IP)
+
+    def sendFormerLamps(self,IDs,side):
+        if CFG.AIVC_MODE==0:
+            markFormerIDs = IDs+CFG.FORMER_MARKING_DISTANCE[side]
+            sideID=IDs%SIDE_SEP
+            self.markIdSignal[side].add(markFormerIDs)
+            #print(f'===FormerID: {sideID} | Side: {side} | ID Offset: {markFormerIDs}===')
 
     def testPurge(self):
         #self.plc.purgeGlove(self.sender().seq)##Purge directly
@@ -998,21 +1006,27 @@ class Purging_Thread(QThread):
                         self.hmPlc.activateHM(side)
 
             #Mark High Defective Rate Former
-            if CFG.ENABLE_FORMER_MARKING:
+            if CFG.ENABLE_FORMER_MARKING: #send here
                 targetFormerID=purgerFormerID+CFG.FORMER_MARKING_DISTANCE[side]
                 targetFormerRecord=self.chainIndexers[side].get(targetFormerID)
                 if targetFormerRecord is not False:
                     pg=np.sum(targetFormerRecord)
                     dg=np.sum(targetFormerRecord[1:])
                     dr=dg/(pg)
-                    if dr>0.2 and pg>10:
-                        self.plc.sendFormerMarkingSignal(side)
-                        print(f"Mark Former {side} {targetFormerID} {dr}%")
+                    #if dr>0.2 and pg>10:
+                        #self.plc.sendFormerMarkingSignal(side)
+                        #print(f"Mark Former {side} {targetFormerID} {dr}%")
             #Test mark
             if purgerFormerID  in self.testMarkSets[side]:
                 self.testMarkSets[side].remove(purgerFormerID)
                 self.markMarkFormer.emit(side,purgerFormerID)
                 self.plc.sendFormerMarkingSignal(side)
+
+            if purgerFormerID  in self.markIdSignal[side]:
+                #print(f'***{purgerFormerID} ***') #print this to see former marking signal to addon lamp
+                self.markIdSignal[side].remove(purgerFormerID)
+                self.plc.sendFormerMarkingSignal(side)
+                
             if side==0:
                 self.timingChecker.check()
 
@@ -1190,7 +1204,7 @@ class DataHandler_Thread(QThread):
     updateStartTime=pyqtSignal(str)
     yoloResultQue=q.Queue()
     data=np.zeros((5,Data_Num), dtype = int)
-    contGoodBadCycle=pyqtSignal(int, int, np.ndarray, np.ndarray, np.ndarray)
+    contGoodBadCycle=pyqtSignal(int, int, int, np.ndarray, np.ndarray, np.ndarray)
     contBadData=np.zeros((4,CFG.CHAIN_FORMER_NUM), dtype = int)
     contGoodData=np.zeros((4,CFG.CHAIN_FORMER_NUM), dtype = int)
     formerEmptyLink=np.zeros((4,CFG.CHAIN_FORMER_NUM), dtype = bool)
@@ -1417,7 +1431,7 @@ class DataHandler_Thread(QThread):
         elif condition == 2: #Good Glove
             self.contBadData[side][former] = 0
             self.formerEmptyLink[side][former] = False
-        self.contGoodBadCycle.emit(side, self.numCycle, self.contBadData, self.contGoodData, self.formerEmptyLink)
+        self.contGoodBadCycle.emit(side, former, self.numCycle, self.contBadData, self.contGoodData, self.formerEmptyLink)
 
     def setGloveDefectionRecord(self, side, formerID, record, lab, classRecord):
         r=np.zeros(CLASS_NUM,dtype=int)
@@ -2144,6 +2158,7 @@ class MainWindow(QMainWindow):
                 self.ui.table_defect_data.setItem(i+4, j, item)
 
         self.ui.label_title.setText(f'Integrated AIVC System  {CFG.FACTORY_NAME} LINE {CFG.LINE_NUM}')
+        #self.ui.label_title.setText(f'AIVC System DEVELOPER MODE DO NOT CLOSED')
         self.ui.label_version.setText(f'V{CFG.VERSION}')
         self.ui.select_duration.currentIndexChanged.connect(self.changeRecordDuration)
         self.camBoxes=[CamBox(i) for i in range(MAX_CAM_NUM)]
@@ -2161,6 +2176,7 @@ class MainWindow(QMainWindow):
             self.ui.grid_chain_data.addWidget(gloveDefectionGrid, i/2, i%2, 1, 1)
             self.gloveDefectionGrids.append(gloveDefectionGrid)
             gloveDefectionGrid.sendProblematic.connect(self.receiveProblematic)
+            gloveDefectionGrid.sendFormerLamp.connect(self.sendFormerLamps)
         self.authenticated=False
         self.pPressures=[deque(maxlen=10) for _ in range(4)]
 
@@ -2537,6 +2553,7 @@ class MainWindow(QMainWindow):
             for i in range(4):
                 self.ui.grid_rasm_cam.addWidget(self.camBoxes[i+8], i/2,i%2, 1, 1)
             self.ui.label_title.setText(f'Integrated AIVC System  {CFG.FACTORY_NAME} LINE {CFG.LINE_NUM}')
+            #self.ui.label_title.setText(f'AIVC System DEVELOPER MODE DO NOT CLOSED')
             for pf in self.purgerforms:
                 for i in range(1,4):
                     pf.itemAt(i,QFormLayout.FieldRole).widget().show()
@@ -2778,6 +2795,7 @@ class MainWindow(QMainWindow):
         CFG_Handler.set('FACTORY_NAME',self.text_factory.text()) 
         CFG_Handler.set('LINE_NUM',self.text_line.val) 
         self.ui.label_title.setText(f'Integrated AIVC System  {CFG.FACTORY_NAME} LINE {CFG.LINE_NUM}')
+        #self.ui.label_title.setText(f'AIVC System DEVELOPER MODE DO NOT CLOSED')
 
     def changePLCIP(self):
         ip=self.text_plcIP.text()
@@ -2868,13 +2886,16 @@ class MainWindow(QMainWindow):
 
     def receiveProblematic(self,dictDataDefect):
         self.dataThread.appendProblematic(dictDataDefect)
+    
+    def sendFormerLamps(self,ID,side):
+        self.purgingThread.sendFormerLamps(ID,side)
 
     def updateRasmGridOfLine(self, line, index, armRecord, label):
         self.rasmDefectionGrids[line].updateRasmGrid(index, armRecord, label)
     def chainGridAddArm(self, line, index, record, label):
-        self.gloveDefectionGrids[line].addChainArm(index, record, label)
-    def contGoodBadCycle(self, line, cycle, contBad, contGood, emptyLink):
-        self.gloveDefectionGrids[line].addContGoodBadCycle(line, cycle, contBad, contGood, emptyLink)
+        self.gloveDefectionGrids[line].addChainArm(index, line, record, label)
+    def contGoodBadCycle(self, line, former, cycle, contBad, contGood, emptyLink):
+        self.gloveDefectionGrids[line].addContGoodBadCycle(line, former, cycle, contBad, contGood, emptyLink)
 
     def moveCamToRight(self):
         seq=self.sender().parent().seq
@@ -3226,6 +3247,7 @@ class CamBox(QWidget):
 class DefectionGrid(QWidget):
     preColor='lightgreen'
     sendProblematic=pyqtSignal(dict)
+    sendFormerLamp=pyqtSignal(int,int)
     def __init__(self, seq, parent=None, armNum=0):
         super(DefectionGrid,self).__init__(parent=parent)
         self.parent=parent
@@ -3273,7 +3295,7 @@ class DefectionGrid(QWidget):
                 self.gridLayout.addWidget(arm,i,j)
                 self.items.append(arm)
 
-    def updateArm(self, index, armID, armRecord, emptyLink=False, cycle=0, contBad=0, contGood=0, lab='',highlight=False,chain=False,updateData=True):
+    def updateArm(self, index, armID, armRecord, side=0, emptyLink=False, cycle=0, contBad=0, contGood=0, lab='',highlight=False,chain=False,updateData=True):
         gg=armRecord[0]
         rdg=0
         odg=0
@@ -3303,36 +3325,31 @@ class DefectionGrid(QWidget):
         tt+=f'Good Glove: {gg}\n{name} Defective Rate: {rdr*100:.2f}%'
         defectRecord.update({f'Defective Rate': float(f'{rdr*100:.2f}')})
 
-        
+
         if name == 'Chain' and updateData:
             if cycle >= 3:
                 if(rdr<0.05):
                     if contBad >= 3:
                         self.updateProblematicFormer(self.seq, armID, defectRecord)
-                        print(f'Rate: {rdr*100}% | Condition Bad: {contBad} | ID: {armID}')
-            
+                        self.sendFormerLamp.emit(armID,side)
                 elif(rdr<0.1):
                     if contBad >= 3:
                         self.updateProblematicFormer(self.seq, armID, defectRecord)
-                        print(f'Rate: {rdr*100}% | Condition Bad: {contBad} | ID: {armID}')
-        
+                        self.sendFormerLamp.emit(armID,side)        
                 elif(rdr<0.3):
                     if contBad >= 3:
                         self.updateProblematicFormer(self.seq, armID, defectRecord)
-                        print(f'Rate: {rdr*100}% | Condition Bad: {contBad} | ID: {armID}')
-    
+                        self.sendFormerLamp.emit(armID,side)
                 else:
                     if contBad >= 3:
                         self.updateProblematicFormer(self.seq, armID, defectRecord)
-                        print(f'Rate: {rdr*100}% | Condition Bad: {contBad} | ID: {armID}')
+                        self.sendFormerLamp.emit(armID,side)
                     if contGood < 3:
                         self.updateProblematicFormer(self.seq, armID, defectRecord)
-                        print(f'Rate: {rdr*100}% | Condition Good: {contGood} | ID: {armID}')
-          
-                
-
+                        self.sendFormerLamp.emit(armID,side)
         if chain:
-            tt+=f'\nCycle: {cycle}\nConsecutive Bad: {contBad}\nConsecutive Good: {contGood}\nEmpty Link: {emptyLink}'
+            if CFG.AIVC_MODE == 0:
+                tt+=f'\nCycle: {cycle}\nContinuous Bad: {contBad}\nContinuous Good: {contGood}'
         if lab:
             self.label.setText(lab)
         self.items[index].id=armID
@@ -3350,42 +3367,42 @@ class DefectionGrid(QWidget):
             else:
                 color='red'
 
-        else:#Set Color by Defective Rate for RASM
+        else:#Set Color by Defective Rate for FKTH
             if(rdr<0.05):
                 if contBad >= 3:
                     color='red'
-                    if emptyLink:
+                    if emptyLink == True:
                         color='cyan'
                 else:
                     color='lightgreen'
-                    if emptyLink:
+                    if emptyLink == True:
                         color='cyan'
             elif(rdr<0.1):
                 if contBad >= 3:
                     color='red'
-                    if emptyLink:
+                    if emptyLink == True:
                         color='cyan'
                 else:
                     color='yellow'
-                    if emptyLink:
+                    if emptyLink == True:
                         color='cyan'
             elif(rdr<0.3):
                 if contBad >= 3:
                     color='red'
-                    if emptyLink:
+                    if emptyLink == True:
                         color='cyan'
                 else:
                     color='orange'
-                    if emptyLink:
+                    if emptyLink == True:
                         color='cyan'
             else:
                 if contGood >= 3:
                     color='gray'
-                    if emptyLink:
+                    if emptyLink == True:
                         color='cyan'
                 else:
                     color='red'
-                    if emptyLink:
+                    if emptyLink == True:
                         color='cyan'
 
         if highlight:
@@ -3409,9 +3426,9 @@ class DefectionGrid(QWidget):
         self.sendProblematic.emit(self.probleMaticFormer)
         
 
-    def addChainArm(self, formerID, record, lab):
+    def addChainArm(self, formerID, side, record, lab):
         if formerID in self.armsID:
-            self.updateArm(self.armsID.index(formerID), formerID, record, self.emptyLink[self.side][formerID], self.cycle, self.contBad[self.side][formerID], self.contGood[self.side][formerID], lab, highlight=True, chain=True)
+            self.updateArm(self.armsID.index(formerID), formerID, record, side, self.emptyLink[self.side][formerID], self.cycle, self.contBad[self.side][formerID], self.contGood[self.side][formerID], lab, highlight=True, chain=True)
         else:
             lastIndex=len(self.armsID)
             self.armsID.append(formerID)
@@ -3420,16 +3437,16 @@ class DefectionGrid(QWidget):
             arm.armClicked.connect(self.parent.armClicked)
             self.gridLayout.addWidget(arm,int(lastIndex/10),lastIndex%10)
             self.items.append(arm)
-            self.updateArm(lastIndex, formerID, record, self.emptyLink[self.side][formerID], self.cycle, self.contBad[self.side][formerID], self.contGood[self.side][formerID], lab, highlight=True, chain=True)
+            self.updateArm(lastIndex, formerID, record, side, self.emptyLink[self.side][formerID], self.cycle, self.contBad[self.side][formerID], self.contGood[self.side][formerID], lab, highlight=True, chain=True)
 
-    def addContGoodBadCycle(self, side, cycle, contBad, contGood, emptyLink):
+    def addContGoodBadCycle(self, side, former, cycle, contBad, contGood, emptyLink):
         self.side = side
+        self.former = former
         self.cycle = cycle
         self.contBad = contBad
         self.contGood = contGood
         self.emptyLink = emptyLink
-        #print(f'Number of cycle: {cycle} | Number of Consecutive Bad: {contBad} | Number of Consecutive Good: {contGood}')
-
+        
     def updateRasmGrid(self, rasmID1, armRecord, lab):
         #Remove previous border highlight
         itemNum=len(self.items)
@@ -3466,7 +3483,7 @@ class DefectionGrid(QWidget):
                     if(dr <0.2): #Remove from grid
                         idxsToRemove.append(index-removedNum)
                     else:
-                        self.updateArm(index-removedNum, armID, record, self.emptyLink[self.side][armID], self.cycle, self.contBad[self.side][armID], self.contGood[self.side][armID], highlight=False, chain=True, updateData=False)
+                        self.updateArm(index-removedNum, armID, record, self.side, self.emptyLink[self.side][armID], self.cycle, self.contBad[self.side][armID], self.contGood[self.side][armID], highlight=False, chain=True, updateData=False)
                 except KeyError as e:
                     recorder.debug(f"updateAllChain Key Error :{e}")
             for idx in idxsToRemove:
