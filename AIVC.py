@@ -848,6 +848,7 @@ class Purging_Thread(QThread):
         self.markIdSignal=[set() for _ in range(4)]
         self.purgerDistance=[p[0] for p in CFG.PURGER_SETTING]
         self.firstAnchorIDs=[0]*4
+        self.verifyMarking=[0]*4
         self.purgerFormerIDs=[-1]*4
         self.purgeThreadRunning=True
         self.purgeQue=q.Queue()
@@ -856,12 +857,17 @@ class Purging_Thread(QThread):
         if CFG.ENABLE_HMPLC:
             self.hmPlc=plcLib.HalfmoonPLC(CFG.HM_PLC_IP)
 
-    def sendFormerLamps(self,IDs,side):
+    def sendFormerLamps(self,IDs,side,rdr):
         if CFG.AIVC_MODE==0:
             markFormerIDs = IDs+CFG.FORMER_MARKING_DISTANCE[side]
-            sideID=IDs%SIDE_SEP
-            self.markIdSignal[side].add(markFormerIDs)
-            #print(f'===FormerID: {sideID} | Side: {side} | ID Offset: {markFormerIDs}===')
+            if markFormerIDs >= CFG.CHAIN_FORMER_NUM:
+                bal = markFormerIDs - CFG.CHAIN_FORMER_NUM
+            else:
+                bal = markFormerIDs
+            self.markIdSignal[side].add(bal)
+            #print(f'=== FormerID: {bal} | Side: {side} | Defective Rate: {rdr*100:.2f} ===')
+            
+
 
     def testPurge(self):
         #self.plc.purgeGlove(self.sender().seq)##Purge directly
@@ -885,9 +891,13 @@ class Purging_Thread(QThread):
     def testMark(self):
         side=self.sender().seq
         formerID=self.purgerFormerIDs[side]+CFG.FORMER_MARKING_DISTANCE[side]
-        print(f"Test Mark {SIDE_SHORT[side]} {formerID}")
-        self.feedTestMarkStack(formerID+side*SIDE_SEP)
-        self.markTestMark.emit(side,formerID)
+        if formerID >= CFG.CHAIN_FORMER_NUM:
+            bal = formerID - CFG.CHAIN_FORMER_NUM
+        else:
+            bal = formerID
+        print(f"Test Mark {SIDE_SHORT[side]} {bal}")
+        self.feedTestMarkStack(bal+side*SIDE_SEP)
+        self.markTestMark.emit(side,bal)
         
     def closeThread(self):
         self.purgeThreadRunning=False
@@ -1006,26 +1016,42 @@ class Purging_Thread(QThread):
                         self.hmPlc.activateHM(side)
 
             #Mark High Defective Rate Former
-            if CFG.ENABLE_FORMER_MARKING: #send here
+            """if CFG.ENABLE_FORMER_MARKING: #send here
                 targetFormerID=purgerFormerID+CFG.FORMER_MARKING_DISTANCE[side]
                 targetFormerRecord=self.chainIndexers[side].get(targetFormerID)
                 if targetFormerRecord is not False:
                     pg=np.sum(targetFormerRecord)
                     dg=np.sum(targetFormerRecord[1:])
                     dr=dg/(pg)
-                    #if dr>0.2 and pg>10:
-                        #self.plc.sendFormerMarkingSignal(side)
-                        #print(f"Mark Former {side} {targetFormerID} {dr}%")
+                    if dr>0.2 and pg>1:
+                        self.plc.sendFormerMarkingSignal(side)
+                        print(f"Mark Former {side} {targetFormerID} {dr}%")"""
             #Test mark
             if purgerFormerID  in self.testMarkSets[side]:
                 self.testMarkSets[side].remove(purgerFormerID)
                 self.markMarkFormer.emit(side,purgerFormerID)
                 self.plc.sendFormerMarkingSignal(side)
 
+            #Mark High Defective Rate Former
             if purgerFormerID  in self.markIdSignal[side]:
-                #print(f'***{purgerFormerID} ***') #print this to see former marking signal to addon lamp
+                self.verifyMarking[side]+=1
+                #print(f'******* {purgerFormerID} ********') #print this to see former marking signal to addon lamp
                 self.markIdSignal[side].remove(purgerFormerID)
-                self.plc.sendFormerMarkingSignal(side)
+                targetFormerID=purgerFormerID-CFG.FORMER_MARKING_DISTANCE[side] # 20 = 10 - 10
+                if targetFormerID < 0:
+                    bal = CFG.CHAIN_FORMER_NUM + targetFormerID
+                else:
+                    bal = targetFormerID
+                targetFormerRecord=self.chainIndexers[side].get(bal)
+                #print(f'++++++++++++ {targetFormerRecord} | Bal: {bal} +++++++++++++')
+                if targetFormerRecord is not False:
+                    pg=np.sum(targetFormerRecord)
+                    dg=np.sum(targetFormerRecord[1:])
+                    dr=dg/(pg)
+                    print(f"Mark Former {SIDE_SHORT[side]} {bal} {dr*100:.2f}%")
+                    #print(f'========== Result: {self.verifyMarking} =============')
+                if CFG.ENABLE_FORMER_MARKING:
+                    self.plc.sendFormerMarkingSignal(side)
                 
             if side==0:
                 self.timingChecker.check()
@@ -1829,6 +1855,40 @@ class Camera_Thread(QThread):
                     continue
                 if CFG.ROTATE:
                     frame=cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
+
+                #syafii Edit
+                convSTR1 = CFG.RASM_TEST_IMAGE.replace("/", "\\")
+                path = r""f'{convSTR1}'
+                random_filename = random.choice([
+                    x for x in os.listdir(path)
+                    if os.path.isfile(os.path.join(path, x))
+                ])
+
+                convSTR2 = CFG.FKTH_TEST_IMAGE.replace("/", "\\")
+                path2 = r""f'{convSTR2}'
+                random_filename2 = random.choice([
+                    y for y in os.listdir(path2)
+                    if os.path.isfile(os.path.join(path2, y))
+                ])
+
+                convSTR3 = CFG.TAC_TEST_IMAGE.replace("/", "\\")
+                path3 = r""f'{convSTR3}'
+                random_filename3 = random.choice([
+                    z for z in os.listdir(path3)
+                    if os.path.isfile(os.path.join(path3, z))
+                ])
+
+                if CFG.AIVC_MODE == 1:
+                    image = Image.open(f'{CFG.TAC_TEST_IMAGE}/{random_filename3}')
+                else:
+                    if camSeq >= 8:
+                        image = Image.open(f'{CFG.RASM_TEST_IMAGE}/{random_filename}')
+                    else:
+                        image = Image.open(f'{CFG.FKTH_TEST_IMAGE}/{random_filename2}')
+                
+                frame = asarray(image)
+                ## syafii edit
+
                 image_processed = np.asarray(utils.image_preporcess(frame, [FIXED_INPUT_SIZE, FIXED_INPUT_SIZE])[np.newaxis, ...],dtype=np.float32)
                 self.feedCaptureQue.emit(camSeq, frame, image_processed, formerID, isRasmAnchor)
             else:
@@ -2159,7 +2219,7 @@ class MainWindow(QMainWindow):
         self.showFullScreen()
         self.ui.table_defect_data.setRowCount(CLASS_NUM+3)
         for i in range(CLASS_NUM-1):
-            item = QTableWidgetItem()
+            item = QTableWidgetItem()   
             item.setText(CLASSES[i+1])
             self.ui.table_defect_data.setVerticalHeaderItem(i+4, item)
             for j in range(5):
@@ -2897,8 +2957,8 @@ class MainWindow(QMainWindow):
     def receiveProblematic(self,dictDataDefect):
         self.dataThread.appendProblematic(dictDataDefect)
     
-    def sendFormerLamps(self,ID,side):
-        self.purgingThread.sendFormerLamps(ID,side)
+    def sendFormerLamps(self,ID,side,rdr):
+        self.purgingThread.sendFormerLamps(ID,side,rdr)
 
     def updateRasmGridOfLine(self, line, index, armRecord, label):
         self.rasmDefectionGrids[line].updateRasmGrid(index, armRecord, label)
@@ -3257,7 +3317,7 @@ class CamBox(QWidget):
 class DefectionGrid(QWidget):
     preColor='lightgreen'
     sendProblematic=pyqtSignal(dict)
-    sendFormerLamp=pyqtSignal(int,int)
+    sendFormerLamp=pyqtSignal(int,int,float)
     def __init__(self, seq, parent=None, armNum=0):
         super(DefectionGrid,self).__init__(parent=parent)
         self.parent=parent
@@ -3340,23 +3400,29 @@ class DefectionGrid(QWidget):
             if cycle >= 3:
                 if(rdr<0.05):
                     if contBad >= 3:
+                        #print(f'==============ID: {armID} | Rate: {rdr*100:.2f}% ===================')
                         self.updateProblematicFormer(self.seq, armID, defectRecord)
-                        self.sendFormerLamp.emit(armID,side)
+                        self.sendFormerLamp.emit(armID,side,rdr)
+                        
                 elif(rdr<0.1):
                     if contBad >= 3:
+                        #print(f'==============ID: {armID} | Rate: {rdr*100:.2f}% ===================')
                         self.updateProblematicFormer(self.seq, armID, defectRecord)
-                        self.sendFormerLamp.emit(armID,side)        
+                        self.sendFormerLamp.emit(armID,side,rdr)  
                 elif(rdr<0.3):
                     if contBad >= 3:
+                        #print(f'==============ID: {armID} | Rate: {rdr*100:.2f}% ===================')
                         self.updateProblematicFormer(self.seq, armID, defectRecord)
-                        self.sendFormerLamp.emit(armID,side)
+                        self.sendFormerLamp.emit(armID,side,rdr)
                 else:
                     if contBad >= 3:
+                        #print(f'==============ID: {armID} | Rate: {rdr*100:.2f}% ===================')
                         self.updateProblematicFormer(self.seq, armID, defectRecord)
-                        self.sendFormerLamp.emit(armID,side)
+                        self.sendFormerLamp.emit(armID,side,rdr)
                     if contGood < 3:
+                        #print(f'==============ID: {armID} | Rate: {rdr*100:.2f}% ===================')
                         self.updateProblematicFormer(self.seq, armID, defectRecord)
-                        self.sendFormerLamp.emit(armID,side)
+                        self.sendFormerLamp.emit(armID,side,rdr)
         if chain:
             if CFG.AIVC_MODE == 0:
                 tt+=f'\nNum. of Cycle: {cycle}\nContinuous Bad: {contBad}\nContinuous Good: {contGood}'
