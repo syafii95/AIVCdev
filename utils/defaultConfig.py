@@ -160,5 +160,10 @@ defaultConfig={
     "LOCK_SETTING":False,
     "FORMER_MARKING_DISTANCE":[10,10,10,10],
     "ENABLE_FORMER_MARKING":True,
-    "CHAIN_ANCHOR_OFFSET":[0,0,0,0]
+    "CHAIN_ANCHOR_OFFSET":[0,0,0,0],
+    "COUNTER_INSTALLED": True,
+    "FORMER_COUNTER_OFFSET": [
+        0,
+        0
+    ]
 }
