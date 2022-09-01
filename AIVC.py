@@ -1292,7 +1292,7 @@ class DataHandler_Thread(QThread):
 
     def cycleCount(self,cycleNum):
         self.numCycle = cycleNum
-        print(f'Number of cycle is: {self.numCycle}')
+        #print(f'Number of cycle is: {self.numCycle}')
 
     def lineSpeedAlert(self, aveSecPerGlove):
         longestPurgingDuration=max([purgerSetting[3] for purgerSetting in CFG.PURGER_SETTING])/10
@@ -1314,7 +1314,6 @@ class DataHandler_Thread(QThread):
                 for i in range (len(self.appendProblematicFormer)):
                     listFormerSend = self.appendProblematicFormer[i]['FormerID']
                     self.dictFormerSend.append(listFormerSend)
-
                 Sample_jsonstring = json.dumps(self.appendProblematicFormer)
                 req = requests.post(PROBLEMATIC_FORMER_URL, data=Sample_jsonstring) #upload to power BI\
                 recorder.info(req)
@@ -1855,40 +1854,6 @@ class Camera_Thread(QThread):
                     continue
                 if CFG.ROTATE:
                     frame=cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
-
-                #syafii Edit
-                convSTR1 = CFG.RASM_TEST_IMAGE.replace("/", "\\")
-                path = r""f'{convSTR1}'
-                random_filename = random.choice([
-                    x for x in os.listdir(path)
-                    if os.path.isfile(os.path.join(path, x))
-                ])
-
-                convSTR2 = CFG.FKTH_TEST_IMAGE.replace("/", "\\")
-                path2 = r""f'{convSTR2}'
-                random_filename2 = random.choice([
-                    y for y in os.listdir(path2)
-                    if os.path.isfile(os.path.join(path2, y))
-                ])
-
-                convSTR3 = CFG.TAC_TEST_IMAGE.replace("/", "\\")
-                path3 = r""f'{convSTR3}'
-                random_filename3 = random.choice([
-                    z for z in os.listdir(path3)
-                    if os.path.isfile(os.path.join(path3, z))
-                ])
-
-                if CFG.AIVC_MODE == 1:
-                    image = Image.open(f'{CFG.TAC_TEST_IMAGE}/{random_filename3}')
-                else:
-                    if camSeq >= 8:
-                        image = Image.open(f'{CFG.RASM_TEST_IMAGE}/{random_filename}')
-                    else:
-                        image = Image.open(f'{CFG.FKTH_TEST_IMAGE}/{random_filename2}')
-                
-                frame = asarray(image)
-                ## syafii edit
-
                 image_processed = np.asarray(utils.image_preporcess(frame, [FIXED_INPUT_SIZE, FIXED_INPUT_SIZE])[np.newaxis, ...],dtype=np.float32)
                 self.feedCaptureQue.emit(camSeq, frame, image_processed, formerID, isRasmAnchor)
             else:
