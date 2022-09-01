@@ -261,6 +261,7 @@ class PLC():
 	def sendFormerMarkingSignal(self,side):
 		if self.connected:
 			self.client.write_coil(HIGH_DEFECT_FORMER_ADDR+self.aivcMode*10+side, True)
+			self.client.write_coil(HIGH_DEFECT_FORMER_ADDR+self.aivcMode*10+side, False)
 
 	def rejectAsm(self,side,num):#LI:M600~605, RI:M610~615, LO:M620~625, RO:M630~635
 		if self.connected:
