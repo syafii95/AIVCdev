@@ -1097,7 +1097,7 @@ class Purging_Thread(QThread):
                     pg=np.sum(targetFormerRecord)
                     dg=np.sum(targetFormerRecord[1:])
                     dr=dg/(pg)
-                    if dr>0.2 and pg>1:
+                    if dr>0.2 and pg>10:
                         self.plc.sendFormerMarkingSignal(side)
                         print(f"Mark Former {side} {targetFormerID} {dr}%")"""
             #Test mark
