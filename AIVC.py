@@ -1122,7 +1122,7 @@ class Purging_Thread(QThread):
                     pg=np.sum(targetFormerRecord)
                     dg=np.sum(targetFormerRecord[1:])
                     dr=dg/(pg)
-                    print(f"Mark Former {SIDE_SHORT[side]} {bal} {dr*100:.2f}%")
+                    print(f"Mark Former {SIDE_SHORT[side]} {purgerFormerID} {dr*100:.2f}%")
                     #print(f'========== Result: {self.verifyMarking} =============')
                 if CFG.ENABLE_FORMER_MARKING:
                     self.plc.sendFormerMarkingSignal(side)
