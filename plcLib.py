@@ -71,10 +71,7 @@ class PLC():
 	timeSpan=0
 	connected=False
 	prev_res=0
-	countSend=0
-	countAddress=-1
-	sendPLC=[]
-	appendFormerID=[]
+
 	def __init__(self, ip,sensorAddr=0,periSensorAddr=50,periSignalAddr=900,aivcMode=0):
 		#ip should be 10.39.0.2
 		self.client = ModbusTcpClient(ip)
@@ -224,21 +221,16 @@ class PLC():
 		else:
 			return -1	#no connection
 
-	def formerCounting(self,formerID,sideNum):
+	def formerCounting(self,formerID,camSeq):
 		if self.connected:
-			if sideNum == 4:
-				idAppend = 2
-			else:
-				idAppend = 1
-			self.appendFormerID.append(formerID)
-			if len(self.appendFormerID) == idAppend:
-				for data in self.appendFormerID:
-					for i in data:
-						self.countAddress+=1
-						#print(f'This is PLC address: {FORMER_COUNTING+self.countAddress} | Data write: {i} ')
-						self.client.write_register(FORMER_COUNTING+self.countAddress,i)
-				self.countAddress=0
-				self.appendFormerID.clear()
+			for ele, data in enumerate(formerID):
+				if camSeq == 9:
+					#print(f'This is PLC address: {FORMER_COUNTING+ele} | Data write: {data} | Camera Sequence: {camSeq}')
+					self.client.write_register(FORMER_COUNTING+ele,data)
+				else:
+					#print(f'This is PLC address: {FORMER_COUNTING+ele+4} | Data write: {data} | Camera Sequence: {camSeq}')
+					self.client.write_register(FORMER_COUNTING+ele+4,data)
+
 
 	def setDualBinFlap(self,side,val):
 		if self.connected:

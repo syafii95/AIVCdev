@@ -2049,7 +2049,7 @@ class Capture_Thread(QThread):
                                                 strID.append(i)
                                         if strID:
                                             sendFormer = convertToAscii(strID)
-                                            self.plc.formerCounting(sendFormer,Side_Num)
+                                            self.plc.formerCounting(sendFormer,camSeq)
                                             strID.clear()
                             
                             camTriggereds[num_cam]=False
