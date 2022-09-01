@@ -3438,7 +3438,7 @@ class DefectionGrid(QWidget):
         tt=''
         defectRecord={}
         total=0
-        defectRecord.update({f'Good Glove': gg})
+        defectRecord.update({f'Good Glove': int(gg)})
         if chain:
             rClass=CHAIN_CLASS
             name='Chain'
@@ -3447,14 +3447,15 @@ class DefectionGrid(QWidget):
             name='RASM'
 
         for i,record in enumerate(armRecord):
-            total+=record
+            recordInt = int(record)
+            total+=recordInt
             if i >0:
                 if i in rClass:
                     rdg+=record
-                    tt+=f'{CLASSES[i]}: {record}\n'
-                    defectRecord.update({CLASSES[i]: record})
+                    tt+=f'{CLASSES[i]}: {recordInt}\n'
+                    defectRecord.update({CLASSES[i]: int(recordInt)})
                 else:
-                    odg+=record
+                    odg+=recordInt
         defectRecord.update({f'Non-{name}-Related': odg})
         tt+=f'Non-{name}-Related: {odg}\n'
         rdr=float(rdg)/(total) if total!=0 else 1
