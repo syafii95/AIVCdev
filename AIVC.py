@@ -1240,9 +1240,9 @@ class MinuteDataRecorder(QThread):
             if self.dHandler.dataRecordState==4:
                 self.dHandler.updateStartTime.emit(time.strftime("%m/%d %H:%M:%S"))
 
-            if (time.time()//60)%15==0:#Trigger time to send former defect rate to powerBI
+            """if (time.time()//60)%15==0:#Trigger time to send former defect rate to powerBI
                 if self.dHandler.state<4:
-                    self.dHandler.uploadProblematic()
+                    self.dHandler.uploadProblematic()"""
                 
             if (time.time()//60)%15==0:#Trigger every 15min
                 self.dHandler.trigger15min.emit()
@@ -1364,8 +1364,12 @@ class DataHandler_Thread(QThread):
         self.firstAnchor=False
         self.startCapture()
 
-    def cycleCount(self,cycleNum):
+    def cycleCount(self,cycleNum,triggerCycle):
         self.numCycle = cycleNum
+        self.triggerCycle = triggerCycle
+        if self.triggerCycle == 1:
+            if self.state == 1:
+                self.uploadProblematic()
         #print(f'Number of cycle is: {self.numCycle}')
 
     def lineSpeedAlert(self, aveSecPerGlove):
@@ -1945,7 +1949,7 @@ class Capture_Thread(QThread):
     noneCamera=pyqtSignal()
     firstChainAnchorReached=pyqtSignal()
     setAnchorID=pyqtSignal(list)
-    cycleCount=pyqtSignal(int)
+    cycleCount=pyqtSignal(int,int)
     camThreadRunning=True
     cycleNum=0
     sendCycle=True
@@ -2091,12 +2095,12 @@ class Capture_Thread(QThread):
                             
                             if s == 0:#Check Chain Anchor
                                 if self.cycleNum == 0 and self.sendCycle == True: #pass initial cycle which is 0
-                                    self.cycleCount.emit(self.cycleNum)
+                                    self.cycleCount.emit(self.cycleNum,0)
                                     self.sendCycle=False
                                 if self.plc.readChainAnchor(CFG.AIVC_MODE) ==1: #1:anchor 0:none -1:error
                                     recorder.debug(f"Reached Chain Anchor {CFormerIDs} {CFG.CHAIN_FORMER_NUM}")
                                     self.cycleNum+=1
-                                    self.cycleCount.emit(self.cycleNum)
+                                    self.cycleCount.emit(self.cycleNum,1)
                                     if firstAnchor:
                                         recorder.debug("First Anchor")
                                         firstAnchor=False
@@ -2295,7 +2299,7 @@ class MainWindow(QMainWindow):
 
         self.ui.label_title.setText(f'Integrated AIVC System  {CFG.FACTORY_NAME} LINE {CFG.LINE_NUM}')
         #self.ui.label_title.setText(f'AIVC System DEVELOPER MODE DO NOT CLOSED')
-        self.ui.label_version.setText(f'V2.3.62.2n')
+        self.ui.label_version.setText(f'V2.3.62.3n')
         self.ui.select_duration.currentIndexChanged.connect(self.changeRecordDuration)
         self.camBoxes=[CamBox(i) for i in range(MAX_CAM_NUM)]
         #Populate Camera View
