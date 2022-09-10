@@ -1389,16 +1389,17 @@ class DataHandler_Thread(QThread):
     def uploadProblematic(self):
         if CFG.AIVC_MODE==0:
             try:
-                for i in range (len(self.appendProblematicFormer)):
+                """for i in range (len(self.appendProblematicFormer)):
                     listFormerSend = self.appendProblematicFormer[i]['FormerID']
-                    self.dictFormerSend.append(listFormerSend)
+                    self.dictFormerSend.append(listFormerSend)"""
                 Sample_jsonstring = json.dumps(self.appendProblematicFormer)
                 req = requests.post(PROBLEMATIC_FORMER_URL, data=Sample_jsonstring) #upload to power BI\
                 recorder.info(req)
-                recorder.info(f'Uploaded Problematic Former ID: {self.dictFormerSend}')
+                recorder.info(self.appendProblematicFormer)
+                #recorder.info(f'Uploaded Problematic Former ID: {self.dictFormerSend}')
                 recorder.info(f'Succesfully upload {len(self.appendProblematicFormer)} defect Former')
                 
-                self.dictFormerSend.clear()
+                #self.dictFormerSend.clear()
                 self.appendProblematicFormer.clear()
             except Exception as e:
                 recorder.info(f'Failed to upload Problematic Former data to {PROBLEMATIC_FORMER_URL}')
@@ -1522,13 +1523,13 @@ class DataHandler_Thread(QThread):
         self.updateTotal()
 
     def incrementContBad(self,side,former):
-        if self.numCycle >= 3:
+        if self.numCycle >= 1:
             self.contBadData[side][former]+=1
             self.contBadDataSend = self.contBadData[side][former]
             #print(f'FormerID: {former} : Side: {side} | Cont Bad: {self.contBadData[side][former]} | Cont Good: {self.contGoodData[side][former]} | Cycle: {self.numCycle}')
 
     def incrementContGood(self,side,former):
-        if self.numCycle >= 3:
+        if self.numCycle >= 1:
             self.contGoodData[side][former]+=1
             self.contGoodDataSend = self.contGoodData[side][former]
             #print(f'FormerID: {former} : Side: {side} | Cont Bad: {self.contBadData[side][former]} | Cont Good: {self.contGoodData[side][former]} | Cycle: {self.numCycle}')
@@ -1564,7 +1565,7 @@ class DataHandler_Thread(QThread):
         if record >1: #Defective glove
             if classRecord in CHAIN_CLASS:
                 self.incrementContBad(side,formerID%SIDE_SEP)
-            self.resetConsecutiveCount(side,formerID%SIDE_SEP,1)
+                self.resetConsecutiveCount(side,formerID%SIDE_SEP,1)
             for i in range(CLASS_NUM-1):
                 if record & (1<<i+1) > 0:#Check for class flag ##May need to add priority instead of recording all
                     self.incrementData(side,i+3)#Defection row start on row 4
@@ -3484,11 +3485,11 @@ class DefectionGrid(QWidget):
                         self.updateProblematicFormer(self.seq, armID, defectRecord)
                         self.sendFormerLamp.emit(armID,side,rdr)
                 else:
-                    if contBad >= 3:
+                    """if contBad >= 3:
                         #print(f'==============ID: {armID} | Rate: {rdr*100:.2f}% ===================')
                         self.updateProblematicFormer(self.seq, armID, defectRecord)
-                        self.sendFormerLamp.emit(armID,side,rdr)
-                    if contGood < 3:
+                        self.sendFormerLamp.emit(armID,side,rdr)"""
+                    if contGood <= 3:
                         #print(f'==============ID: {armID} | Rate: {rdr*100:.2f}% ===================')
                         self.updateProblematicFormer(self.seq, armID, defectRecord)
                         self.sendFormerLamp.emit(armID,side,rdr)
@@ -3566,6 +3567,8 @@ class DefectionGrid(QWidget):
                 "ProductionLine": f'L{CFG.LINE_NUM}', 
                 "ProductionLineRow": SIDE_NAME[seq], 
                 "FormerID": armID, 
+                "Continuous Good" : int(self.contGood[self.side][armID]),
+                "Continuous Bad" : int(self.contBad[self.side][armID]),
                 "Defect_Classes": defectRecord
             }
         self.sendProblematic.emit(self.probleMaticFormer)
