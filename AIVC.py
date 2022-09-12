@@ -1576,6 +1576,9 @@ class DataHandler_Thread(QThread):
             for i in range(CLASS_NUM-1):
                 if record & (1<<i+1) > 0:#Check for class flag ##May need to add priority instead of recording all
                     self.incrementData(side,i+3)#Defection row start on row 4
+                    if i+3 == 12: # increase bad count for fkth classes
+                        self.incrementContBad(side,formerID%SIDE_SEP)
+
 
             #Show Chain Defective Arm
             currentFormerRecord=self.chainIndexers[side].get()
