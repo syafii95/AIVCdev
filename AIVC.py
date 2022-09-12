@@ -2532,6 +2532,7 @@ class MainWindow(QMainWindow):
             self.setting_ui.periVLayout.addWidget(periWidget)
         
         #Former Setting Tab
+        self.setting_ui.formerMarkingCheckBox.setChecked(CFG.ENABLE_FORMER_MARKING)
         self.setting_ui.formerMarkingCheckBox.setText(f"Enable Former Marking Signal (M{950+CFG.AIVC_MODE*10})")
         self.setting_ui.formerMarkingCheckBox.stateChanged.connect(lambda:self.enableFormerMarking(self.setting_ui.formerMarkingCheckBox.isChecked()))
         formerMarkingWidget=FormerMarkingWidget()
