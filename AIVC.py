@@ -1555,7 +1555,6 @@ class DataHandler_Thread(QThread):
     def setGloveDefectionRecord(self, side, formerID, record, lab, classRecord):
         r=np.zeros(CLASS_NUM,dtype=int)
         if record>1:#Defective glove
-            self.resetConsecutiveCount(side,formerID%SIDE_SEP,1)
             for i in range(1,CLASS_NUM):
                 if (1<<i) & record:
                     r[i]=1
@@ -1572,13 +1571,15 @@ class DataHandler_Thread(QThread):
         if record >1: #Defective glove
             if classRecord in CHAIN_CLASS:
                 self.incrementContBad(side,formerID%SIDE_SEP)
-                
+                self.resetConsecutiveCount(side,formerID%SIDE_SEP,1)
+
             for i in range(CLASS_NUM-1):
                 if record & (1<<i+1) > 0:#Check for class flag ##May need to add priority instead of recording all
                     self.incrementData(side,i+3)#Defection row start on row 4
                     if i+3 == 12: # increase bad count for fkth classes
                         self.incrementContBad(side,formerID%SIDE_SEP)
-
+                    if i+3 == 5: # increase bad count for dd classes
+                        self.incrementContBad(side,formerID%SIDE_SEP)
 
             #Show Chain Defective Arm
             currentFormerRecord=self.chainIndexers[side].get()
