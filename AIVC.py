@@ -1391,20 +1391,14 @@ class DataHandler_Thread(QThread):
         
     def uploadProblematic(self):
         if CFG.AIVC_MODE==0:
-            try:
-                """for i in range (len(self.appendProblematicFormer)):
-                    listFormerSend = self.appendProblematicFormer[i]['FormerID']
-                    self.dictFormerSend.append(listFormerSend)"""    
+            try:   
+                for i in range (len(self.appendProblematicFormer)):
+                    self.appendProblematicFormer[i].update({f'Former Count': self.formerNums*Side_Num})
                 Sample_jsonstring = json.dumps(self.appendProblematicFormer)
                 req = requests.post(PROBLEMATIC_FORMER_URL, data=Sample_jsonstring) #upload to power BI\
                 recorder.info(req)
-                for i in range (len(self.appendProblematicFormer)):
-                    self.appendProblematicFormer[i].update({f'Former Count': self.formerNums*Side_Num})
-                recorder.info(self.appendProblematicFormer)
-                #recorder.info(f'Uploaded Problematic Former ID: {self.dictFormerSend}')
                 recorder.info(f'Succesfully upload {len(self.appendProblematicFormer)} defect Former')
-                
-                #self.dictFormerSend.clear()
+                recorder.info(self.appendProblematicFormer)
                 self.appendProblematicFormer.clear()
             except Exception as e:
                 recorder.info(f'Failed to upload Problematic Former data to {PROBLEMATIC_FORMER_URL}')
@@ -1560,7 +1554,6 @@ class DataHandler_Thread(QThread):
                     r[i]=1
         elif record & 1==1:#Good Glove
             r[0]=1
-            self.resetConsecutiveCount(side,formerID%SIDE_SEP,2)
         self.chainIndexers[side].feed(r,formerID%SIDE_SEP)
 
         if record < 1: #No Detection -> empty link
@@ -1569,17 +1562,24 @@ class DataHandler_Thread(QThread):
         else: #Increment Produced Glove
             self.incrementData(side,1) 
         if record >1: #Defective glove
-            if classRecord in CHAIN_CLASS:
-                self.incrementContBad(side,formerID%SIDE_SEP)
-                self.resetConsecutiveCount(side,formerID%SIDE_SEP,1)
-
             for i in range(CLASS_NUM-1):
                 if record & (1<<i+1) > 0:#Check for class flag ##May need to add priority instead of recording all
                     self.incrementData(side,i+3)#Defection row start on row 4
                     if i+3 == 12: # increase bad count for fkth classes
                         self.incrementContBad(side,formerID%SIDE_SEP)
-                    if i+3 == 5: # increase bad count for dd classes
+                        self.resetConsecutiveCount(side,formerID%SIDE_SEP,1)
+                    elif i+3 == 6: # increase bad count for us classes
                         self.incrementContBad(side,formerID%SIDE_SEP)
+                        self.resetConsecutiveCount(side,formerID%SIDE_SEP,1)
+                    elif i+3 == 5: # increase bad count for dd classes
+                        self.incrementContBad(side,formerID%SIDE_SEP)
+                        self.resetConsecutiveCount(side,formerID%SIDE_SEP,1)
+                    elif i+3 == 4: # increase bad count for sa classes
+                        self.incrementContBad(side,formerID%SIDE_SEP)
+                        self.resetConsecutiveCount(side,formerID%SIDE_SEP,1)
+                    elif i+3 == 3: # increase bad count for tr classes
+                        self.incrementContBad(side,formerID%SIDE_SEP)
+                        self.resetConsecutiveCount(side,formerID%SIDE_SEP,1)
 
             #Show Chain Defective Arm
             currentFormerRecord=self.chainIndexers[side].get()
@@ -1593,6 +1593,7 @@ class DataHandler_Thread(QThread):
             #(TOREDO)self.gloveDefectionRecords[side][formerID][1]+=1
             self.incrementData(side,0)
             self.incrementContGood(side,formerID%SIDE_SEP)
+            self.resetConsecutiveCount(side,formerID%SIDE_SEP,2)
             
 
         if formerID%10==0 and side==0: #calculate total and defective rate every 10 former 
@@ -2317,7 +2318,7 @@ class MainWindow(QMainWindow):
 
         self.ui.label_title.setText(f'Integrated AIVC System  {CFG.FACTORY_NAME} LINE {CFG.LINE_NUM}')
         #self.ui.label_title.setText(f'AIVC System DEVELOPER MODE DO NOT CLOSED')
-        self.ui.label_version.setText(f'V2.3.62.3n')
+        self.ui.label_version.setText(f'V2.3.62.5n')
         self.ui.select_duration.currentIndexChanged.connect(self.changeRecordDuration)
         self.camBoxes=[CamBox(i) for i in range(MAX_CAM_NUM)]
         #Populate Camera View
@@ -3431,6 +3432,11 @@ class DefectionGrid(QWidget):
         self.setMaximumHeight(maxHeight)
         self.armsID=[]
         self.items=[]
+        self.side=0
+        self.emptyLink=np.zeros((4,CFG.CHAIN_FORMER_NUM), dtype = bool)
+        self.cycle=0
+        self.contBad=np.zeros((4,CFG.CHAIN_FORMER_NUM), dtype = int)
+        self.contGood=np.zeros((4,CFG.CHAIN_FORMER_NUM), dtype = int)
         self.setLayout(vbox)
         self.frame.setFixedSize(cWidth,cHeight)
         self.frame.setFrameStyle(6)
@@ -3487,7 +3493,7 @@ class DefectionGrid(QWidget):
         defectRecord.update({f'Defective Rate': float(f'{rdr*100:.2f}')})
 
         if name == 'Chain' and updateData:
-            if cycle >= 1:
+            if cycle >= 3:
                 if(rdr<0.05):
                     if contBad >= 3:
                         #print(f'==============ID: {armID} | Rate: {rdr*100:.2f}% ===================')
