@@ -224,12 +224,21 @@ class PLC():
 	def formerCounting(self,formerID,camSeq):
 		if self.connected:
 			for ele, data in enumerate(formerID):
-				if camSeq == 9:
+				if camSeq == 8:
 					#print(f'This is PLC address: {FORMER_COUNTING+ele} | Data write: {data} | Camera Sequence: {camSeq}')
 					self.client.write_register(FORMER_COUNTING+ele,data)
-				else:
+
+				elif camSeq == 9:
 					#print(f'This is PLC address: {FORMER_COUNTING+ele+4} | Data write: {data} | Camera Sequence: {camSeq}')
 					self.client.write_register(FORMER_COUNTING+ele+4,data)
+				
+				elif camSeq == 10:
+					#print(f'This is PLC address: {FORMER_COUNTING+ele+4} | Data write: {data} | Camera Sequence: {camSeq}')
+					self.client.write_register(FORMER_COUNTING+ele+8,data)
+
+				elif camSeq == 11:
+					#print(f'This is PLC address: {FORMER_COUNTING+ele+4} | Data write: {data} | Camera Sequence: {camSeq}')
+					self.client.write_register(FORMER_COUNTING+ele+12,data)
 
 
 	def setDualBinFlap(self,side,val):
