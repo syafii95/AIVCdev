@@ -224,19 +224,19 @@ class PLC():
 	def formerCounting(self,formerID,camSeq):
 		if self.connected:
 			for ele, data in enumerate(formerID):
-				if camSeq == 8:
+				if camSeq == 8: # Left In Side
 					#print(f'This is PLC address: {FORMER_COUNTING+ele} | Data write: {data} | Camera Sequence: {camSeq}')
 					self.client.write_register(FORMER_COUNTING+ele,data)
 
-				elif camSeq == 9:
-					#print(f'This is PLC address: {FORMER_COUNTING+ele+4} | Data write: {data} | Camera Sequence: {camSeq}')
-					self.client.write_register(FORMER_COUNTING+ele+4,data)
-				
-				elif camSeq == 10:
+				elif camSeq == 9: # Left Out Side
 					#print(f'This is PLC address: {FORMER_COUNTING+ele+4} | Data write: {data} | Camera Sequence: {camSeq}')
 					self.client.write_register(FORMER_COUNTING+ele+8,data)
+				
+				elif camSeq == 10: # Right In Side
+					#print(f'This is PLC address: {FORMER_COUNTING+ele+4} | Data write: {data} | Camera Sequence: {camSeq}')
+					self.client.write_register(FORMER_COUNTING+ele+4,data)
 
-				elif camSeq == 11:
+				elif camSeq == 11: # Right Out Side
 					#print(f'This is PLC address: {FORMER_COUNTING+ele+4} | Data write: {data} | Camera Sequence: {camSeq}')
 					self.client.write_register(FORMER_COUNTING+ele+12,data)
 
