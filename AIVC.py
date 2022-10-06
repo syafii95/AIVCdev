@@ -129,7 +129,7 @@ FKTH_SAMPLING_DIR='tag_sampling_FKTH/'
 RASM_SEQ=8
 SAVING_PROCESS_NUM=2
 PERIPHERAL_NAME=['FURS', 'SARS', 'Half-moon']
-NAS_IP='10.39.0.55'
+NAS_IP='10.39.8.230'
 RASM_CLASS=[1,2,4]
 CHAIN_CLASSES=[[1,2,3,4,10],[1,2,3,6,7],[1,2,3,4,5]]
 CHAIN_CLASS=CHAIN_CLASSES[CFG.AIVC_MODE]
@@ -1378,7 +1378,8 @@ class DataHandler_Thread(QThread):
         self.triggerCycle = triggerCycle
         if self.triggerCycle == 1:
             if self.state == 1:
-                self.uploadProblematic()
+                if self.numCycle >= 3:
+                    self.uploadProblematic()
         #print(f'Number of cycle is: {self.numCycle}')
 
     def lineSpeedAlert(self, aveSecPerGlove):
@@ -1397,14 +1398,48 @@ class DataHandler_Thread(QThread):
         
     def uploadProblematic(self):
         if CFG.AIVC_MODE==0:
+            utcDateTime=datetime.datetime.utcnow().isoformat()
+            DateTime=datetime.datetime.now().isoformat()
+            defectDict = {}
+            defectDict["Good Glove"]=0
+            for i in CHAIN_CLASS:
+                defectDict[f"{CLASSES[i]}"]=0
+            defectDict["Non-Chain-Related"]=0
+            defectDict["Defective Rate"]=0
             try:   
                 for i in range (len(self.appendProblematicFormer)):
                     self.appendProblematicFormer[i].update({f'Former Count': self.formerNums*Side_Num})
-                Sample_jsonstring = json.dumps(self.appendProblematicFormer)
-                req = requests.post(PROBLEMATIC_FORMER_URL, data=Sample_jsonstring) #upload to power BI\
-                recorder.info(req)
-                recorder.info(f'Succesfully upload {len(self.appendProblematicFormer)} defect Former')
-                recorder.info(self.appendProblematicFormer)
+
+                if len(self.appendProblematicFormer) == 0:
+                    emptyFormer = []
+                    for side in range(Side_Num):
+                        emptyProblematicFormer = {
+                            "UTCDateTime": utcDateTime,
+                            "DateTime": DateTime, 
+                            "Mode": CFG.AIVC_MODE, 
+                            "Factory": CFG.FACTORY_NAME, 
+                            "ProductionLine": f'L{CFG.LINE_NUM}', 
+                            "ProductionLineRow": SIDE_NAME[side], 
+                            "FormerID": 999999,
+                            "Continuous Good" : 0,
+                            "Continuous Bad" : 0,
+                            "Cycle Number" : int(self.numCycle),
+                            "Defect_Classes": defectDict
+                        }
+                        emptyFormer.append(emptyProblematicFormer)
+                        for i in range (len(emptyFormer)):
+                            emptyFormer[i].update({f'Former Count': self.formerNums*Side_Num})
+                    Sample_jsonstring = json.dumps(emptyFormer)
+                    req = requests.post(PROBLEMATIC_FORMER_URL, data=Sample_jsonstring) #upload to power BI\
+                    recorder.info(req)
+                    recorder.info(f'Succesfully upload {len(emptyFormer)} side Former')
+                    recorder.info(emptyFormer)
+                else:
+                    Sample_jsonstring = json.dumps(self.appendProblematicFormer)
+                    req = requests.post(PROBLEMATIC_FORMER_URL, data=Sample_jsonstring) #upload to power BI\
+                    recorder.info(req)
+                    recorder.info(f'Succesfully upload {len(self.appendProblematicFormer)} defect Former')
+                    recorder.info(self.appendProblematicFormer)
                 self.appendProblematicFormer.clear()
             except Exception as e:
                 recorder.info(f'Failed to upload Problematic Former data to {PROBLEMATIC_FORMER_URL}')
@@ -1476,7 +1511,13 @@ class DataHandler_Thread(QThread):
 
     def closeThread(self):
         self.uploadDatabase()#Upload last data segment to SQL & IotHub before closing
-        self.uploadProblematic()
+        try:
+            if len(self.appendProblematicFormer) == 0:
+                pass
+            else:
+                self.uploadProblematic()
+        except:
+            pass
         self.saveSegmentedRecord()
         self.minuteDataRecorder.que.put(None)
         self.teamsMessenger.queue.put(None)
@@ -1720,7 +1761,7 @@ class DataHandler_Thread(QThread):
             side=getSide(camSeq)
             h, w, ch = frame.shape
             frame_size = frame.shape[:2]
-            pred_bbox = [tf.reshape(x, (-1, tf.shape(x)[-1])) for x in pred_bbox]
+            pred_bbox = [tf.reshape(x, (-1, tf.shape(x)[-1])) for x in pred_bbox]  
             pred_bbox = tf.concat(pred_bbox, axis=0)
             bboxes = utils.postprocess_boxes(pred_bbox, frame_size, FIXED_INPUT_SIZE, 0.3)
             bboxes = utils.nms2(bboxes, 0.45, method='nms')
@@ -1759,7 +1800,13 @@ class DataHandler_Thread(QThread):
             if self.state!=self.prevState:
                 self.saveSegmentedRecord()
                 self.uploadDatabase()
-                self.uploadProblematic()
+                try:
+                    if len(self.appendProblematicFormer) == 0:
+                        pass
+                    else:
+                        self.uploadProblematic()
+                except:
+                    pass
 
             if not self.isRunning():
                 self.occu.end()
@@ -1877,8 +1924,11 @@ class DataHandler_Thread(QThread):
                         self.setListItem.emit(listStr, f"{imgName}.{IMG_FORMAT}")
                     
                     #syafii edit
-                    if b[4]<0.90:
-                        self.getLowConfidence(classId)
+                    try:
+                        if b[4]<0.90:
+                            self.getLowConfidence(classId)
+                    except:
+                        pass
                     #syafii edit    
 
                     if b[4]<CFG.LOW_CONF_THRESHOLD: #Any low confidence inference
@@ -2217,11 +2267,16 @@ class Capture_Thread(QThread):
                             strID.clear()"""
                             if CFG.COUNTER_INSTALLED:
                                 if CFG.AIVC_MODE==0:
-                                    if camSeq == 9 or camSeq == 11:
-                                        if camSeq == 9:
+                                    if camSeq == 8 or camSeq == 9 or camSeq == 10 or camSeq == 11:
+                                        if camSeq == 8:
                                             idPLC=(CFormerIDs[CFG.PURGER_SENSOR[side]]+Former_Interval[camSeq]+Former_Plc_offset[0])
-                                        elif camSeq ==11:
+                                        elif camSeq ==9:
                                             idPLC=(CFormerIDs[CFG.PURGER_SENSOR[side]]+Former_Interval[camSeq]+Former_Plc_offset[1])
+                                        elif camSeq ==10:
+                                            idPLC=(CFormerIDs[CFG.PURGER_SENSOR[side]]+Former_Interval[camSeq]+Former_Plc_offset[2])
+                                        elif camSeq ==11:
+                                            idPLC=(CFormerIDs[CFG.PURGER_SENSOR[side]]+Former_Interval[camSeq]+Former_Plc_offset[3])
+                                    
                                         formerIDplc=idPLC % TOTAL_FORMER + side*SIDE_SEP
                                         stringID = str(formerIDplc%SIDE_SEP).zfill(4) #0001
                                         for i in stringID:
@@ -2449,7 +2504,10 @@ class MainWindow(QMainWindow):
         self.purgerforms=[self.setting_ui.form_plc_0, self.setting_ui.form_plc_1, self.setting_ui.form_plc_2, self.setting_ui.form_plc_3 ]
         for idx, form in enumerate(self.purgerforms):
             form.setWidget(0,QFormLayout.FieldRole, LineEditLimInt(max=50, hint="num of former"))
-            form.setWidget(1,QFormLayout.FieldRole, LineEditLimInt(max=4,hint='100ms'))
+            if CFG.FACTORY_NAME == "F06":
+                form.setWidget(1,QFormLayout.FieldRole, LineEditLimInt(max=7,hint='100ms'))
+            else:
+                form.setWidget(1,QFormLayout.FieldRole, LineEditLimInt(max=4,hint='100ms'))
             form.setWidget(2,QFormLayout.FieldRole, LineEditLimInt(max=5,hint='100ms'))
             form.setWidget(3,QFormLayout.FieldRole, LineEditLimInt(max=10,hint='100ms'))
             enableRASMPurgeCB=IndexedCheckBox(idx,"Enable RASM")
@@ -2946,7 +3004,7 @@ class MainWindow(QMainWindow):
         self.dataThread.dataRecordState=idx
 
     def setConfLevel(self):
-        CFG_Handler.set('CONF_LEVEL_TO_PURGE',self.sender().val/100.0)
+            CFG_Handler.set('CONF_LEVEL_TO_PURGE',self.sender().val/100.0)
 
     def setSFduration(self):
         CFG_Handler.set('FLIP_DURATION',self.sender().val)
