@@ -1810,15 +1810,16 @@ class DataHandler_Thread(QThread):
 
             #checking line state change 
             if self.state!=self.prevState:
-                self.saveSegmentedRecord()
-                self.uploadDatabase()
                 try:
                     if len(self.appendProblematicFormer) == 0:
                         pass
                     else:
-                        self.uploadProblematic()
+                        if self.prevState == 1:
+                            self.uploadProblematic()
                 except:
                     pass
+                self.saveSegmentedRecord()
+                self.uploadDatabase()
 
             if not self.isRunning():
                 self.occu.end()
