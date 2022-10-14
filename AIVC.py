@@ -144,6 +144,9 @@ PROBLEMATIC_FORMER_URL="https://prod-06.southeastasia.logic.azure.com:443/workfl
 IOTHUB_URI="tg-iot-aivc-r1.azure-devices.net/devices/AIVC-Master-01"
 IOTHUB_REST_URI= "https://" + IOTHUB_URI + "/messages/events?api-version=2018-06-30"
 IOTHUB_KEY= "mOMRhVDnXhk4f0c8zEPlpYDsHgXbjLRdLUXkJsVvlK8="
+IOTHUB_URI_FORMER="tg-iot-aivc-r2.azure-devices.net/devices/AIVC-Former-01"
+IOTHUB_REST_URI_FORMER = "https://" + IOTHUB_URI_FORMER + "/messages/events?api-version=2018-06-30"
+IOTHUB_KEY_FORMER="lujyFDp4COxGQBw8oquyEo+q3M/FyTouw6y/4FMRdus="
 try:
     with open('classes.names','r') as names:
         for name in names:
@@ -1406,9 +1409,14 @@ class DataHandler_Thread(QThread):
                 defectDict[f"{CLASSES[i]}"]=0
             defectDict["Non-Chain-Related"]=0
             defectDict["Defective Rate"]=0
-            try:   
+            try:  
+                headers={
+                    'Authorization' : generateSasToken(IOTHUB_URI_FORMER,IOTHUB_KEY_FORMER,expiry=60),
+                    'Content-Type' : "application/json",
+                    'Content-Encoding' : "UTF-8"
+                } 
                 for i in range (len(self.appendProblematicFormer)):
-                    self.appendProblematicFormer[i].update({f'Former Count': self.formerNums*Side_Num})
+                    self.appendProblematicFormer[i].update({f'Former Count': self.formerNums})
 
                 if len(self.appendProblematicFormer) == 0:
                     emptyFormer = []
@@ -1428,16 +1436,20 @@ class DataHandler_Thread(QThread):
                         }
                         emptyFormer.append(emptyProblematicFormer)
                         for i in range (len(emptyFormer)):
-                            emptyFormer[i].update({f'Former Count': self.formerNums*Side_Num})
+                            emptyFormer[i].update({f'Former Count': self.formerNums})
                     Sample_jsonstring = json.dumps(emptyFormer)
+                    resp = requests.post(IOTHUB_REST_URI_FORMER, json=Sample_jsonstring, headers=headers)
                     req = requests.post(PROBLEMATIC_FORMER_URL, data=Sample_jsonstring) #upload to power BI\
-                    recorder.info(req)
+                    recorder.info(f'Http Status:{req}')
+                    recorder.info(f'IotHub Status:{resp}')
                     recorder.info(f'Succesfully upload {len(emptyFormer)} side Former')
                     recorder.info(emptyFormer)
                 else:
-                    Sample_jsonstring = json.dumps(self.appendProblematicFormer)
-                    req = requests.post(PROBLEMATIC_FORMER_URL, data=Sample_jsonstring) #upload to power BI\
-                    recorder.info(req)
+                    Sample_jsonstrings = json.dumps(self.appendProblematicFormer)
+                    resp = requests.post(IOTHUB_REST_URI_FORMER, json=Sample_jsonstrings, headers=headers)
+                    req = requests.post(PROBLEMATIC_FORMER_URL, data=Sample_jsonstrings) #upload to power BI\
+                    recorder.info(f'Http Status:{req}')
+                    recorder.info(f'IotHub Status:{resp}')
                     recorder.info(f'Succesfully upload {len(self.appendProblematicFormer)} defect Former')
                     recorder.info(self.appendProblematicFormer)
                 self.appendProblematicFormer.clear()
@@ -2412,7 +2424,7 @@ class MainWindow(QMainWindow):
 
         self.ui.label_title.setText(f'Integrated AIVC System  {CFG.FACTORY_NAME} LINE {CFG.LINE_NUM}')
         #self.ui.label_title.setText(f'AIVC System DEVELOPER MODE DO NOT CLOSED')
-        self.ui.label_version.setText(f'V2.3.62.6n')
+        self.ui.label_version.setText(f'V2.3.62.7n')
         self.ui.select_duration.currentIndexChanged.connect(self.changeRecordDuration)
         self.camBoxes=[CamBox(i) for i in range(MAX_CAM_NUM)]
         #Populate Camera View
