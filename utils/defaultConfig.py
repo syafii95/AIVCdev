@@ -164,6 +164,8 @@ defaultConfig={
     "COUNTER_INSTALLED": True,
     "FORMER_COUNTER_OFFSET": [
         0,
+        0,
+        0,
         0
     ]
 }
