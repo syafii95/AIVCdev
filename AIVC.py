@@ -1431,22 +1431,25 @@ class DataHandler_Thread(QThread):
                             "FormerID": 999999,
                             "Continuous Good" : 0,
                             "Continuous Bad" : 0,
-                            "Cycle Number" : int(self.numCycle),
+                            "Cycle Number" : int(self.numCycle-1),
                             "Defect_Classes": defectDict
                         }
                         emptyFormer.append(emptyProblematicFormer)
                         for i in range (len(emptyFormer)):
                             emptyFormer[i].update({f'Former Count': self.formerNums})
                     Sample_jsonstring = json.dumps(emptyFormer)
-                    resp = requests.post(IOTHUB_REST_URI_FORMER, json=Sample_jsonstring, headers=headers)
-                    req = requests.post(PROBLEMATIC_FORMER_URL, data=Sample_jsonstring) #upload to power BI\
-                    recorder.info(f'Http Status:{req}')
-                    recorder.info(f'IotHub Status:{resp}')
-                    recorder.info(f'Succesfully upload {len(emptyFormer)} side Former')
-                    recorder.info(emptyFormer)
+                    if self.numCycle >= 4:
+                        resp = requests.post(IOTHUB_REST_URI_FORMER, json=emptyFormer, headers=headers)
+                        req = requests.post(PROBLEMATIC_FORMER_URL, data=Sample_jsonstring) #upload to power BI\
+                        recorder.info(f'Http Status:{req}')
+                        recorder.info(f'IotHub Status:{resp}')
+                        recorder.info(f'Succesfully upload {len(emptyFormer)} side Former')
+                        recorder.info(emptyFormer)
+                    else:
+                        pass
                 else:
                     Sample_jsonstrings = json.dumps(self.appendProblematicFormer)
-                    resp = requests.post(IOTHUB_REST_URI_FORMER, json=Sample_jsonstrings, headers=headers)
+                    resp = requests.post(IOTHUB_REST_URI_FORMER, json=self.appendProblematicFormer, headers=headers)
                     req = requests.post(PROBLEMATIC_FORMER_URL, data=Sample_jsonstrings) #upload to power BI\
                     recorder.info(f'Http Status:{req}')
                     recorder.info(f'IotHub Status:{resp}')
@@ -1527,7 +1530,8 @@ class DataHandler_Thread(QThread):
             if len(self.appendProblematicFormer) == 0:
                 pass
             else:
-                self.uploadProblematic()
+                if self.numCycle >= 3:
+                    self.uploadProblematic()
         except:
             pass
         self.saveSegmentedRecord()
