@@ -1461,11 +1461,12 @@ class DataHandler_Thread(QThread):
             #Create directory for image tagging
             dirsToCreate=[BASE_DIR+RASM_NO_DETECT_DIR, BASE_DIR+FKTH_NO_DETECT_DIR, \
             BASE_DIR+SAMPLING_DIR, BASE_DIR+FKTH_SAMPLING_DIR]
-            global CURRENT_DIR, FKTH_CURRENT_DIR, LOW_CONF_DIR, FKTH_LOW_CONF_DIR
+            global CURRENT_DIR, FKTH_CURRENT_DIR, LOW_CONF_DIR, FKTH_LOW_CONF_DIR, TEST_RASM_DIR
             dateTime=time.strftime("%Y%m%d-%H%M%S")
             CURRENT_DIR=f"{BASE_DIR}tag_{dateTime}/"
             FKTH_CURRENT_DIR=f"{BASE_DIR}tag_{dateTime}_FKTH/"
             LOW_CONF_DIR=f"{BASE_DIR}tag_low_conf_{dateTime}/"
+            TEST_RASM_DIR=f"{BASE_DIR}rasm_carrier_set_{dateTime}/"
             FKTH_LOW_CONF_DIR=f"{BASE_DIR}tag_low_conf_{dateTime}_FKTH/"
 
             #Check NAS Connection
@@ -1510,6 +1511,7 @@ class DataHandler_Thread(QThread):
             chainIndexer.anchorReached()
         self.firstAnchor=True
     def run(self):
+        rasmCycle = 0
         while self.dataHandlerRunning:
             try:
                 camSeq, frame, pred_bbox, formerID, isRasmAnchor= self.yoloResultQue.get(timeout=0.5) 
@@ -1647,6 +1649,7 @@ class DataHandler_Thread(QThread):
                 empty=True
                 label=''
                 labelLow=''
+                labelRasm=''
                 for b in bboxes:
                     empty=False
                     xc=(b[0]+b[2])*0.5/w
@@ -1690,6 +1693,19 @@ class DataHandler_Thread(QThread):
                                 lowConfName=f"{LOW_CONF_DIR}{name}_{int(b[4]*100)}"
                             else:
                                 lowConfName=f"{FKTH_LOW_CONF_DIR}{name}_{int(b[4]*100)}"
+
+                    if rasmID1 == 1 and camSeq == 8: # Number of rasm cycle
+                        rasmCycle += 1
+            
+                    try:
+                        if camSeq == 8:
+                            if rasmCycle >= 2 and rasmCycle < 29:
+                                if b[4]>0.90:
+                                    labelLow+=f"{classId} {xc} {yc} {width} {height}\n"
+                                    nameImg=f"{TEST_RASM_DIR}img_armID_{rasmID1}_Side_{SIDE_SHORT[side]}_Cycle_{rasmCycle}_conf_{int(b[4]*100)}"
+                                    self.saveImg(nameImg,rawImage,labelRasm)
+                    except:
+                        pass
 
                 if(foundObject):
                     self.saveImg(imgName,rawImage,label)
