@@ -54,6 +54,7 @@ import sqlConnect
 from indexer import FixLenIndexer
 from utils.AIVCMainWindow import Ui_AIVCMainWindow
 from utils.SettingDialog import Ui_SettingDialog
+from utils.securityDialog import Ui_SecurityDialog
 from utils.log import log
 from concurrent_log_handler import ConcurrentRotatingFileHandler
 import logging
@@ -126,7 +127,7 @@ FKTH_SAMPLING_DIR='tag_sampling_FKTH/'
 RASM_SEQ=8
 SAVING_PROCESS_NUM=2
 PERIPHERAL_NAME=['FURS', 'SARS', 'Half-moon']
-NAS_IP='10.39.0.55'
+NAS_IP='10.39.8.230'
 RASM_CLASS=[1,2,4]
 CHAIN_CLASSES=[[1,2,3,4,10],[1,2,3,6,7],[1,2,3,4,5]]
 CHAIN_CLASS=CHAIN_CLASSES[CFG.AIVC_MODE]
@@ -1461,7 +1462,7 @@ class DataHandler_Thread(QThread):
             #Create directory for image tagging
             dirsToCreate=[BASE_DIR+RASM_NO_DETECT_DIR, BASE_DIR+FKTH_NO_DETECT_DIR, \
             BASE_DIR+SAMPLING_DIR, BASE_DIR+FKTH_SAMPLING_DIR]
-            global CURRENT_DIR, FKTH_CURRENT_DIR, LOW_CONF_DIR, FKTH_LOW_CONF_DIR, TEST_RASM_DIR
+            global CURRENT_DIR, FKTH_CURRENT_DIR, LOW_CONF_DIR, FKTH_LOW_CONF_DIR
             dateTime=time.strftime("%Y%m%d-%H%M%S")
             CURRENT_DIR=f"{BASE_DIR}tag_{dateTime}/"
             FKTH_CURRENT_DIR=f"{BASE_DIR}tag_{dateTime}_FKTH/"
@@ -1521,7 +1522,7 @@ class DataHandler_Thread(QThread):
             side=getSide(camSeq)
             h, w, ch = frame.shape
             frame_size = frame.shape[:2]
-            pred_bbox = [tf.reshape(x, (-1, tf.shape(x)[-1])) for x in pred_bbox]
+            pred_bbox = [tf.reshape(x, (-1, tf.shape(x)[-1])) for x in pred_bbox]  
             pred_bbox = tf.concat(pred_bbox, axis=0)
             bboxes = utils.postprocess_boxes(pred_bbox, frame_size, FIXED_INPUT_SIZE, 0.3)
             bboxes = utils.nms2(bboxes, 0.45, method='nms')
@@ -2205,6 +2206,7 @@ class MainWindow(QMainWindow):
         self.userDialog.userLoggedOut.connect(self.logoutUpdateUI)
 
         self.settingDialog = QDialog(self, flags=Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
+        self.securityDialog = QDialog(self, flags=Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
         self.imgDialog=ImgDialog(self)
         self.tableDialog=TableDialog(self)
         self.plcDialog=PLCDialog(self,self.plc)
@@ -2216,6 +2218,8 @@ class MainWindow(QMainWindow):
             rcw.resetRejectCount.connect(self.resetRejectCount)
         self.setting_ui=Ui_SettingDialog()
         self.setting_ui.setupUi(self.settingDialog)
+        self.security_ui=Ui_SecurityDialog()
+        self.security_ui.setupUi(self.securityDialog)
         self.purgerforms=[self.setting_ui.form_plc_0, self.setting_ui.form_plc_1, self.setting_ui.form_plc_2, self.setting_ui.form_plc_3 ]
         for idx, form in enumerate(self.purgerforms):
             form.setWidget(0,QFormLayout.FieldRole, LineEditLimInt(max=50, hint="num of former"))
@@ -2348,6 +2352,7 @@ class MainWindow(QMainWindow):
             self.setting_ui.periVLayout.addWidget(periWidget)
         
         #Former Setting Tab
+        self.setting_ui.formerMarkingCheckBox.setChecked(CFG.ENABLE_FORMER_MARKING)
         self.setting_ui.formerMarkingCheckBox.setText(f"Enable Former Marking Signal (M{950+CFG.AIVC_MODE*10})")
         self.setting_ui.formerMarkingCheckBox.stateChanged.connect(lambda:self.enableFormerMarking(self.setting_ui.formerMarkingCheckBox.isChecked()))
         formerMarkingWidget=FormerMarkingWidget()
@@ -2377,7 +2382,7 @@ class MainWindow(QMainWindow):
         self.ui.btn_start.clicked.connect(self.changeButtonText)
 
         self.ui.btn_label.clicked.connect(self.openLabelWindow)
-        self.ui.btn_setting.clicked.connect(self.openSettingWindow)
+        self.ui.btn_setting.clicked.connect(self.openSecurityWindow)
         if CFG.LOCK_SETTING:
             self.ui.btn_setting.setEnabled(False)
             self.ui.btn_setting.setToolTip("Require User AuthorityLvl 8")
@@ -2717,7 +2722,7 @@ class MainWindow(QMainWindow):
         self.dataThread.dataRecordState=idx
 
     def setConfLevel(self):
-        CFG_Handler.set('CONF_LEVEL_TO_PURGE',self.sender().val/100.0)
+            CFG_Handler.set('CONF_LEVEL_TO_PURGE',self.sender().val/100.0)
 
     def setSFduration(self):
         CFG_Handler.set('FLIP_DURATION',self.sender().val)
@@ -3014,6 +3019,7 @@ class MainWindow(QMainWindow):
         self.secTimer.closeThread()
         self.minTimer.closeThread()
         self.settingDialog.close()
+        self.securityDialog.close()
         self.imgDialog.close()
         self.tableDialog.close()
         self.infoDialog.close()
@@ -3122,8 +3128,36 @@ class MainWindow(QMainWindow):
         labelWindow.show()
         print("Open Label Window")
 
+    def openSecurityWindow(self):
+        self.errorMsg = 0
+        self.securityDialog.show()
+        self.security_ui.lineEdit.setText('')
+        self.security_ui.lineEdit.textChanged.connect(self.getPassword)
+        self.security_ui.buttonBox.accepted.connect(self.openSettingWindow)
+        self.security_ui.buttonBox.rejected.connect(self.hideSecurityWindow)
+        
+    def getPassword(self):
+        self.passwords = self.security_ui.lineEdit.text()
+        print(self.passwords)
+
+    def hideSecurityWindow(self):
+        self.securityDialog.hide()
+
     def openSettingWindow(self):
-        self.settingDialog.show()
+        if self.passwords == 'AIResearcher2022':
+            self.settingDialog.show()
+        else:
+            try:
+                if self.errorMsg == 0:
+                    msg = QMessageBox()
+                    msg.setIcon(QMessageBox.Critical)
+                    msg.setText("Wrong Key !")
+                    #msg.setInformativeText('Contact admin for more information')
+                    msg.setWindowTitle("Error")
+                    msg.exec_()
+                    self.errorMsg += 1
+            except:
+                pass
         #Load previous setting data
 
         for i in range(4):
@@ -3294,14 +3328,14 @@ class DefectionGrid(QWidget):
         self.items[index].setText( f"<span style='font-size:8pt; font-weight:500;'>{armID}\n</span><br><span style='font-size:7pt; font-weight:400;'>{rdr*100:.2f}%</span>" )
 
         #Set Color by Defective Rate
-        if(rdr<0.05):
-            color='lightgreen'
-        elif(rdr<0.1):
-            color='yellow'
-        elif(rdr<0.3):
-            color='orange'
-        else:
-            color='red'
+            if(rdr<0.05):
+                color='lightgreen'
+            elif(rdr<0.1):
+                color='yellow'
+            elif(rdr<0.3):
+                color='orange'
+            else:
+                color='red'
         if highlight:
             self.items[index].setStyleSheet(f"QLabel {{background-color: {color}; border: 3px solid orange; border-radius: 5px;}}") 
         else:
