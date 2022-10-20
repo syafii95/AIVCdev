@@ -56,6 +56,7 @@ import sqlConnect
 from indexer import FixLenIndexer
 from utils.AIVCMainWindow import Ui_AIVCMainWindow
 from utils.SettingDialog import Ui_SettingDialog
+from utils.securityDialog import Ui_SecurityDialog
 from utils.log import log
 from concurrent_log_handler import ConcurrentRotatingFileHandler
 import logging
@@ -1439,20 +1440,25 @@ class DataHandler_Thread(QThread):
                             emptyFormer[i].update({f'Former Count': self.formerNums})
                     Sample_jsonstring = json.dumps(emptyFormer)
                     if self.numCycle >= 4:
-                        resp = requests.post(IOTHUB_REST_URI_FORMER, json=emptyFormer, headers=headers)
-                        req = requests.post(PROBLEMATIC_FORMER_URL, data=Sample_jsonstring) #upload to power BI\
-                        recorder.info(f'Http Status:{req}')
-                        recorder.info(f'IotHub Status:{resp}')
+                        if CFG.ENABLE_SHAREPOINT:
+                            resp = requests.post(IOTHUB_REST_URI_FORMER, json=emptyFormer, headers=headers)
+                            recorder.info(f'IotHub Status:{resp}')
+                        if CFG.ENABLE_HTTP:
+                            req = requests.post(PROBLEMATIC_FORMER_URL, data=Sample_jsonstring) #upload to power BI\
+                            recorder.info(f'Http Status:{req}')
+                        
                         recorder.info(f'Succesfully upload {len(emptyFormer)} side Former')
                         recorder.info(emptyFormer)
                     else:
                         pass
                 else:
                     Sample_jsonstrings = json.dumps(self.appendProblematicFormer)
-                    resp = requests.post(IOTHUB_REST_URI_FORMER, json=self.appendProblematicFormer, headers=headers)
-                    req = requests.post(PROBLEMATIC_FORMER_URL, data=Sample_jsonstrings) #upload to power BI\
-                    recorder.info(f'Http Status:{req}')
-                    recorder.info(f'IotHub Status:{resp}')
+                    if CFG.ENABLE_SHAREPOINT:
+                        resp = requests.post(IOTHUB_REST_URI_FORMER, json=self.appendProblematicFormer, headers=headers)
+                        recorder.info(f'IotHub Status:{resp}')
+                    if CFG.ENABLE_HTTP:
+                        req = requests.post(PROBLEMATIC_FORMER_URL, data=Sample_jsonstrings) #upload to power BI\
+                        recorder.info(f'Http Status:{req}')
                     recorder.info(f'Succesfully upload {len(self.appendProblematicFormer)} defect Former')
                     recorder.info(self.appendProblematicFormer)
                 self.appendProblematicFormer.clear()
@@ -2507,6 +2513,7 @@ class MainWindow(QMainWindow):
         self.userDialog.userLoggedOut.connect(self.logoutUpdateUI)
 
         self.settingDialog = QDialog(self, flags=Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
+        self.securityDialog = QDialog(self, flags=Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
         self.imgDialog=ImgDialog(self)
         self.tableDialog=TableDialog(self)
         self.plcDialog=PLCDialog(self,self.plc)
@@ -2518,6 +2525,8 @@ class MainWindow(QMainWindow):
             rcw.resetRejectCount.connect(self.resetRejectCount)
         self.setting_ui=Ui_SettingDialog()
         self.setting_ui.setupUi(self.settingDialog)
+        self.security_ui=Ui_SecurityDialog()
+        self.security_ui.setupUi(self.securityDialog)
         self.purgerforms=[self.setting_ui.form_plc_0, self.setting_ui.form_plc_1, self.setting_ui.form_plc_2, self.setting_ui.form_plc_3 ]
         for idx, form in enumerate(self.purgerforms):
             form.setWidget(0,QFormLayout.FieldRole, LineEditLimInt(max=50, hint="num of former"))
@@ -2680,7 +2689,7 @@ class MainWindow(QMainWindow):
         self.ui.btn_start.clicked.connect(self.changeButtonText)
 
         self.ui.btn_label.clicked.connect(self.openLabelWindow)
-        self.ui.btn_setting.clicked.connect(self.openSettingWindow)
+        self.ui.btn_setting.clicked.connect(self.openSecurityWindow)
         if CFG.LOCK_SETTING:
             self.ui.btn_setting.setEnabled(False)
             self.ui.btn_setting.setToolTip("Require User AuthorityLvl 8")
@@ -3435,8 +3444,36 @@ class MainWindow(QMainWindow):
         labelWindow.show()
         print("Open Label Window")
 
+    def openSecurityWindow(self):
+        self.errorMsg = 0
+        self.securityDialog.show()
+        self.security_ui.lineEdit.setText('')
+        self.security_ui.lineEdit.textChanged.connect(self.getPassword)
+        self.security_ui.buttonBox.accepted.connect(self.openSettingWindow)
+        self.security_ui.buttonBox.rejected.connect(self.hideSecurityWindow)
+        
+    def getPassword(self):
+        self.passwords = self.security_ui.lineEdit.text()
+        print(self.passwords)
+
+    def hideSecurityWindow(self):
+        self.securityDialog.hide()
+
     def openSettingWindow(self):
-        self.settingDialog.show()
+        if self.passwords == 'AIResearcher2022':
+            self.settingDialog.show()
+        else:
+            try:
+                if self.errorMsg == 0:
+                    msg = QMessageBox()
+                    msg.setIcon(QMessageBox.Critical)
+                    msg.setText("Wrong Key !")
+                    #msg.setInformativeText('Contact admin for more information')
+                    msg.setWindowTitle("Error")
+                    msg.exec_()
+                    self.errorMsg += 1
+            except:
+                pass
         #Load previous setting data
 
         for i in range(4):

@@ -167,5 +167,6 @@ defaultConfig={
         0,
         0,
         0
-    ]
+    ],
+    "ENABLE_HTTP": False,
 }
