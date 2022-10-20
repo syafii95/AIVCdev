@@ -1675,8 +1675,11 @@ class DataHandler_Thread(QThread):
                         self.setListItem.emit(listStr, f"{imgName}.{IMG_FORMAT}")
                     
                     #syafii edit
-                    if b[4]<0.90:
-                        self.getLowConfidence(classId)
+                    try:
+                        if b[4]<0.90:
+                            self.getLowConfidence(classId)
+                    except:
+                        pass
                     #syafii edit    
 
                     if b[4]<CFG.LOW_CONF_THRESHOLD: #Any low confidence inference
@@ -2112,7 +2115,7 @@ class MainWindow(QMainWindow):
                 self.ui.table_defect_data.setItem(i+4, j, item)
 
         self.ui.label_title.setText(f'Integrated AIVC System  {CFG.FACTORY_NAME} LINE {CFG.LINE_NUM}')
-        self.ui.label_version.setText(f'V2.3.61.8')
+        self.ui.label_version.setText(f'V2.3.61.9')
         self.ui.select_duration.currentIndexChanged.connect(self.changeRecordDuration)
         self.camBoxes=[CamBox(i) for i in range(MAX_CAM_NUM)]
         #Populate Camera View
@@ -2199,7 +2202,10 @@ class MainWindow(QMainWindow):
         self.purgerforms=[self.setting_ui.form_plc_0, self.setting_ui.form_plc_1, self.setting_ui.form_plc_2, self.setting_ui.form_plc_3 ]
         for idx, form in enumerate(self.purgerforms):
             form.setWidget(0,QFormLayout.FieldRole, LineEditLimInt(max=50, hint="num of former"))
-            form.setWidget(1,QFormLayout.FieldRole, LineEditLimInt(max=4,hint='100ms'))
+            if CFG.FACTORY_NAME == "F06":
+                form.setWidget(1,QFormLayout.FieldRole, LineEditLimInt(max=7,hint='100ms'))
+            else:
+                form.setWidget(1,QFormLayout.FieldRole, LineEditLimInt(max=4,hint='100ms'))
             form.setWidget(2,QFormLayout.FieldRole, LineEditLimInt(max=5,hint='100ms'))
             form.setWidget(3,QFormLayout.FieldRole, LineEditLimInt(max=10,hint='100ms'))
             enableRASMPurgeCB=IndexedCheckBox(idx,"Enable RASM")
