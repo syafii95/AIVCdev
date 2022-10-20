@@ -3328,14 +3328,14 @@ class DefectionGrid(QWidget):
         self.items[index].setText( f"<span style='font-size:8pt; font-weight:500;'>{armID}\n</span><br><span style='font-size:7pt; font-weight:400;'>{rdr*100:.2f}%</span>" )
 
         #Set Color by Defective Rate
-            if(rdr<0.05):
-                color='lightgreen'
-            elif(rdr<0.1):
-                color='yellow'
-            elif(rdr<0.3):
-                color='orange'
-            else:
-                color='red'
+        if(rdr<0.05):
+            color='lightgreen'
+        elif(rdr<0.1):
+            color='yellow'
+        elif(rdr<0.3):
+            color='orange'
+        else:
+            color='red'
         if highlight:
             self.items[index].setStyleSheet(f"QLabel {{background-color: {color}; border: 3px solid orange; border-radius: 5px;}}") 
         else:
