@@ -1466,7 +1466,7 @@ class DataHandler_Thread(QThread):
             CURRENT_DIR=f"{BASE_DIR}tag_{dateTime}/"
             FKTH_CURRENT_DIR=f"{BASE_DIR}tag_{dateTime}_FKTH/"
             LOW_CONF_DIR=f"{BASE_DIR}tag_low_conf_{dateTime}/"
-            TEST_RASM_DIR=f"{BASE_DIR}rasm_carrier_set_{dateTime}/"
+            #TEST_RASM_DIR=f"{BASE_DIR}rasm_carrier_set_{dateTime}/"
             FKTH_LOW_CONF_DIR=f"{BASE_DIR}tag_low_conf_{dateTime}_FKTH/"
 
             #Check NAS Connection
@@ -1649,7 +1649,7 @@ class DataHandler_Thread(QThread):
                 empty=True
                 label=''
                 labelLow=''
-                labelRasm=''
+                #labelRasm=''
                 for b in bboxes:
                     empty=False
                     xc=(b[0]+b[2])*0.5/w
@@ -1694,7 +1694,8 @@ class DataHandler_Thread(QThread):
                             else:
                                 lowConfName=f"{FKTH_LOW_CONF_DIR}{name}_{int(b[4]*100)}"
 
-                    if rasmID1 == 1 and camSeq == 8: # Number of rasm cycle
+                    #arm set data collection
+                    """if rasmID1 == 1 and camSeq == 8: # Number of rasm cycle
                         rasmCycle += 1
             
                     try:
@@ -1705,7 +1706,7 @@ class DataHandler_Thread(QThread):
                                     nameImg=f"{TEST_RASM_DIR}img_armID_{rasmID1}_Side_{SIDE_SHORT[side]}_Cycle_{rasmCycle}_conf_{int(b[4]*100)}"
                                     self.saveImg(nameImg,rawImage,labelRasm)
                     except:
-                        pass
+                        pass"""
 
                 if(foundObject):
                     self.saveImg(imgName,rawImage,label)
