@@ -2689,7 +2689,9 @@ class MainWindow(QMainWindow):
         self.ui.btn_start.clicked.connect(self.changeButtonText)
 
         self.ui.btn_label.clicked.connect(self.openLabelWindow)
-        self.ui.btn_setting.clicked.connect(self.openSecurityWindow)
+        #self.ui.btn_setting.clicked.connect(self.openSecurityWindow) # Enable lock setting
+        self.ui.btn_setting.clicked.connect(self.openSettingWindow)
+        
         if CFG.LOCK_SETTING:
             self.ui.btn_setting.setEnabled(False)
             self.ui.btn_setting.setToolTip("Require User AuthorityLvl 8")
@@ -3460,7 +3462,7 @@ class MainWindow(QMainWindow):
         self.securityDialog.hide()
 
     def openSettingWindow(self):
-        if self.passwords == 'AIResearcher2022':
+        """if self.passwords == 'AIResearcher2022':
             self.settingDialog.show()
         else:
             try:
@@ -3473,9 +3475,9 @@ class MainWindow(QMainWindow):
                     msg.exec_()
                     self.errorMsg += 1
             except:
-                pass
+                pass"""
         #Load previous setting data
-
+        self.settingDialog.show()
         for i in range(4):
             for j in range(4):
                 self.purgerforms[i].itemAt(j,QFormLayout.FieldRole).widget().setText(str(CFG.PURGER_SETTING[i][j]))
