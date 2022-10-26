@@ -641,6 +641,38 @@ class JsonRPCClient(QThread):
 
         print("JsonRPC Client Thread Closed")
 
+class ModelPerformanceHandler(QThread):
+    lowConfData = pyqtSignal(list,list,np.ndarray)
+    lowConfQue = q.Queue()
+    #modelPerformanceRunning = True
+    def __init__(self,parent=None):
+        super().__init__(parent=parent)
+        self.classDatas=[0]*len(CLASSES)
+        self.start(3)
+
+    def run(self):
+        while True:
+            total, classIds = self.lowConfQue.get()
+            if classIds is None:
+                break
+            appendLowConfidence=[]
+            if len(total) == 5:
+                total = total[0]
+            for i in range (len(DATA_NAMES)):
+                if i<1:
+                    appendLowConfidence.append(total[i])
+                elif i>2:
+                    appendLowConfidence.append(total[i])# total glove
+            for i in range(len(CLASSES)):
+                if classIds == i:
+                    self.classDatas[i]+=1 #increase if got low confident 
+                    differentDataRate = np.nan_to_num((np.subtract(appendLowConfidence,self.classDatas)/appendLowConfidence))*100
+                    if not -inf in differentDataRate:
+                        self.lowConfData.emit(appendLowConfidence,self.classDatas,differentDataRate)
+        print('Model Performance Thread Closed')
+
+    def getConfidenceInfo(self,total,classIds):
+        self.lowConfQue.put([total,classIds])
 
 class SQLHandler(QThread):
     def __init__(self,parent=None):
@@ -1366,6 +1398,7 @@ class DataHandler_Thread(QThread):
         self.alertHandler=AlertHandler(self, IOTHUB_REST_URI, self.teamsMessenger)
         self.jsonRPCThread=JsonRPCClient(self)
         self.sqlHandler=SQLHandler()
+        self.modelPerformanceHandler=ModelPerformanceHandler()
         self.occu=OccuAnalyzer(self.__class__.__name__,30)
         self.RCs=[RepetitionChecker(i) for i in range(4)]
         self.samplingCountDown=50
@@ -1545,6 +1578,7 @@ class DataHandler_Thread(QThread):
         self.teamsMessenger.queue.put(None)
         self.alertHandler.alertQueue.put([None,None,None])
         self.sqlHandler.queue.put(None)
+        self.modelPerformanceHandler.lowConfQue.put([None,None])
         self.jsonRPCThread.reportQue.put(None)
 
         for savingProcess in self.savingProcesses:
@@ -1558,6 +1592,7 @@ class DataHandler_Thread(QThread):
         self.teamsMessenger.wait()
         self.alertHandler.wait()
         self.sqlHandler.wait()
+        self.modelPerformanceHandler.wait()
         self.jsonRPCThread.wait()
     def feedYoloResult(self,camSeq,frame,pred_bbox,formerID,isRasmAnchor):
         self.yoloResultQue.put([camSeq,frame,pred_bbox,formerID,isRasmAnchor])
@@ -1703,18 +1738,7 @@ class DataHandler_Thread(QThread):
     #syafii edit, add new function
     def getLowConfidence(self,classIds):
         total = self.totalLow
-        appendLowConfidence=[]
-        for i in range (len(DATA_NAMES)):
-            if i<1:
-                appendLowConfidence.append(total[i])
-            elif i>2:
-                appendLowConfidence.append(total[i])# total glove
-        for i in range(len(CLASSES)):
-            if classIds == i:
-                self.classDatas[i]+=1 #increase if got low confident 
-                differentDataRate = np.nan_to_num((np.subtract(appendLowConfidence,self.classDatas)/appendLowConfidence))*100
-                if not -inf in differentDataRate:
-                    self.lowConfData.emit(appendLowConfidence,self.classDatas,differentDataRate)
+        self.modelPerformanceHandler.getConfidenceInfo(total,classIds)
 
     def startCapture(self):
         self.capturing=not self.capturing
@@ -2057,6 +2081,42 @@ class Camera_Thread(QThread):
                     continue
                 if CFG.ROTATE:
                     frame=cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
+
+                bypassCamera=False
+                if bypassCamera:
+                    #syafii Edit
+                    convSTR1 = CFG.RASM_TEST_IMAGE.replace("/", "\\")
+                    path = r""f'{convSTR1}'
+                    random_filename = random.choice([
+                        x for x in os.listdir(path)
+                        if os.path.isfile(os.path.join(path, x))
+                    ])
+
+                    convSTR2 = CFG.FKTH_TEST_IMAGE.replace("/", "\\")
+                    path2 = r""f'{convSTR2}'
+                    random_filename2 = random.choice([
+                        y for y in os.listdir(path2)
+                        if os.path.isfile(os.path.join(path2, y))
+                    ])
+
+                    convSTR3 = CFG.TAC_TEST_IMAGE.replace("/", "\\")
+                    path3 = r""f'{convSTR3}'
+                    random_filename3 = random.choice([
+                        y for y in os.listdir(path3)
+                        if os.path.isfile(os.path.join(path3, y))
+                    ])
+
+                    if CFG.AIVC_MODE == 0:
+                        if camSeq >= 8:
+                            image = Image.open(f'{CFG.RASM_TEST_IMAGE}/{random_filename}')
+                        else:
+                            image = Image.open(f'{CFG.FKTH_TEST_IMAGE}/{random_filename2}')
+                    else:
+                        image = Image.open(f'{CFG.TAC_TEST_IMAGE}/{random_filename3}')
+                
+                    frame = asarray(image)
+                    ## syafii edit
+
                 image_processed = np.asarray(utils.image_preporcess(frame, [FIXED_INPUT_SIZE, FIXED_INPUT_SIZE])[np.newaxis, ...],dtype=np.float32)
                 self.feedCaptureQue.emit(camSeq, frame, image_processed, formerID, isRasmAnchor)
             else:
@@ -2519,7 +2579,8 @@ class MainWindow(QMainWindow):
         self.plcDialog=PLCDialog(self,self.plc)
         self.dataHistoryDialog=DataHistoryDialog(self)
         self.modelLowConfident=ModelLowConfident(self)# syafii edit
-        self.dataThread.lowConfData.connect(self.modelLowConfident.display)# syafii edit
+        #self.dataThread.lowConfData.connect(self.modelLowConfident.display)# syafii edit
+        self.dataThread.modelPerformanceHandler.lowConfData.connect(self.modelLowConfident.display)
         self.infoDialog=InfoDialog(self)
         for rcw in self.infoDialog.rejectCountWidgets:
             rcw.resetRejectCount.connect(self.resetRejectCount)
@@ -2689,7 +2750,7 @@ class MainWindow(QMainWindow):
         self.ui.btn_start.clicked.connect(self.changeButtonText)
 
         self.ui.btn_label.clicked.connect(self.openLabelWindow)
-        #self.ui.btn_setting.clicked.connect(self.openSecurityWindow) # Enable lock setting
+        #self.ui.btn_setting.clicked.connect(self.openSecurityWindow)#Enable Lock setting
         self.ui.btn_setting.clicked.connect(self.openSettingWindow)
         
         if CFG.LOCK_SETTING:
