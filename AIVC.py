@@ -722,6 +722,35 @@ class SQLHandler(QThread):
         self.prevDate=date
         self.prevTime=_time
 
+class ProblematicHandler(QThread):
+    rasmNumCycle = [0]*Side_Num
+    def __init__(self,parent):
+        super().__init__(parent=parent)
+        self.contBadDataRasm=np.zeros((4,CFG.RASM_ARM_NUM), dtype = int)
+        self.contGoodDataRasm=np.zeros((4,CFG.RASM_ARM_NUM), dtype = int)
+        #self.start(3)
+
+    def getRasmCycle(self, side):
+        self.rasmNumCycle[side] += 1
+
+    def getInfoRasm(self,side,rasmID,classes):
+        if classes > 0: #defect classes
+            if classes in RASM_CLASS:
+                if self.rasmNumCycle[side] >= 1:
+                    self.contBadDataRasm[side][rasmID-1] += 1
+                    self.contGoodDataRasm[side][rasmID-1] = 0
+                    return(self.rasmNumCycle[side],self.contBadDataRasm[side][rasmID-1],self.contGoodDataRasm[side][rasmID-1])
+                else:
+                    return(0,0,0)
+
+        else: #good glove
+            if self.rasmNumCycle[side] >= 1:
+                self.contGoodDataRasm[side][rasmID-1] += 1
+                self.contBadDataRasm[side][rasmID-1] = 0
+                return(self.rasmNumCycle[side],self.contBadDataRasm[side][rasmID-1],self.contGoodDataRasm[side][rasmID-1])
+            else:
+                return(0,0,0)
+
 class AlertHandler(QThread):
     def __init__(self,parent, iotHubRestURI,teamsMessenger):
         super().__init__(parent=parent)
@@ -1335,7 +1364,7 @@ class DataHandler_Thread(QThread):
     clearCamBox= pyqtSignal(int)
     lowConfData= pyqtSignal(list,list,np.ndarray)
     setListItem=pyqtSignal(str,str)
-    updateRasmGridOfLine=pyqtSignal(int, int, np.ndarray, str)
+    updateRasmGridOfLine=pyqtSignal(int, int, np.ndarray, int, int, int, str)
     chainGridAddArm=pyqtSignal(int, int, np.ndarray, str)
     updateTable=pyqtSignal(int,int,str)
     refreshChainGrids=pyqtSignal(list,bool)
@@ -1394,7 +1423,7 @@ class DataHandler_Thread(QThread):
         self.prevState=1
         self.teamsMessenger=TeamsHandler(self,CFG.TEAMS_ADDR)
         self.teamsMessenger.resumePreviousTeamsAddr.connect(self.parent().resumePreviousTeamsAddr)
-        
+        self.problematicHandler=ProblematicHandler(self)
         self.alertHandler=AlertHandler(self, IOTHUB_REST_URI, self.teamsMessenger)
         self.jsonRPCThread=JsonRPCClient(self)
         self.sqlHandler=SQLHandler()
@@ -1594,6 +1623,7 @@ class DataHandler_Thread(QThread):
         self.sqlHandler.wait()
         self.modelPerformanceHandler.wait()
         self.jsonRPCThread.wait()
+        self.problematicHandler.wait()
     def feedYoloResult(self,camSeq,frame,pred_bbox,formerID,isRasmAnchor):
         self.yoloResultQue.put([camSeq,frame,pred_bbox,formerID,isRasmAnchor])
     def updateRasmRecord(self, side, cls, isRasmAnchor):
@@ -1610,11 +1640,14 @@ class DataHandler_Thread(QThread):
             self.rasmRecords[side].feed(d)
 
         rasmID=self.rasmRecords[side].getActualIndex()+1
+        if rasmID == 1: #get rasm cycle number
+            self.problematicHandler.getRasmCycle(side)
+        cycleRasm, contBad, contGood = self.problematicHandler.getInfoRasm(side,rasmID,cls)
         armRecord = self.rasmRecords[side].get()-self.prevRasmRecords[side][self.rasmRecords[side].currentIdx] #10 class
 
         #dr=float(dg)/(dg+gg) if gg!=0 else 1
         label=f"{SIDE_NAME[side]} | {CLASSES[cls]} | RASM ID:{rasmID}" ##May Include Former ID like below
-        self.updateRasmGridOfLine.emit(side, rasmID, armRecord, label)
+        self.updateRasmGridOfLine.emit(side, rasmID, armRecord, cycleRasm, contBad, contGood, label)
 
     def incrementData(self, line, row):
         self.data[line][row]+=1
@@ -2495,7 +2528,7 @@ class MainWindow(QMainWindow):
 
         self.ui.label_title.setText(f'Integrated AIVC System  {CFG.FACTORY_NAME} LINE {CFG.LINE_NUM}')
         #self.ui.label_title.setText(f'AIVC System DEVELOPER MODE DO NOT CLOSED')
-        self.ui.label_version.setText(f'V2.3.62.7n')
+        self.ui.label_version.setText(f'V2.3.62.8n')
         self.ui.select_duration.currentIndexChanged.connect(self.changeRecordDuration)
         self.camBoxes=[CamBox(i) for i in range(MAX_CAM_NUM)]
         #Populate Camera View
@@ -3243,8 +3276,8 @@ class MainWindow(QMainWindow):
     def sendFormerLamps(self,ID,side,rdr):
         self.purgingThread.sendFormerLamps(ID,side,rdr)
 
-    def updateRasmGridOfLine(self, line, index, armRecord, label):
-        self.rasmDefectionGrids[line].updateRasmGrid(index, armRecord, label)
+    def updateRasmGridOfLine(self, line, index, armRecord, cycleRasm, contBad, contGood, label):
+        self.rasmDefectionGrids[line].updateRasmGrid(line, index, armRecord, cycleRasm, contBad, contGood, label)
     def chainGridAddArm(self, line, index, record, label):
         self.gloveDefectionGrids[line].addChainArm(index, line, record, label)
     def contGoodBadCycle(self, line, former, cycle, contBad, contGood, emptyLink):
@@ -3658,6 +3691,12 @@ class DefectionGrid(QWidget):
         self.cycle=0
         self.contBad=np.zeros((4,CFG.CHAIN_FORMER_NUM), dtype = int)
         self.contGood=np.zeros((4,CFG.CHAIN_FORMER_NUM), dtype = int)
+        self.pushThreshold = 1
+        self.rasmID = 0
+        self.rasmSide = 0
+        self.rasmCycle = 0
+        self.rasmContBad = np.zeros((4,CFG.RASM_ARM_NUM), dtype = int)
+        self.rasmContGood = np.zeros((4,CFG.RASM_ARM_NUM), dtype = int)
         self.setLayout(vbox)
         self.frame.setFixedSize(cWidth,cHeight)
         self.frame.setFrameStyle(6)
@@ -3717,31 +3756,24 @@ class DefectionGrid(QWidget):
             if cycle >= 3:
                 if(rdr<0.05):
                     if contBad >= 3:
-                        #print(f'==============ID: {armID} | Rate: {rdr*100:.2f}% ===================')
                         self.updateProblematicFormer(self.seq, armID, defectRecord)
                         self.sendFormerLamp.emit(armID,side,rdr)                  
                 elif(rdr<0.1):
                     if contBad >= 3:
-                        #print(f'==============ID: {armID} | Rate: {rdr*100:.2f}% ===================')
                         self.updateProblematicFormer(self.seq, armID, defectRecord)
                         self.sendFormerLamp.emit(armID,side,rdr)  
                 elif(rdr<0.3):
                     if contBad >= 3:
-                        #print(f'==============ID: {armID} | Rate: {rdr*100:.2f}% ===================')
                         self.updateProblematicFormer(self.seq, armID, defectRecord)
                         self.sendFormerLamp.emit(armID,side,rdr)
                 else:
-                    """if contBad >= 3:
-                        #print(f'==============ID: {armID} | Rate: {rdr*100:.2f}% ===================')
-                        self.updateProblematicFormer(self.seq, armID, defectRecord)
-                        self.sendFormerLamp.emit(armID,side,rdr)"""
                     if contGood <= 3:
-                        #print(f'==============ID: {armID} | Rate: {rdr*100:.2f}% ===================')
                         self.updateProblematicFormer(self.seq, armID, defectRecord)
                         self.sendFormerLamp.emit(armID,side,rdr)
-        if chain:
-            if CFG.AIVC_MODE == 0:
-                tt+=f'\nNum. of Cycle: {cycle}\nContinuous Bad: {contBad}\nContinuous Good: {contGood}'
+        #if chain:
+        if CFG.AIVC_MODE == 0:
+            tt+=f'\nNum. of Cycle: {cycle}\nContinuous Bad: {contBad}\nContinuous Good: {contGood}'
+
         if lab:
             self.label.setText(lab)
         self.items[index].id=armID
@@ -3749,53 +3781,47 @@ class DefectionGrid(QWidget):
         self.items[index].setToolTip(tt)
         self.items[index].setText( f"<span style='font-size:8pt; font-weight:500;'>{armID}\n</span><br><span style='font-size:7pt; font-weight:400;'>{rdr*100:.2f}%</span>" )
 
-        if not chain:#Set Color by Defective Rate for RASM
-            if(rdr<0.05):
+        if name == 'Chain':
+            self.pushThreshold = 3
+        elif name =='RASM':
+            self.pushThreshold = 5
+
+        if(rdr<0.05):
+            if contBad >= self.pushThreshold:
+                color='red'
+                if emptyLink == True:
+                    color='cyan'
+            else:
                 color='lightgreen'
-            elif(rdr<0.1):
+                if emptyLink == True:
+                    color='cyan'
+        elif(rdr<0.1):
+            if contBad >= self.pushThreshold:
+                color='red'
+                if emptyLink == True:
+                    color='cyan'
+            else:
                 color='yellow'
-            elif(rdr<0.3):
+                if emptyLink == True:
+                    color='cyan'
+        elif(rdr<0.3):
+            if contBad >= self.pushThreshold:
+                color='red'
+                if emptyLink == True:
+                    color='cyan'
+            else:
                 color='orange'
+                if emptyLink == True:
+                    color='cyan'
+        else:
+            if contGood >= self.pushThreshold:
+                color='gray'
+                if emptyLink == True:
+                    color='cyan'
             else:
                 color='red'
-
-        else:#Set Color by Defective Rate for FKTH
-            if(rdr<0.05):
-                if contBad >= 3:
-                    color='red'
-                    if emptyLink == True:
-                        color='cyan'
-                else:
-                    color='lightgreen'
-                    if emptyLink == True:
-                        color='cyan'
-            elif(rdr<0.1):
-                if contBad >= 3:
-                    color='red'
-                    if emptyLink == True:
-                        color='cyan'
-                else:
-                    color='yellow'
-                    if emptyLink == True:
-                        color='cyan'
-            elif(rdr<0.3):
-                if contBad >= 3:
-                    color='red'
-                    if emptyLink == True:
-                        color='cyan'
-                else:
-                    color='orange'
-                    if emptyLink == True:
-                        color='cyan'
-            else:
-                if contGood >= 3:
-                    color='gray'
-                    if emptyLink == True:
-                        color='cyan'
-                else:
-                    color='red'
-                    if emptyLink == True:
-                        color='cyan'
+                if emptyLink == True:
+                    color='cyan'
 
         if highlight:
             self.items[index].setStyleSheet(f"QLabel {{background-color: {color}; border: 3px solid orange; border-radius: 5px;}}") 
@@ -3844,7 +3870,7 @@ class DefectionGrid(QWidget):
         self.contGood = contGood
         self.emptyLink = emptyLink
 
-    def updateRasmGrid(self, rasmID1, armRecord, lab):
+    def updateRasmGrid(self, side, rasmID1, armRecord, cycleRasm, contBad, contGood, lab):
         #Remove previous border highlight
         itemNum=len(self.items)
         if rasmID1>itemNum:
@@ -3852,13 +3878,15 @@ class DefectionGrid(QWidget):
             arm.armClicked.connect(self.parent.armClicked)
             self.gridLayout.addWidget(arm,int(itemNum/10),itemNum%10)
             self.items.append(arm)
-            self.updateArm(rasmID1-1, rasmID1, armRecord, lab, highlight=True)
+            #self.updateArm(rasmID1-1, rasmID1, armRecord, lab, highlight=True)
+            self.updateArm(rasmID1-1, rasmID1, armRecord, side, False, cycleRasm, contBad, contGood, lab, highlight=True)
         else:
             if(rasmID1==1):
                 self.items[-1].setStyleSheet(f"QLabel {{background-color: {self.preColor}; border: 2px solid black; border-radius: 5px;}}")
             else:
                 self.items[rasmID1-2].setStyleSheet(f"QLabel {{background-color: {self.preColor}; border: 2px solid black; border-radius: 5px;}}")
-            self.updateArm(rasmID1-1, rasmID1, armRecord, lab, highlight=True)#for RASM ID is the same as index
+            #self.updateArm(rasmID1-1, rasmID1, armRecord, lab, highlight=True)#for RASM ID is the same as index
+            self.updateArm(rasmID1-1, rasmID1, armRecord, side, False, cycleRasm, contBad, contGood, lab, highlight=True)#for RASM ID is the same as index
 
     def updateAllChain(self, gloveDefectionRecord,clear=False):
         if clear:
