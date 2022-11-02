@@ -129,7 +129,7 @@ SAMPLING_DIR='tag_sampling/'
 FKTH_SAMPLING_DIR='tag_sampling_FKTH/'
 RASM_SEQ=8
 SAVING_PROCESS_NUM=2
-PERIPHERAL_NAME=['FURS', 'SARS', 'Half-moon']
+PERIPHERAL_NAME=['FURS', 'SARS', 'Half-Moon', 'ASM']
 NAS_IP='10.39.8.230'
 RASM_CLASS=[1,2,4]
 CHAIN_CLASSES=[[1,2,3,4,10],[1,2,3,6,7],[1,2,3,4,5]]
@@ -148,6 +148,7 @@ IOTHUB_KEY= "mOMRhVDnXhk4f0c8zEPlpYDsHgXbjLRdLUXkJsVvlK8="
 IOTHUB_URI_FORMER="tg-iot-aivc-r2.azure-devices.net/devices/AIVC-Former-01"
 IOTHUB_REST_URI_FORMER = "https://" + IOTHUB_URI_FORMER + "/messages/events?api-version=2018-06-30"
 IOTHUB_KEY_FORMER="lujyFDp4COxGQBw8oquyEo+q3M/FyTouw6y/4FMRdus="
+CONFIG_URL="https://prod-31.southeastasia.logic.azure.com:443/workflows/4ffeb03e93bc4a67a8be70718dcb859c/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=BIt5B0CgB1BeeSWJHNiiFHbDzy4e5ZMosv9MtCleXb4"
 try:
     with open('classes.names','r') as names:
         for name in names:
@@ -969,6 +970,105 @@ class PLCAddrInput(QLineEdit):
             if addr> self.maxM:
                 self.setText(f'M{self.maxM}')
         self.periThreadRunning=False
+
+class Setting_Thread(QThread):
+    pushQue=q.Queue()
+    peri0={}
+    peri1={}
+    peri2={}
+    peri3={}
+    initPr={}
+    initPd={}
+    dataList=[]
+    running = True
+    def __init__(self, parent):
+        super().__init__(parent=parent)
+        
+    def pushToServer(self):
+        self.pushQue.put(self.dataList)
+
+    def prepareData(self,side):
+        utcDateTime=datetime.datetime.utcnow().isoformat()
+        DateTime=datetime.datetime.now().isoformat()
+        self.dataDict = {
+            "DateTime": DateTime,
+            "UTCDateTime": utcDateTime,
+            "Factory": CFG.FACTORY_NAME,
+            "Line": CFG.LINE_NUM,
+            "Side": SIDE_NAME[side],
+            "Enable RASM": CFG.ENABLE_PURGE_RASM[side],
+            "Enable FKTH": CFG.ENABLE_PURGE_FKTH[side],
+            "Purger Rework": self.initPr,
+            "Purger Dispose": self.initPd,
+            "FURS": self.peri0,
+            "SARS": self.peri1,
+            "Half-Moon": self.peri2,
+            "ASM": self.peri3,
+        }
+        self.dataList.append(self.dataDict)
+
+    def getRasmStatus(self,seqRASM):
+        self.seqRasm = seqRASM
+
+    def getFkthStatus(self,seqFKTH):
+        self.seqFKTH = seqFKTH
+
+    def getPurgerReworkStatus(self,seq,val,name):# get purger rework and dispose status when status change    
+        if name == 'rework':
+            self.initPr[CLASSES[seq]]=val
+        elif name == 'dispose':
+            self.initPd[CLASSES[seq]]=val
+        for i in range(Side_Num):
+            self.prepareData(i)
+        self.pushToServer()
+
+    def getPeriStatus(self,seq,val,idx):# get peripheral status when status change
+        self.dataDict[PERIPHERAL_NAME[idx]][CLASSES[seq]] = val
+        for i in range(Side_Num):
+            self.prepareData(i)
+        self.pushToServer()
+    
+    def getInitialpRStatus(self,status):# get purging rework status when aivc start
+        for i, ele in enumerate(status):
+            if i == 0 or i == 2:
+                self.initPr[CLASSES[i+1]]=ele
+
+    def getInitialpDStatus(self,status):# get purging dispose status when aivc start
+        for i, ele in enumerate(status):
+            if i == 0 or i == 2:
+                self.initPd[CLASSES[i+1]]=ele
+
+    def getInitialPeriStatus(self,peri,classes,status):# get peripheral status when aivc start
+        if classes == 1 or classes == 3:
+            if peri == 0:
+                self.peri0[CLASSES[classes]]=status
+            if peri == 1:
+                self.peri1[CLASSES[classes]]=status
+            if peri == 2:
+                self.peri2[CLASSES[classes]]=status
+            if peri == 3:
+                self.peri3[CLASSES[classes]]=status
+
+    def run(self):
+        while self.running:
+            try:
+                dataToSend = self.pushQue.get()
+            except q.Empty:
+                break
+            try:
+                resp = requests.post(CONFIG_URL, headers={'Content-Type': 'application/json'}, json=dataToSend)
+                recorder.info(f"Config send status: {resp}")
+                recorder.info(f"Config: {dataToSend}")
+            except Exception as e:
+                recorder.debug(f"Data failed to send: {e}")
+
+            self.dataList.clear()
+        self.pushQue.queue.clear()
+        print('Setting Handler Thread Closed')
+
+    def closeThread(self):
+        self.pushQue.put(None)
+        self.running = False
 
 class Purging_Thread(QThread):
     updatePurgingDisplay=pyqtSignal(int,str)#side,content
@@ -2493,6 +2593,8 @@ class MainWindow(QMainWindow):
     camBoxes=[]
     rasmDefectionGrids=[]
     gloveDefectionGrids=[]
+    initialPr = []
+    initialPd = []
     capturing=True
     refreshDataTable=pyqtSignal()
 
@@ -2554,6 +2656,7 @@ class MainWindow(QMainWindow):
         self.captureThread= Capture_Thread(self, self.plc)
         self.dataThread=DataHandler_Thread(self)
         self.purgingThread= Purging_Thread(self, self.plc, self.dataThread.chainIndexers)
+        self.settingThread=Setting_Thread(self)
         self.dataThread.refreshStatus.connect(self.refreshStatus)
         self.dataThread.trigger15min.connect(self.captureThread.getAveLineSpeed)
         self.captureThread.sendAveLineSpeed.connect(self.dataThread.lineSpeedAlert)
@@ -2599,6 +2702,7 @@ class MainWindow(QMainWindow):
         self.inferenceThread.start(priority=4)#HighPriority
         self.captureThread.start(priority=6)#TimeCriticalPriority
         self.purgingThread.start(priority=5)
+        self.settingThread.start(priority=4)
 
         ## Login Window
         self.userDialog = UserDialog(self)
@@ -2689,6 +2793,9 @@ class MainWindow(QMainWindow):
             checkBox.stateChanged.connect(self.setClassToRework)
             self.setting_ui.grid_classToPurge.addWidget(checkBox,i/4+1,i%4)
             self.checkBoxToRework.append(checkBox)
+            checkBoxPrStatus = checkBox.isChecked()
+            self.initialPr.append(checkBoxPrStatus)
+        self.settingThread.getInitialpRStatus(self.initialPr)
 
         lab2=QLabel("Purger Dispose:")
         lab2.setMaximumHeight(13)
@@ -2701,6 +2808,9 @@ class MainWindow(QMainWindow):
             checkBox.stateChanged.connect(self.setClassToDispose)
             self.setting_ui.grid_classToPurge.addWidget(checkBox,i/4+5,i%4)
             self.checkBoxToDispose.append(checkBox)
+            checkBoxPdStatus = checkBox.isChecked()
+            self.initialPd.append(checkBoxPdStatus)
+        self.settingThread.getInitialpDStatus(self.initialPd)
         self.setting_ui.grid_classToPurge.addWidget(QLabel("Confidence Level To Purge:"),8,0,1,2)
         text_confLevel=LineEditLimInt(max=100, hint="0%~100%")
         text_confLevel.setText(str(int(CFG.CONF_LEVEL_TO_PURGE*100)))
@@ -2746,6 +2856,8 @@ class MainWindow(QMainWindow):
                 if(CFG.PERI_CLASS[i] & 1<<j+1):
                     cb.setChecked(True)
                 cb.stateChanged.connect(self.setClassPeri)
+                periStatusCb = cb.isChecked()
+                self.settingThread.getInitialPeriStatus(i,j+1,periStatusCb)
             for j, td in enumerate(periWidget.text_distances):
                 td.setText(str(CFG.PERI_DISTANCE[i][j]))
                 td.returnPressed.connect(self.setPeriDistance)
@@ -2813,6 +2925,9 @@ class MainWindow(QMainWindow):
         self.startTime=time.strftime("%Y-%m-%d_%H:%M:%S")
         self.recordStartTime=time.strftime("%m/%d %H:%M:%S")
         self.ui.label_startTime.setText(self.recordStartTime)
+        for i in range(Side_Num):
+            self.settingThread.prepareData(i)
+        self.settingThread.pushToServer()
         self.create_timer()
         self.initializePLC() 
         self.tabs_stacking=[CameraTab() for _ in range(4)]
@@ -3148,6 +3263,9 @@ class MainWindow(QMainWindow):
             self.checkBoxToRework[seq-1].setChecked(False)
         else:
             CFG.CLASS_TO_DISPOSE &= ~mask
+        name='dispose'
+        if seq == 1 or seq == 3:
+            self.settingThread.getPurgerReworkStatus(seq,val,name)
         CFG_Handler.set('CLASS_TO_DISPOSE', CFG.CLASS_TO_DISPOSE)
 
     def setClassToRework(self):
@@ -3155,10 +3273,13 @@ class MainWindow(QMainWindow):
         seq=self.sender().seq
         mask = 1<<seq
         if val:
-            CFG.CLASS_TO_REWORK |= mask
+            CFG.CLASS_TO_REWORK |= mask #tick
             self.checkBoxToDispose[seq-1].setChecked(False)
         else:
-            CFG.CLASS_TO_REWORK &= ~mask
+            CFG.CLASS_TO_REWORK &= ~mask #untick
+        name='rework'
+        if seq == 1 or seq == 3:
+            self.settingThread.getPurgerReworkStatus(seq,val,name)
         CFG_Handler.set('CLASS_TO_REWORK', CFG.CLASS_TO_REWORK)
 
     def setClassPeri(self):
@@ -3170,6 +3291,8 @@ class MainWindow(QMainWindow):
             CFG.PERI_CLASS[idx] |= mask
         else:
             CFG.PERI_CLASS[idx] &= ~mask
+        if seq == 1 or seq == 3:
+            self.settingThread.getPeriStatus(seq,val,idx)
         CFG_Handler.set('PERI_CLASS', CFG.PERI_CLASS)
 
     def changeFactorynLineName(self):
@@ -3339,11 +3462,13 @@ class MainWindow(QMainWindow):
         val=self.sender().isChecked()
         CFG.ENABLE_PURGE_RASM[seq]=val
         CFG_Handler.set('ENABLE_PURGE_RASM',CFG.ENABLE_PURGE_RASM)
+        self.settingThread.getRasmStatus(seq)
     def setPurgeEnableFKTH(self):
         seq=self.sender().seq
         val=self.sender().isChecked()
         CFG.ENABLE_PURGE_FKTH[seq]=val
         CFG_Handler.set('ENABLE_PURGE_FKTH',CFG.ENABLE_PURGE_FKTH)
+        self.settingThread.getFkthStatus(seq)
     def setPeriEnable(self):
         seq=self.sender().seq
         val=self.sender().isChecked()
@@ -3429,6 +3554,7 @@ class MainWindow(QMainWindow):
         self.inferenceThread.closeThread()
         self.dataThread.closeThread()
         self.purgingThread.closeThread()
+        self.settingThread.closeThread()
         self.secTimer.closeThread()
         self.minTimer.closeThread()
         self.settingDialog.close()
