@@ -2630,7 +2630,7 @@ class MainWindow(QMainWindow):
 
         self.ui.label_title.setText(f'Integrated AIVC System  {CFG.FACTORY_NAME} LINE {CFG.LINE_NUM}')
         #self.ui.label_title.setText(f'AIVC System DEVELOPER MODE DO NOT CLOSED')
-        self.ui.label_version.setText(f'V2.3.62.8n')
+        self.ui.label_version.setText(f'V2.3.62.7n')
         self.ui.select_duration.currentIndexChanged.connect(self.changeRecordDuration)
         self.camBoxes=[CamBox(i) for i in range(MAX_CAM_NUM)]
         #Populate Camera View
@@ -2656,7 +2656,7 @@ class MainWindow(QMainWindow):
         self.captureThread= Capture_Thread(self, self.plc)
         self.dataThread=DataHandler_Thread(self)
         self.purgingThread= Purging_Thread(self, self.plc, self.dataThread.chainIndexers)
-        self.settingThread=Setting_Thread(self)
+        #self.settingThread=Setting_Thread(self)
         self.dataThread.refreshStatus.connect(self.refreshStatus)
         self.dataThread.trigger15min.connect(self.captureThread.getAveLineSpeed)
         self.captureThread.sendAveLineSpeed.connect(self.dataThread.lineSpeedAlert)
@@ -2702,7 +2702,7 @@ class MainWindow(QMainWindow):
         self.inferenceThread.start(priority=4)#HighPriority
         self.captureThread.start(priority=6)#TimeCriticalPriority
         self.purgingThread.start(priority=5)
-        self.settingThread.start(priority=4)
+        #self.settingThread.start(priority=4)
 
         ## Login Window
         self.userDialog = UserDialog(self)
@@ -2795,7 +2795,7 @@ class MainWindow(QMainWindow):
             self.checkBoxToRework.append(checkBox)
             checkBoxPrStatus = checkBox.isChecked()
             self.initialPr.append(checkBoxPrStatus)
-        self.settingThread.getInitialpRStatus(self.initialPr)
+        #self.settingThread.getInitialpRStatus(self.initialPr)
 
         lab2=QLabel("Purger Dispose:")
         lab2.setMaximumHeight(13)
@@ -2810,7 +2810,7 @@ class MainWindow(QMainWindow):
             self.checkBoxToDispose.append(checkBox)
             checkBoxPdStatus = checkBox.isChecked()
             self.initialPd.append(checkBoxPdStatus)
-        self.settingThread.getInitialpDStatus(self.initialPd)
+        #self.settingThread.getInitialpDStatus(self.initialPd)
         self.setting_ui.grid_classToPurge.addWidget(QLabel("Confidence Level To Purge:"),8,0,1,2)
         text_confLevel=LineEditLimInt(max=100, hint="0%~100%")
         text_confLevel.setText(str(int(CFG.CONF_LEVEL_TO_PURGE*100)))
@@ -2857,7 +2857,7 @@ class MainWindow(QMainWindow):
                     cb.setChecked(True)
                 cb.stateChanged.connect(self.setClassPeri)
                 periStatusCb = cb.isChecked()
-                self.settingThread.getInitialPeriStatus(i,j+1,periStatusCb)
+                #self.settingThread.getInitialPeriStatus(i,j+1,periStatusCb)
             for j, td in enumerate(periWidget.text_distances):
                 td.setText(str(CFG.PERI_DISTANCE[i][j]))
                 td.returnPressed.connect(self.setPeriDistance)
@@ -2925,9 +2925,9 @@ class MainWindow(QMainWindow):
         self.startTime=time.strftime("%Y-%m-%d_%H:%M:%S")
         self.recordStartTime=time.strftime("%m/%d %H:%M:%S")
         self.ui.label_startTime.setText(self.recordStartTime)
-        for i in range(Side_Num):
-            self.settingThread.prepareData(i)
-        self.settingThread.pushToServer()
+        #for i in range(Side_Num):
+            #self.settingThread.prepareData(i)
+        #self.settingThread.pushToServer()
         self.create_timer()
         self.initializePLC() 
         self.tabs_stacking=[CameraTab() for _ in range(4)]
@@ -3264,8 +3264,8 @@ class MainWindow(QMainWindow):
         else:
             CFG.CLASS_TO_DISPOSE &= ~mask
         name='dispose'
-        if seq == 1 or seq == 3:
-            self.settingThread.getPurgerReworkStatus(seq,val,name)
+        #if seq == 1 or seq == 3:
+            #self.settingThread.getPurgerReworkStatus(seq,val,name)
         CFG_Handler.set('CLASS_TO_DISPOSE', CFG.CLASS_TO_DISPOSE)
 
     def setClassToRework(self):
@@ -3278,8 +3278,8 @@ class MainWindow(QMainWindow):
         else:
             CFG.CLASS_TO_REWORK &= ~mask #untick
         name='rework'
-        if seq == 1 or seq == 3:
-            self.settingThread.getPurgerReworkStatus(seq,val,name)
+        #if seq == 1 or seq == 3:
+            #self.settingThread.getPurgerReworkStatus(seq,val,name)
         CFG_Handler.set('CLASS_TO_REWORK', CFG.CLASS_TO_REWORK)
 
     def setClassPeri(self):
@@ -3291,8 +3291,8 @@ class MainWindow(QMainWindow):
             CFG.PERI_CLASS[idx] |= mask
         else:
             CFG.PERI_CLASS[idx] &= ~mask
-        if seq == 1 or seq == 3:
-            self.settingThread.getPeriStatus(seq,val,idx)
+        #if seq == 1 or seq == 3:
+            #self.settingThread.getPeriStatus(seq,val,idx)
         CFG_Handler.set('PERI_CLASS', CFG.PERI_CLASS)
 
     def changeFactorynLineName(self):
@@ -3462,13 +3462,13 @@ class MainWindow(QMainWindow):
         val=self.sender().isChecked()
         CFG.ENABLE_PURGE_RASM[seq]=val
         CFG_Handler.set('ENABLE_PURGE_RASM',CFG.ENABLE_PURGE_RASM)
-        self.settingThread.getRasmStatus(seq)
+        #self.settingThread.getRasmStatus(seq)
     def setPurgeEnableFKTH(self):
         seq=self.sender().seq
         val=self.sender().isChecked()
         CFG.ENABLE_PURGE_FKTH[seq]=val
         CFG_Handler.set('ENABLE_PURGE_FKTH',CFG.ENABLE_PURGE_FKTH)
-        self.settingThread.getFkthStatus(seq)
+        #self.settingThread.getFkthStatus(seq)
     def setPeriEnable(self):
         seq=self.sender().seq
         val=self.sender().isChecked()
@@ -3554,7 +3554,7 @@ class MainWindow(QMainWindow):
         self.inferenceThread.closeThread()
         self.dataThread.closeThread()
         self.purgingThread.closeThread()
-        self.settingThread.closeThread()
+        #self.settingThread.closeThread()
         self.secTimer.closeThread()
         self.minTimer.closeThread()
         self.settingDialog.close()
