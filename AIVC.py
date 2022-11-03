@@ -1122,10 +1122,10 @@ class MinuteDataRecorder(QThread):
             copyRecords(self.dHandler.rasmRecordsMin, rasmRecordsData)
 
             now=datetime.datetime.now()
-            if self.dHandler.dataRecordState==4:
+            if self.dHandler.dataRecordState==5:
                 self.dHandler.updateStartTime.emit(time.strftime("%m/%d %H:%M:%S"))
 
-            if (time.time()//60)%15==0:#Trigger every 15min
+            if (time.time()//60)%15==0:     #Trigger every 15min
                 self.dHandler.trigger15min.emit()
                 if self.dHandler.state<6:
                     self.dHandler.save15minSideRecord()
@@ -1133,8 +1133,15 @@ class MinuteDataRecorder(QThread):
 
                 np.copyto(self.dHandler.data15m,self.dHandler.data)
                 copyRecords(self.dHandler.rasmRecords15m, rasmRecordsData)
+                if self.dHandler.dataRecordState==4:
+                    self.dHandler.updateStartTime.emit(time.strftime("%m/%d %H:%M:%S"))
+
+            if (time.time()//60)%30==0:     #Trigger every 30min
+                np.copyto(self.dHandler.data30m,self.dHandler.data)
+                copyRecords(self.dHandler.rasmRecords30m, rasmRecordsData)
                 if self.dHandler.dataRecordState==3:
                     self.dHandler.updateStartTime.emit(time.strftime("%m/%d %H:%M:%S"))
+            
             if self.dHandler.currentHour!=now.hour:  #Trigger every hour
                 CFG_Handler.saveBackup()
                 self.dHandler.samplingCountDown=50#Save random sampling images for checking
@@ -1193,6 +1200,7 @@ class DataHandler_Thread(QThread):
     dataStart=np.zeros((5,Data_Num), dtype = int)
     dataDay=np.zeros((5,Data_Num), dtype = int)
     dataHour=np.zeros((5,Data_Num), dtype = int)
+    data30m=np.zeros((5,Data_Num), dtype = int)
     data15m=np.zeros((5,Data_Num), dtype = int)
     dataMin=np.zeros((5,Data_Num), dtype = int)
     lastData=np.zeros((5,Data_Num), dtype = int)
@@ -1202,7 +1210,7 @@ class DataHandler_Thread(QThread):
     enableCamDelayAdjustment=False
     dataHandlerRunning=True
     lineBypassings=[False for _ in range(4)]
-    dataRecordState=0 # 0:Start 1:Day 2:Hour 3:15Minute  4:Minute
+    dataRecordState=0 # 0:Start 1:Day 2:Hour 3:30Minute 4:15Minute  5:Minute
 
     def __init__(self, parent=None):
         super().__init__(parent=parent)
@@ -1217,6 +1225,7 @@ class DataHandler_Thread(QThread):
         self.rasmRecordsStart=emptyRecords()
         self.rasmRecordsDay=emptyRecords()
         self.rasmRecordsHour=emptyRecords()
+        self.rasmRecords30m=emptyRecords()
         self.rasmRecords15m=emptyRecords()
         self.rasmRecordsMin=emptyRecords()
         self.prevRasmRecords=self.rasmRecordsStart
@@ -2133,7 +2142,7 @@ class MainWindow(QMainWindow):
                 self.ui.table_defect_data.setItem(i+4, j, item)
 
         self.ui.label_title.setText(f'Integrated AIVC System  {CFG.FACTORY_NAME} LINE {CFG.LINE_NUM}')
-        self.ui.label_version.setText(f'V2.3.61.9')
+        self.ui.label_version.setText(f'V2.3.61.10')
         self.ui.select_duration.currentIndexChanged.connect(self.changeRecordDuration)
         self.camBoxes=[CamBox(i) for i in range(MAX_CAM_NUM)]
         #Populate Camera View
@@ -2382,7 +2391,8 @@ class MainWindow(QMainWindow):
         self.ui.btn_start.clicked.connect(self.changeButtonText)
 
         self.ui.btn_label.clicked.connect(self.openLabelWindow)
-        self.ui.btn_setting.clicked.connect(self.openSecurityWindow)
+        #self.ui.btn_setting.clicked.connect(self.openSecurityWindow)
+        self.ui.btn_setting.clicked.connect(self.openSettingWindow)
         if CFG.LOCK_SETTING:
             self.ui.btn_setting.setEnabled(False)
             self.ui.btn_setting.setToolTip("Require User AuthorityLvl 8")
@@ -2675,6 +2685,7 @@ class MainWindow(QMainWindow):
             self.dataThread.rasmRecordsStart=emptyRecords()
             self.dataThread.rasmRecordsDay=emptyRecords()
             self.dataThread.rasmRecordsHour=emptyRecords()
+            self.dataThread.rasmRecords30m=emptyRecords()
             self.dataThread.rasmRecords15m=emptyRecords()
             self.dataThread.rasmRecordsMin=emptyRecords()
             #Reassign prevRasmRecords
@@ -2686,6 +2697,8 @@ class MainWindow(QMainWindow):
             elif idx==2:
                 self.dataThread.prevRasmRecords=self.dataThread.rasmRecordsHour
             elif idx==3:
+                self.dataThread.prevRasmRecords=self.dataThread.rasmRecords30m
+            elif idx==4:
                 self.dataThread.prevRasmRecords=self.dataThread.rasmRecords15m
             else :
                 self.dataThread.prevRasmRecords=self.dataThread.rasmRecordsMin
@@ -2709,6 +2722,12 @@ class MainWindow(QMainWindow):
             self.dataThread.prevRasmRecords=self.dataThread.rasmRecordsHour
             self.ui.label_startTime.setText(time.strftime("%m/%d %H:00:00"))
         elif idx==3:
+            self.dataThread.prevData=self.dataThread.data30m
+            self.dataThread.prevRasmRecords=self.dataThread.rasmRecords30m
+            min30=int(((time.time()//60)%60)//30)*30
+            t=f'{time.strftime("%m/%d %H")}:{min30:02d}:00'
+            self.ui.label_startTime.setText(t)
+        elif idx==4:
             self.dataThread.prevData=self.dataThread.data15m
             self.dataThread.prevRasmRecords=self.dataThread.rasmRecords15m
             min15=int(((time.time()//60)%60)//15)*15
@@ -3144,7 +3163,7 @@ class MainWindow(QMainWindow):
         self.securityDialog.hide()
 
     def openSettingWindow(self):
-        if self.passwords == 'AIResearcher2022':
+        """if self.passwords == 'AIResearcher2022':
             self.settingDialog.show()
         else:
             try:
@@ -3157,9 +3176,9 @@ class MainWindow(QMainWindow):
                     msg.exec_()
                     self.errorMsg += 1
             except:
-                pass
+                pass"""
         #Load previous setting data
-
+        self.settingDialog.show()
         for i in range(4):
             for j in range(4):
                 self.purgerforms[i].itemAt(j,QFormLayout.FieldRole).widget().setText(str(CFG.PURGER_SETTING[i][j]))
