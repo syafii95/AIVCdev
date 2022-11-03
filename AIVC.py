@@ -129,7 +129,7 @@ SAMPLING_DIR='tag_sampling/'
 FKTH_SAMPLING_DIR='tag_sampling_FKTH/'
 RASM_SEQ=8
 SAVING_PROCESS_NUM=2
-PERIPHERAL_NAME=['FURS', 'SARS', 'Half-Moon', 'ASM']
+PERIPHERAL_NAME=['FURS', 'SARS', 'Half-moon']
 NAS_IP='10.39.8.230'
 RASM_CLASS=[1,2,4]
 CHAIN_CLASSES=[[1,2,3,4,10],[1,2,3,6,7],[1,2,3,4,5]]
@@ -148,7 +148,6 @@ IOTHUB_KEY= "mOMRhVDnXhk4f0c8zEPlpYDsHgXbjLRdLUXkJsVvlK8="
 IOTHUB_URI_FORMER="tg-iot-aivc-r2.azure-devices.net/devices/AIVC-Former-01"
 IOTHUB_REST_URI_FORMER = "https://" + IOTHUB_URI_FORMER + "/messages/events?api-version=2018-06-30"
 IOTHUB_KEY_FORMER="lujyFDp4COxGQBw8oquyEo+q3M/FyTouw6y/4FMRdus="
-CONFIG_URL="https://prod-31.southeastasia.logic.azure.com:443/workflows/4ffeb03e93bc4a67a8be70718dcb859c/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=BIt5B0CgB1BeeSWJHNiiFHbDzy4e5ZMosv9MtCleXb4"
 try:
     with open('classes.names','r') as names:
         for name in names:
@@ -723,35 +722,6 @@ class SQLHandler(QThread):
         self.prevDate=date
         self.prevTime=_time
 
-class ProblematicHandler(QThread):
-    rasmNumCycle = [0]*Side_Num
-    def __init__(self,parent):
-        super().__init__(parent=parent)
-        self.contBadDataRasm=np.zeros((4,CFG.RASM_ARM_NUM), dtype = int)
-        self.contGoodDataRasm=np.zeros((4,CFG.RASM_ARM_NUM), dtype = int)
-        #self.start(3)
-
-    def getRasmCycle(self, side):
-        self.rasmNumCycle[side] += 1
-
-    def getInfoRasm(self,side,rasmID,classes):
-        if classes > 0: #defect classes
-            if classes in RASM_CLASS:
-                if self.rasmNumCycle[side] >= 1:
-                    self.contBadDataRasm[side][rasmID-1] += 1
-                    self.contGoodDataRasm[side][rasmID-1] = 0
-                    return(self.rasmNumCycle[side],self.contBadDataRasm[side][rasmID-1],self.contGoodDataRasm[side][rasmID-1])
-                else:
-                    return(0,0,0)
-
-        else: #good glove
-            if self.rasmNumCycle[side] >= 1:
-                self.contGoodDataRasm[side][rasmID-1] += 1
-                self.contBadDataRasm[side][rasmID-1] = 0
-                return(self.rasmNumCycle[side],self.contBadDataRasm[side][rasmID-1],self.contGoodDataRasm[side][rasmID-1])
-            else:
-                return(0,0,0)
-
 class AlertHandler(QThread):
     def __init__(self,parent, iotHubRestURI,teamsMessenger):
         super().__init__(parent=parent)
@@ -970,105 +940,6 @@ class PLCAddrInput(QLineEdit):
             if addr> self.maxM:
                 self.setText(f'M{self.maxM}')
         self.periThreadRunning=False
-
-class Setting_Thread(QThread):
-    pushQue=q.Queue()
-    peri0={}
-    peri1={}
-    peri2={}
-    peri3={}
-    initPr={}
-    initPd={}
-    dataList=[]
-    running = True
-    def __init__(self, parent):
-        super().__init__(parent=parent)
-        
-    def pushToServer(self):
-        self.pushQue.put(self.dataList)
-
-    def prepareData(self,side):
-        utcDateTime=datetime.datetime.utcnow().isoformat()
-        DateTime=datetime.datetime.now().isoformat()
-        self.dataDict = {
-            "DateTime": DateTime,
-            "UTCDateTime": utcDateTime,
-            "Factory": CFG.FACTORY_NAME,
-            "Line": CFG.LINE_NUM,
-            "Side": SIDE_NAME[side],
-            "Enable RASM": CFG.ENABLE_PURGE_RASM[side],
-            "Enable FKTH": CFG.ENABLE_PURGE_FKTH[side],
-            "Purger Rework": self.initPr,
-            "Purger Dispose": self.initPd,
-            "FURS": self.peri0,
-            "SARS": self.peri1,
-            "Half-Moon": self.peri2,
-            "ASM": self.peri3,
-        }
-        self.dataList.append(self.dataDict)
-
-    def getRasmStatus(self,seqRASM):
-        self.seqRasm = seqRASM
-
-    def getFkthStatus(self,seqFKTH):
-        self.seqFKTH = seqFKTH
-
-    def getPurgerReworkStatus(self,seq,val,name):# get purger rework and dispose status when status change    
-        if name == 'rework':
-            self.initPr[CLASSES[seq]]=val
-        elif name == 'dispose':
-            self.initPd[CLASSES[seq]]=val
-        for i in range(Side_Num):
-            self.prepareData(i)
-        self.pushToServer()
-
-    def getPeriStatus(self,seq,val,idx):# get peripheral status when status change
-        self.dataDict[PERIPHERAL_NAME[idx]][CLASSES[seq]] = val
-        for i in range(Side_Num):
-            self.prepareData(i)
-        self.pushToServer()
-    
-    def getInitialpRStatus(self,status):# get purging rework status when aivc start
-        for i, ele in enumerate(status):
-            if i == 0 or i == 2:
-                self.initPr[CLASSES[i+1]]=ele
-
-    def getInitialpDStatus(self,status):# get purging dispose status when aivc start
-        for i, ele in enumerate(status):
-            if i == 0 or i == 2:
-                self.initPd[CLASSES[i+1]]=ele
-
-    def getInitialPeriStatus(self,peri,classes,status):# get peripheral status when aivc start
-        if classes == 1 or classes == 3:
-            if peri == 0:
-                self.peri0[CLASSES[classes]]=status
-            if peri == 1:
-                self.peri1[CLASSES[classes]]=status
-            if peri == 2:
-                self.peri2[CLASSES[classes]]=status
-            if peri == 3:
-                self.peri3[CLASSES[classes]]=status
-
-    def run(self):
-        while self.running:
-            try:
-                dataToSend = self.pushQue.get()
-            except q.Empty:
-                break
-            try:
-                resp = requests.post(CONFIG_URL, headers={'Content-Type': 'application/json'}, json=dataToSend)
-                recorder.info(f"Config send status: {resp}")
-                recorder.info(f"Config: {dataToSend}")
-            except Exception as e:
-                recorder.debug(f"Data failed to send: {e}")
-
-            self.dataList.clear()
-        self.pushQue.queue.clear()
-        print('Setting Handler Thread Closed')
-
-    def closeThread(self):
-        self.pushQue.put(None)
-        self.running = False
 
 class Purging_Thread(QThread):
     updatePurgingDisplay=pyqtSignal(int,str)#side,content
@@ -1464,7 +1335,7 @@ class DataHandler_Thread(QThread):
     clearCamBox= pyqtSignal(int)
     lowConfData= pyqtSignal(list,list,np.ndarray)
     setListItem=pyqtSignal(str,str)
-    updateRasmGridOfLine=pyqtSignal(int, int, np.ndarray, int, int, int, str)
+    updateRasmGridOfLine=pyqtSignal(int, int, np.ndarray, str)
     chainGridAddArm=pyqtSignal(int, int, np.ndarray, str)
     updateTable=pyqtSignal(int,int,str)
     refreshChainGrids=pyqtSignal(list,bool)
@@ -1523,7 +1394,7 @@ class DataHandler_Thread(QThread):
         self.prevState=1
         self.teamsMessenger=TeamsHandler(self,CFG.TEAMS_ADDR)
         self.teamsMessenger.resumePreviousTeamsAddr.connect(self.parent().resumePreviousTeamsAddr)
-        self.problematicHandler=ProblematicHandler(self)
+        
         self.alertHandler=AlertHandler(self, IOTHUB_REST_URI, self.teamsMessenger)
         self.jsonRPCThread=JsonRPCClient(self)
         self.sqlHandler=SQLHandler()
@@ -1723,7 +1594,6 @@ class DataHandler_Thread(QThread):
         self.sqlHandler.wait()
         self.modelPerformanceHandler.wait()
         self.jsonRPCThread.wait()
-        self.problematicHandler.wait()
     def feedYoloResult(self,camSeq,frame,pred_bbox,formerID,isRasmAnchor):
         self.yoloResultQue.put([camSeq,frame,pred_bbox,formerID,isRasmAnchor])
     def updateRasmRecord(self, side, cls, isRasmAnchor):
@@ -1740,14 +1610,11 @@ class DataHandler_Thread(QThread):
             self.rasmRecords[side].feed(d)
 
         rasmID=self.rasmRecords[side].getActualIndex()+1
-        if rasmID == 1: #get rasm cycle number
-            self.problematicHandler.getRasmCycle(side)
-        cycleRasm, contBad, contGood = self.problematicHandler.getInfoRasm(side,rasmID,cls)
         armRecord = self.rasmRecords[side].get()-self.prevRasmRecords[side][self.rasmRecords[side].currentIdx] #10 class
 
         #dr=float(dg)/(dg+gg) if gg!=0 else 1
         label=f"{SIDE_NAME[side]} | {CLASSES[cls]} | RASM ID:{rasmID}" ##May Include Former ID like below
-        self.updateRasmGridOfLine.emit(side, rasmID, armRecord, cycleRasm, contBad, contGood, label)
+        self.updateRasmGridOfLine.emit(side, rasmID, armRecord, label)
 
     def incrementData(self, line, row):
         self.data[line][row]+=1
@@ -2593,8 +2460,6 @@ class MainWindow(QMainWindow):
     camBoxes=[]
     rasmDefectionGrids=[]
     gloveDefectionGrids=[]
-    initialPr = []
-    initialPd = []
     capturing=True
     refreshDataTable=pyqtSignal()
 
@@ -2656,7 +2521,6 @@ class MainWindow(QMainWindow):
         self.captureThread= Capture_Thread(self, self.plc)
         self.dataThread=DataHandler_Thread(self)
         self.purgingThread= Purging_Thread(self, self.plc, self.dataThread.chainIndexers)
-        #self.settingThread=Setting_Thread(self)
         self.dataThread.refreshStatus.connect(self.refreshStatus)
         self.dataThread.trigger15min.connect(self.captureThread.getAveLineSpeed)
         self.captureThread.sendAveLineSpeed.connect(self.dataThread.lineSpeedAlert)
@@ -2702,7 +2566,6 @@ class MainWindow(QMainWindow):
         self.inferenceThread.start(priority=4)#HighPriority
         self.captureThread.start(priority=6)#TimeCriticalPriority
         self.purgingThread.start(priority=5)
-        #self.settingThread.start(priority=4)
 
         ## Login Window
         self.userDialog = UserDialog(self)
@@ -2793,9 +2656,6 @@ class MainWindow(QMainWindow):
             checkBox.stateChanged.connect(self.setClassToRework)
             self.setting_ui.grid_classToPurge.addWidget(checkBox,i/4+1,i%4)
             self.checkBoxToRework.append(checkBox)
-            checkBoxPrStatus = checkBox.isChecked()
-            self.initialPr.append(checkBoxPrStatus)
-        #self.settingThread.getInitialpRStatus(self.initialPr)
 
         lab2=QLabel("Purger Dispose:")
         lab2.setMaximumHeight(13)
@@ -2808,9 +2668,6 @@ class MainWindow(QMainWindow):
             checkBox.stateChanged.connect(self.setClassToDispose)
             self.setting_ui.grid_classToPurge.addWidget(checkBox,i/4+5,i%4)
             self.checkBoxToDispose.append(checkBox)
-            checkBoxPdStatus = checkBox.isChecked()
-            self.initialPd.append(checkBoxPdStatus)
-        #self.settingThread.getInitialpDStatus(self.initialPd)
         self.setting_ui.grid_classToPurge.addWidget(QLabel("Confidence Level To Purge:"),8,0,1,2)
         text_confLevel=LineEditLimInt(max=100, hint="0%~100%")
         text_confLevel.setText(str(int(CFG.CONF_LEVEL_TO_PURGE*100)))
@@ -2856,8 +2713,6 @@ class MainWindow(QMainWindow):
                 if(CFG.PERI_CLASS[i] & 1<<j+1):
                     cb.setChecked(True)
                 cb.stateChanged.connect(self.setClassPeri)
-                periStatusCb = cb.isChecked()
-                #self.settingThread.getInitialPeriStatus(i,j+1,periStatusCb)
             for j, td in enumerate(periWidget.text_distances):
                 td.setText(str(CFG.PERI_DISTANCE[i][j]))
                 td.returnPressed.connect(self.setPeriDistance)
@@ -2925,9 +2780,6 @@ class MainWindow(QMainWindow):
         self.startTime=time.strftime("%Y-%m-%d_%H:%M:%S")
         self.recordStartTime=time.strftime("%m/%d %H:%M:%S")
         self.ui.label_startTime.setText(self.recordStartTime)
-        #for i in range(Side_Num):
-            #self.settingThread.prepareData(i)
-        #self.settingThread.pushToServer()
         self.create_timer()
         self.initializePLC() 
         self.tabs_stacking=[CameraTab() for _ in range(4)]
@@ -3263,9 +3115,6 @@ class MainWindow(QMainWindow):
             self.checkBoxToRework[seq-1].setChecked(False)
         else:
             CFG.CLASS_TO_DISPOSE &= ~mask
-        name='dispose'
-        #if seq == 1 or seq == 3:
-            #self.settingThread.getPurgerReworkStatus(seq,val,name)
         CFG_Handler.set('CLASS_TO_DISPOSE', CFG.CLASS_TO_DISPOSE)
 
     def setClassToRework(self):
@@ -3273,13 +3122,10 @@ class MainWindow(QMainWindow):
         seq=self.sender().seq
         mask = 1<<seq
         if val:
-            CFG.CLASS_TO_REWORK |= mask #tick
+            CFG.CLASS_TO_REWORK |= mask
             self.checkBoxToDispose[seq-1].setChecked(False)
         else:
-            CFG.CLASS_TO_REWORK &= ~mask #untick
-        name='rework'
-        #if seq == 1 or seq == 3:
-            #self.settingThread.getPurgerReworkStatus(seq,val,name)
+            CFG.CLASS_TO_REWORK &= ~mask
         CFG_Handler.set('CLASS_TO_REWORK', CFG.CLASS_TO_REWORK)
 
     def setClassPeri(self):
@@ -3291,8 +3137,6 @@ class MainWindow(QMainWindow):
             CFG.PERI_CLASS[idx] |= mask
         else:
             CFG.PERI_CLASS[idx] &= ~mask
-        #if seq == 1 or seq == 3:
-            #self.settingThread.getPeriStatus(seq,val,idx)
         CFG_Handler.set('PERI_CLASS', CFG.PERI_CLASS)
 
     def changeFactorynLineName(self):
@@ -3399,8 +3243,8 @@ class MainWindow(QMainWindow):
     def sendFormerLamps(self,ID,side,rdr):
         self.purgingThread.sendFormerLamps(ID,side,rdr)
 
-    def updateRasmGridOfLine(self, line, index, armRecord, cycleRasm, contBad, contGood, label):
-        self.rasmDefectionGrids[line].updateRasmGrid(line, index, armRecord, cycleRasm, contBad, contGood, label)
+    def updateRasmGridOfLine(self, line, index, armRecord, label):
+        self.rasmDefectionGrids[line].updateRasmGrid(index, armRecord, label)
     def chainGridAddArm(self, line, index, record, label):
         self.gloveDefectionGrids[line].addChainArm(index, line, record, label)
     def contGoodBadCycle(self, line, former, cycle, contBad, contGood, emptyLink):
@@ -3462,13 +3306,11 @@ class MainWindow(QMainWindow):
         val=self.sender().isChecked()
         CFG.ENABLE_PURGE_RASM[seq]=val
         CFG_Handler.set('ENABLE_PURGE_RASM',CFG.ENABLE_PURGE_RASM)
-        #self.settingThread.getRasmStatus(seq)
     def setPurgeEnableFKTH(self):
         seq=self.sender().seq
         val=self.sender().isChecked()
         CFG.ENABLE_PURGE_FKTH[seq]=val
         CFG_Handler.set('ENABLE_PURGE_FKTH',CFG.ENABLE_PURGE_FKTH)
-        #self.settingThread.getFkthStatus(seq)
     def setPeriEnable(self):
         seq=self.sender().seq
         val=self.sender().isChecked()
@@ -3554,7 +3396,6 @@ class MainWindow(QMainWindow):
         self.inferenceThread.closeThread()
         self.dataThread.closeThread()
         self.purgingThread.closeThread()
-        #self.settingThread.closeThread()
         self.secTimer.closeThread()
         self.minTimer.closeThread()
         self.settingDialog.close()
@@ -3817,12 +3658,6 @@ class DefectionGrid(QWidget):
         self.cycle=0
         self.contBad=np.zeros((4,CFG.CHAIN_FORMER_NUM), dtype = int)
         self.contGood=np.zeros((4,CFG.CHAIN_FORMER_NUM), dtype = int)
-        self.pushThreshold = 1
-        self.rasmID = 0
-        self.rasmSide = 0
-        self.rasmCycle = 0
-        self.rasmContBad = np.zeros((4,CFG.RASM_ARM_NUM), dtype = int)
-        self.rasmContGood = np.zeros((4,CFG.RASM_ARM_NUM), dtype = int)
         self.setLayout(vbox)
         self.frame.setFixedSize(cWidth,cHeight)
         self.frame.setFrameStyle(6)
@@ -3896,10 +3731,9 @@ class DefectionGrid(QWidget):
                     if contGood <= 3:
                         self.updateProblematicFormer(self.seq, armID, defectRecord)
                         self.sendFormerLamp.emit(armID,side,rdr)
-        #if chain:
-        if CFG.AIVC_MODE == 0:
-            tt+=f'\nNum. of Cycle: {cycle}\nContinuous Bad: {contBad}\nContinuous Good: {contGood}'
-
+        if chain:
+            if CFG.AIVC_MODE == 0:
+                tt+=f'\nNum. of Cycle: {cycle}\nContinuous Bad: {contBad}\nContinuous Good: {contGood}'
         if lab:
             self.label.setText(lab)
         self.items[index].id=armID
@@ -3907,47 +3741,53 @@ class DefectionGrid(QWidget):
         self.items[index].setToolTip(tt)
         self.items[index].setText( f"<span style='font-size:8pt; font-weight:500;'>{armID}\n</span><br><span style='font-size:7pt; font-weight:400;'>{rdr*100:.2f}%</span>" )
 
-        if name == 'Chain':
-            self.pushThreshold = 3
-        elif name =='RASM':
-            self.pushThreshold = 5
-
-        if(rdr<0.05):
-            if contBad >= self.pushThreshold:
-                color='red'
-                if emptyLink == True:
-                    color='cyan'
-            else:
+        if not chain:#Set Color by Defective Rate for RASM
+            if(rdr<0.05):
                 color='lightgreen'
-                if emptyLink == True:
-                    color='cyan'
-        elif(rdr<0.1):
-            if contBad >= self.pushThreshold:
-                color='red'
-                if emptyLink == True:
-                    color='cyan'
-            else:
+            elif(rdr<0.1):
                 color='yellow'
-                if emptyLink == True:
-                    color='cyan'
-        elif(rdr<0.3):
-            if contBad >= self.pushThreshold:
-                color='red'
-                if emptyLink == True:
-                    color='cyan'
-            else:
+            elif(rdr<0.3):
                 color='orange'
-                if emptyLink == True:
-                    color='cyan'
-        else:
-            if contGood >= self.pushThreshold:
-                color='gray'
-                if emptyLink == True:
-                    color='cyan'
             else:
                 color='red'
-                if emptyLink == True:
-                    color='cyan'
+
+        else:#Set Color by Defective Rate for FKTH
+            if(rdr<0.05):
+                if contBad >= 3:
+                    color='red'
+                    if emptyLink == True:
+                        color='cyan'
+                else:
+                    color='lightgreen'
+                    if emptyLink == True:
+                        color='cyan'
+            elif(rdr<0.1):
+                if contBad >= 3:
+                    color='red'
+                    if emptyLink == True:
+                        color='cyan'
+                else:
+                    color='yellow'
+                    if emptyLink == True:
+                        color='cyan'
+            elif(rdr<0.3):
+                if contBad >= 3:
+                    color='red'
+                    if emptyLink == True:
+                        color='cyan'
+                else:
+                    color='orange'
+                    if emptyLink == True:
+                        color='cyan'
+            else:
+                if contGood >= 3:
+                    color='gray'
+                    if emptyLink == True:
+                        color='cyan'
+                else:
+                    color='red'
+                    if emptyLink == True:
+                        color='cyan'
 
         if highlight:
             self.items[index].setStyleSheet(f"QLabel {{background-color: {color}; border: 3px solid orange; border-radius: 5px;}}") 
@@ -3996,7 +3836,7 @@ class DefectionGrid(QWidget):
         self.contGood = contGood
         self.emptyLink = emptyLink
 
-    def updateRasmGrid(self, side, rasmID1, armRecord, cycleRasm, contBad, contGood, lab):
+    def updateRasmGrid(self, rasmID1, armRecord, lab):
         #Remove previous border highlight
         itemNum=len(self.items)
         if rasmID1>itemNum:
@@ -4004,15 +3844,13 @@ class DefectionGrid(QWidget):
             arm.armClicked.connect(self.parent.armClicked)
             self.gridLayout.addWidget(arm,int(itemNum/10),itemNum%10)
             self.items.append(arm)
-            #self.updateArm(rasmID1-1, rasmID1, armRecord, lab, highlight=True)
-            self.updateArm(rasmID1-1, rasmID1, armRecord, side, False, cycleRasm, contBad, contGood, lab, highlight=True)
+            self.updateArm(rasmID1-1, rasmID1, armRecord, lab=lab, highlight=True)
         else:
             if(rasmID1==1):
                 self.items[-1].setStyleSheet(f"QLabel {{background-color: {self.preColor}; border: 2px solid black; border-radius: 5px;}}")
             else:
                 self.items[rasmID1-2].setStyleSheet(f"QLabel {{background-color: {self.preColor}; border: 2px solid black; border-radius: 5px;}}")
-            #self.updateArm(rasmID1-1, rasmID1, armRecord, lab, highlight=True)#for RASM ID is the same as index
-            self.updateArm(rasmID1-1, rasmID1, armRecord, side, False, cycleRasm, contBad, contGood, lab, highlight=True)#for RASM ID is the same as index
+            self.updateArm(rasmID1-1, rasmID1, armRecord, lab=lab, highlight=True)#for RASM ID is the same as index
 
     def updateAllChain(self, gloveDefectionRecord,clear=False):
         if clear:
