@@ -2302,6 +2302,10 @@ class Capture_Thread(QThread):
                                     
                             CFormerIDs[s]+=(1+miscountNum)*self.formerPerTrigger
                             if(CFormerIDs[s]>=TOTAL_FORMER):
+                                if s == 0:
+                                    self.cycleNum+=1
+                                    self.cycleCount.emit(self.cycleNum,1)
+                                    self.formerNum=0
                                 CFormerIDs[s]=CFormerIDs[s]-TOTAL_FORMER
                             for side in range(4):
                                 if CFG.PURGER_SENSOR[side] == s:
