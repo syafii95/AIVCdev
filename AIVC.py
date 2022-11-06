@@ -1274,12 +1274,8 @@ class MinuteDataRecorder(QThread):
             copyRecords(self.dHandler.rasmRecordsMin, rasmRecordsData)
 
             now=datetime.datetime.now()
-            if self.dHandler.dataRecordState==4:
+            if self.dHandler.dataRecordState==5:
                 self.dHandler.updateStartTime.emit(time.strftime("%m/%d %H:%M:%S"))
-
-            """if (time.time()//60)%15==0:#Trigger time to send former defect rate to powerBI
-                if self.dHandler.state<4:
-                    self.dHandler.uploadProblematic()"""
                 
             if (time.time()//60)%15==0:#Trigger every 15min
                 self.dHandler.trigger15min.emit()
@@ -1289,8 +1285,15 @@ class MinuteDataRecorder(QThread):
 
                 np.copyto(self.dHandler.data15m,self.dHandler.data)
                 copyRecords(self.dHandler.rasmRecords15m, rasmRecordsData)
+                if self.dHandler.dataRecordState==4:
+                    self.dHandler.updateStartTime.emit(time.strftime("%m/%d %H:%M:%S"))
+
+            if (time.time()//60)%30==0:     #Trigger every 30min
+                np.copyto(self.dHandler.data30m,self.dHandler.data)
+                copyRecords(self.dHandler.rasmRecords30m, rasmRecordsData)
                 if self.dHandler.dataRecordState==3:
                     self.dHandler.updateStartTime.emit(time.strftime("%m/%d %H:%M:%S"))
+
             if self.dHandler.currentHour!=now.hour:  #Trigger every hour
                 CFG_Handler.saveBackup()
                 self.dHandler.samplingCountDown=50#Save random sampling images for checking
@@ -1353,6 +1356,7 @@ class DataHandler_Thread(QThread):
     dataStart=np.zeros((5,Data_Num), dtype = int)
     dataDay=np.zeros((5,Data_Num), dtype = int)
     dataHour=np.zeros((5,Data_Num), dtype = int)
+    data30m=np.zeros((5,Data_Num), dtype = int)
     data15m=np.zeros((5,Data_Num), dtype = int)
     dataMin=np.zeros((5,Data_Num), dtype = int)
     lastData=np.zeros((5,Data_Num), dtype = int)
@@ -1379,6 +1383,7 @@ class DataHandler_Thread(QThread):
         self.rasmRecordsStart=emptyRecords()
         self.rasmRecordsDay=emptyRecords()
         self.rasmRecordsHour=emptyRecords()
+        self.rasmRecords30m=emptyRecords()
         self.rasmRecords15m=emptyRecords()
         self.rasmRecordsMin=emptyRecords()
         self.prevRasmRecords=self.rasmRecordsStart
@@ -3050,6 +3055,7 @@ class MainWindow(QMainWindow):
             self.dataThread.rasmRecordsStart=emptyRecords()
             self.dataThread.rasmRecordsDay=emptyRecords()
             self.dataThread.rasmRecordsHour=emptyRecords()
+            self.dataThread.rasmRecords30m=emptyRecords()
             self.dataThread.rasmRecords15m=emptyRecords()
             self.dataThread.rasmRecordsMin=emptyRecords()
             #Reassign prevRasmRecords
@@ -3061,6 +3067,8 @@ class MainWindow(QMainWindow):
             elif idx==2:
                 self.dataThread.prevRasmRecords=self.dataThread.rasmRecordsHour
             elif idx==3:
+                self.dataThread.prevRasmRecords=self.dataThread.rasmRecords30m
+            elif idx==4:
                 self.dataThread.prevRasmRecords=self.dataThread.rasmRecords15m
             else :
                 self.dataThread.prevRasmRecords=self.dataThread.rasmRecordsMin
@@ -3084,6 +3092,12 @@ class MainWindow(QMainWindow):
             self.dataThread.prevRasmRecords=self.dataThread.rasmRecordsHour
             self.ui.label_startTime.setText(time.strftime("%m/%d %H:00:00"))
         elif idx==3:
+            self.dataThread.prevData=self.dataThread.data30m
+            self.dataThread.prevRasmRecords=self.dataThread.rasmRecords30m
+            min30=int(((time.time()//60)%60)//30)*30
+            t=f'{time.strftime("%m/%d %H")}:{min30:02d}:00'
+            self.ui.label_startTime.setText(t)
+        elif idx==4:
             self.dataThread.prevData=self.dataThread.data15m
             self.dataThread.prevRasmRecords=self.dataThread.rasmRecords15m
             min15=int(((time.time()//60)%60)//15)*15
