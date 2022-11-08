@@ -729,30 +729,36 @@ class ProblematicHandler(QThread):
         super().__init__(parent=parent)
         self.contBadDataRasm=np.zeros((4,CFG.RASM_ARM_NUM), dtype = int)
         self.contGoodDataRasm=np.zeros((4,CFG.RASM_ARM_NUM), dtype = int)
+        self.rasmID = 0
+        self.val = 0
 
     def getRasmCycle(self, side):
         self.rasmNumCycle[side] += 1
 
     def getInfoRasm(self,side,rasmID,classes):
+        self.rasmID = rasmID
         if classes > 0: #defect classes
             if classes in RASM_CLASS:
                 if self.rasmNumCycle[side] >= 1:
                     self.contBadDataRasm[side][rasmID-1] += 1
                     self.contGoodDataRasm[side][rasmID-1] = 0
-                    return(self.rasmNumCycle[side],self.contBadDataRasm[side][rasmID-1],self.contGoodDataRasm[side][rasmID-1])
+                    return(self.rasmNumCycle[side],self.contBadDataRasm[side][rasmID-1],self.contGoodDataRasm[side][rasmID-1],self.val)
                 else:
-                    return(0,0,0)
+                    return(0,0,0,0)
 
         elif classes == 0: #good glove
             if self.rasmNumCycle[side] >= 1:
                 self.contGoodDataRasm[side][rasmID-1] += 1
                 self.contBadDataRasm[side][rasmID-1] = 0
-                return(self.rasmNumCycle[side],self.contBadDataRasm[side][rasmID-1],self.contGoodDataRasm[side][rasmID-1])
+                return(self.rasmNumCycle[side],self.contBadDataRasm[side][rasmID-1],self.contGoodDataRasm[side][rasmID-1],self.val)
             else:
-                return(0,0,0)
+                return(0,0,0,0)
 
         else:
-            return 0,0,0
+            return 0,0,0,0
+
+    def getEncoderValue(self,val):
+        self.val = val
 
 class AlertHandler(QThread):
     def __init__(self,parent, iotHubRestURI,teamsMessenger):
@@ -1473,7 +1479,7 @@ class DataHandler_Thread(QThread):
     clearCamBox= pyqtSignal(int)
     lowConfData= pyqtSignal(list,list,np.ndarray)
     setListItem=pyqtSignal(str,str)
-    updateRasmGridOfLine=pyqtSignal(int, int, np.ndarray, int, int, int, str)
+    updateRasmGridOfLine=pyqtSignal(int, int, np.ndarray, int, int, int, str, int)
     chainGridAddArm=pyqtSignal(int, int, np.ndarray, str)
     updateTable=pyqtSignal(int,int,str)
     refreshChainGrids=pyqtSignal(list,bool)
@@ -1753,12 +1759,12 @@ class DataHandler_Thread(QThread):
         rasmID=self.rasmRecords[side].getActualIndex()+1
         if rasmID == 1: #get rasm cycle number
             self.problematicHandler.getRasmCycle(side)
-        cycleRasm, contBad, contGood = self.problematicHandler.getInfoRasm(side,rasmID,cls)
+        cycleRasm, contBad, contGood, encod = self.problematicHandler.getInfoRasm(side,rasmID,cls)
         armRecord = self.rasmRecords[side].get()-self.prevRasmRecords[side][self.rasmRecords[side].currentIdx] #10 class
 
         #dr=float(dg)/(dg+gg) if gg!=0 else 1
         label=f"{SIDE_NAME[side]} | {CLASSES[cls]} | RASM ID:{rasmID}" ##May Include Former ID like below
-        self.updateRasmGridOfLine.emit(side, rasmID, armRecord, cycleRasm, contBad, contGood, label)
+        self.updateRasmGridOfLine.emit(side, rasmID, armRecord, cycleRasm, contBad, contGood, label, encod)
 
     def incrementData(self, line, row):
         self.data[line][row]+=1
@@ -2270,6 +2276,7 @@ class Camera_Thread(QThread):
 
 class Capture_Thread(QThread):
     feedPurgerQue=pyqtSignal(int,int)
+    feedEncoderQue=pyqtSignal(int)
     sendAveLineSpeed=pyqtSignal(float)
     camCapture=pyqtSignal(int)
     setCurLineSpeedTxt=pyqtSignal(str)
@@ -2419,6 +2426,7 @@ class Capture_Thread(QThread):
                                             else:#valid
                                                 #print(f"{rotaryCode} Ave:{averageRotation} Sensor{s} Rot:{rotation} {CFormerIDs}")#zan
                                                 averageRotationDeque.append(rotation)
+                                            self.feedEncoderQue.emit(rotation)
                                         prevRotaryCodes[s]=rotaryCode
                             except Exception as e:
                                 recorder.debug(f"Encoder Exception: {e}\n{format_exc()}")
@@ -2703,6 +2711,7 @@ class MainWindow(QMainWindow):
         for camThread in self.captureThread.camThreads:
             camThread.feedCaptureQue.connect(self.inferenceThread.feedCaptureQue)
         self.captureThread.feedPurgerQue.connect(self.purgingThread.feedPurgerQue)
+        self.captureThread.feedEncoderQue.connect(self.dataThread.problematicHandler.getEncoderValue)
         self.purgingThread.updatePurgingDisplay.connect(self.updatePurgingDisplay)
         self.purgingThread.updateListToPurge.connect(self.updateListToPurge)
         self.purgingThread.markDetected.connect(self.markDetected)
@@ -3422,8 +3431,8 @@ class MainWindow(QMainWindow):
     def sendFormerLamps(self,ID,side,rdr):
         self.purgingThread.sendFormerLamps(ID,side,rdr)
 
-    def updateRasmGridOfLine(self, line, index, armRecord, cycleRasm, contBad, contGood, label):
-        self.rasmDefectionGrids[line].updateRasmGrid(line, index, armRecord, cycleRasm, contBad, contGood, label)
+    def updateRasmGridOfLine(self, line, index, armRecord, cycleRasm, contBad, contGood, label, encod):
+        self.rasmDefectionGrids[line].updateRasmGrid(line, index, armRecord, cycleRasm, contBad, contGood, label, encod)
     def chainGridAddArm(self, line, index, record, label):
         self.gloveDefectionGrids[line].addChainArm(index, line, record, label)
     def contGoodBadCycle(self, line, former, cycle, contBad, contGood, emptyLink):
@@ -3870,7 +3879,7 @@ class DefectionGrid(QWidget):
                 self.gridLayout.addWidget(arm,i,j)
                 self.items.append(arm)
 
-    def updateArm(self, index, armID, armRecord, side=0, emptyLink=False, cycle=0, contBad=0, contGood=0, lab='',highlight=False,chain=False,updateData=True):
+    def updateArm(self, index, armID, armRecord, side=0, emptyLink=False, cycle=0, contBad=0, contGood=0, lab='', encod=0, highlight=False,chain=False,updateData=True):
         gg=armRecord[0]
         rdg=0
         odg=0
@@ -3922,6 +3931,9 @@ class DefectionGrid(QWidget):
         #if chain:
         if CFG.AIVC_MODE == 0:
             tt+=f'\nNum. of Cycle: {cycle}\nContinuous Bad: {contBad}\nContinuous Good: {contGood}'
+            if name == 'RASM':
+                tt+=f'\nEncoder Value: {encod}'
+                
         if lab:
             self.label.setText(lab)
         self.items[index].id=armID
@@ -4018,7 +4030,7 @@ class DefectionGrid(QWidget):
         self.contGood = contGood
         self.emptyLink = emptyLink
 
-    def updateRasmGrid(self, side, rasmID1, armRecord, cycleRasm, contBad, contGood, lab):
+    def updateRasmGrid(self, side, rasmID1, armRecord, cycleRasm, contBad, contGood, lab, encod):
         #Remove previous border highlight
         itemNum=len(self.items)
         if rasmID1>itemNum:
@@ -4027,14 +4039,14 @@ class DefectionGrid(QWidget):
             self.gridLayout.addWidget(arm,int(itemNum/10),itemNum%10)
             self.items.append(arm)
             #self.updateArm(rasmID1-1, rasmID1, armRecord, lab, highlight=True)
-            self.updateArm(rasmID1-1, rasmID1, armRecord, side, False, cycleRasm, contBad, contGood, lab, highlight=True)
+            self.updateArm(rasmID1-1, rasmID1, armRecord, side, False, cycleRasm, contBad, contGood, lab, encod=encod, highlight=True)
         else:
             if(rasmID1==1):
                 self.items[-1].setStyleSheet(f"QLabel {{background-color: {self.preColor}; border: 2px solid black; border-radius: 5px;}}")
             else:
                 self.items[rasmID1-2].setStyleSheet(f"QLabel {{background-color: {self.preColor}; border: 2px solid black; border-radius: 5px;}}")
             #self.updateArm(rasmID1-1, rasmID1, armRecord, lab, highlight=True)#for RASM ID is the same as index
-            self.updateArm(rasmID1-1, rasmID1, armRecord, side, False, cycleRasm, contBad, contGood, lab, highlight=True)#for RASM ID is the same as index
+            self.updateArm(rasmID1-1, rasmID1, armRecord, side, False, cycleRasm, contBad, contGood, lab, encod=encod, highlight=True)#for RASM ID is the same as index
 
     def updateAllChain(self, gloveDefectionRecord,clear=False):
         if clear:
