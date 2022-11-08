@@ -2426,7 +2426,8 @@ class Capture_Thread(QThread):
                                             else:#valid
                                                 #print(f"{rotaryCode} Ave:{averageRotation} Sensor{s} Rot:{rotation} {CFormerIDs}")#zan
                                                 averageRotationDeque.append(rotation)
-                                            self.feedEncoderQue.emit(rotation)
+                                            if s==0:
+                                                self.feedEncoderQue.emit(rotation)
                                         prevRotaryCodes[s]=rotaryCode
                             except Exception as e:
                                 recorder.debug(f"Encoder Exception: {e}\n{format_exc()}")
