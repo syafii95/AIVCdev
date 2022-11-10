@@ -1586,7 +1586,10 @@ class DataHandler_Thread(QThread):
             defectDict = {}
             defectDict["Good Glove"]=0
             for i in CHAIN_CLASS:
-                defectDict[f"{CLASSES[i]}"]=0
+                if i == 10:
+                    defectDict[f"FKTH"]=0
+                else:
+                    defectDict[f"{CLASSES[i]}"]=0
             defectDict["Non-Chain-Related"]=0
             defectDict["Defective Rate"]=0
             try:  
