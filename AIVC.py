@@ -2006,7 +2006,8 @@ class DataHandler_Thread(QThread):
                         pass
                     else:
                         if self.prevState == 1:
-                            self.uploadProblematic()
+                            if self.numCycle >= 3:
+                                self.uploadProblematic()
                 except:
                     pass
                 self.saveSegmentedRecord()
