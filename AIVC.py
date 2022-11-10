@@ -753,9 +753,8 @@ class ProblematicHandler(QThread):
                 return(self.rasmNumCycle[side],self.contBadDataRasm[side][rasmID-1],self.contGoodDataRasm[side][rasmID-1],self.val)
             else:
                 return(0,0,0,0)
-
-        else:
-            return 0,0,0,0
+        """else:
+            return(0,0,0,0)"""
 
     def getEncoderValue(self,val):
         self.val = val
@@ -1619,7 +1618,7 @@ class DataHandler_Thread(QThread):
                         }
                         emptyFormer.append(emptyProblematicFormer)
                         for i in range (len(emptyFormer)):
-                            emptyFormer[i].update({f'Former Count': self.formerNums})
+                            emptyFormer[i].update({f'Former Count': CFG.CHAIN_FORMER_NUM})
                     Sample_jsonstring = json.dumps(emptyFormer)
                     if self.numCycle >= 4:
                         if CFG.ENABLE_SHAREPOINT:
@@ -1762,7 +1761,12 @@ class DataHandler_Thread(QThread):
         rasmID=self.rasmRecords[side].getActualIndex()+1
         if rasmID == 1: #get rasm cycle number
             self.problematicHandler.getRasmCycle(side)
-        cycleRasm, contBad, contGood, encod = self.problematicHandler.getInfoRasm(side,rasmID,cls)
+
+        try:
+            cycleRasm, contBad, contGood, encod = self.problematicHandler.getInfoRasm(side,rasmID,cls)
+        except:
+            cycleRasm, contBad, contGood, encod =0,0,0,0
+
         armRecord = self.rasmRecords[side].get()-self.prevRasmRecords[side][self.rasmRecords[side].currentIdx] #10 class
 
         #dr=float(dg)/(dg+gg) if gg!=0 else 1
