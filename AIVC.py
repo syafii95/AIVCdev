@@ -1651,7 +1651,7 @@ class DataHandler_Thread(QThread):
                 milliseconds = int(round(time.time() * 100))
                 milliseconds%=100
                 timestr=time.strftime("%Y%m%d-%H%M%S")
-                name=f'img{timestr}-{milliseconds}_{CAM_NAME[camSeq]}_{formerID}'
+                name=f'L{CFG.LINE_NUM}-img{timestr}-{milliseconds}_{CAM_NAME[camSeq]}_{formerID}'
                 imgName=''
                 lowConfName=''
                 foundObject=False
