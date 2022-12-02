@@ -18,6 +18,7 @@ import json
 import random
 import requests
 from collections import deque
+import pandas as pd
 import smbclient
 import psutil    
 import weakref
@@ -46,6 +47,7 @@ from utils.AIVCcomponents import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
+import pyqtgraph as pg
 
 import core.utils as utils
 from core.yolov3 import YOLOv3, decode
@@ -65,6 +67,7 @@ from userDialog import UserDialog
 
 from MvImport.CamControl import *
 from color_detect_class import ColorDetect
+np.seterr(divide='ignore', invalid='ignore')
 
 requests.urllib3.disable_warnings(requests.urllib3.exceptions.SubjectAltNameWarning)
 
@@ -158,8 +161,13 @@ except FileNotFoundError as e:
     #classes.names not found, use default name instead
     CLASSES=["Good Glove","Tearing","Single Arm","Double Dip", "Unstripped","No Glove","Stained", "Lump", "Broken Former", "Other"]
 CLASS_NUM=len(CLASSES)
+NEW_CLASSES = CLASSES.copy()
+NEW_CLASSES.remove('Former Holder')
+NEW_CLASS_NUM=len(NEW_CLASSES)
 Data_Num=CLASS_NUM+2 #All class plus Empty Link and Produced Glove
+New_Data_Num=NEW_CLASS_NUM+2
 DATA_NAMES=["Good Glove", "Produced Glove", "Empty Link"]+CLASSES[1:]
+NEW_DATA_NAMES=["Good Glove", "Produced Glove", "Empty Link"]+NEW_CLASSES[1:]
 class singleinstance:
     def __init__(self):
         self.mutex = CreateMutex(None, False, "mutex_AIVC")
@@ -205,7 +213,7 @@ def copyRecords(dst,src):
 
 class ArmData():
     def __init__(self, cls=0):
-        self.data=np.zeros(CLASS_NUM,dtype=int)
+        self.data=np.zeros(NEW_CLASS_NUM,dtype=int)
         self.data[cls]=1
     def __iadd__(self,_armData):
         self.data=np.add(self.data,_armData.data)
@@ -216,7 +224,7 @@ def emptyRecords():
     for i in range(4):
         side={}
         for j in range(CFG.RASM_ARM_NUM):
-            side[j]=np.zeros(CLASS_NUM,dtype=int)
+            side[j]=np.zeros(NEW_CLASS_NUM,dtype=int)
         record.append(side)
     return record
 
@@ -648,7 +656,7 @@ class ModelPerformanceHandler(QThread):
     #modelPerformanceRunning = True
     def __init__(self,parent=None):
         super().__init__(parent=parent)
-        self.classDatas=[0]*len(CLASSES)
+        self.classDatas=[0]*len(NEW_CLASSES)
         self.start(3)
 
     def run(self):
@@ -659,13 +667,14 @@ class ModelPerformanceHandler(QThread):
             appendLowConfidence=[]
             if len(total) == 5:
                 total = total[0]
-            for i in range (len(DATA_NAMES)):
+            for i in range (len(NEW_DATA_NAMES)):
                 if i<1:
                     appendLowConfidence.append(total[i])
                 elif i>2:
                     appendLowConfidence.append(total[i])# total glove
-            for i in range(len(CLASSES)):
+            for i in range(len(NEW_CLASSES)):
                 if classIds == i:
+                    np.seterr(divide='ignore', invalid='ignore')
                     self.classDatas[i]+=1 #increase if got low confident 
                     differentDataRate = np.nan_to_num((np.subtract(appendLowConfidence,self.classDatas)/appendLowConfidence))*100
                     if not -inf in differentDataRate:
@@ -683,11 +692,11 @@ class SQLHandler(QThread):
         self.SQLDisableRetry=False
         self.prevDate=time.strftime("%Y-%m-%d")
         self.prevTime=time.strftime("%H:%M:%S")
-        self.prevData=np.zeros((5,Data_Num), dtype = int)
+        self.prevData=np.zeros((5,New_Data_Num), dtype = int)
         self.start(3)
 
     def run(self):
-        self.sqlConnector=sqlConnect.SQLConnect(DATA_NAMES)
+        self.sqlConnector=sqlConnect.SQLConnect(NEW_DATA_NAMES)
         while True:
             payload = self.queue.get()
             if payload is None:
@@ -810,12 +819,12 @@ class AlertHandler(QThread):
                             msg=''
                             classData={}
                             for i, record in enumerate(armRecord):
-                                classData[CLASSES[i]]=int(record)
+                                classData[NEW_CLASSES[i]]=int(record)
                                 total+=record
                                 if i>0:
                                     if i in RASM_CLASS:
                                         rdg+=record
-                                        msg+=f'{CLASSES[i]}:{record} '
+                                        msg+=f'{NEW_CLASSES[i]}:{record} '
                                     else:
                                         odg+=record
                             tdg=rdg+odg
@@ -846,7 +855,7 @@ class AlertHandler(QThread):
                         dr=(pg-gg)/pg if pg != 0 else 0
 
                         classData={}
-                        for i, className in enumerate(DATA_NAMES):
+                        for i, className in enumerate(NEW_DATA_NAMES):
                             classData[className]=int(data[i])
 
                         iotHubData['Class_Value_JSON']=classData.copy()
@@ -870,13 +879,13 @@ class AlertHandler(QThread):
                             send=True
                             msg+=f'Good Glove:{gg} '
                             for i in range(1,len(data)-2):
-                                msg+=f'{CLASSES[i]}:{data[i+2]} '
+                                msg+=f'{NEW_CLASSES[i]}:{data[i+2]} '
                             msg+=f'Defective Rate:{dr*100:.2f}%'
                             warningTxt+=f"{CFG.FACTORY_NAME} L{CFG.LINE_NUM} {SIDE_NAME[side]} {msg}<br>"
                         #IOThub
                         iotHubData['CarrierSet']=999
                         classData={}
-                        for i, className in enumerate(DATA_NAMES):
+                        for i, className in enumerate(NEW_DATA_NAMES):
                             classData[className]=int(data[i])
                         iotHubData['ProductionLineRow']=SIDE_NAME[side]
                         iotHubData['Class_Value_JSON']=classData.copy()
@@ -1023,15 +1032,15 @@ class Setting_Thread(QThread):
 
     def getPurgerReworkStatus(self,seq,val,name):# get purger rework and dispose status when status change    
         if name == 'rework':
-            self.initPr[CLASSES[seq]]=val
+            self.initPr[NEW_CLASSES[seq]]=val
         elif name == 'dispose':
-            self.initPd[CLASSES[seq]]=val
+            self.initPd[NEW_CLASSES[seq]]=val
         for i in range(Side_Num):
             self.prepareData(i)
         self.pushToServer()
 
     def getPeriStatus(self,seq,val,idx):# get peripheral status when status change
-        self.dataDict[PERIPHERAL_NAME[idx]][CLASSES[seq]] = val
+        self.dataDict[PERIPHERAL_NAME[idx]][NEW_CLASSES[seq]] = val
         for i in range(Side_Num):
             self.prepareData(i)
         self.pushToServer()
@@ -1039,23 +1048,23 @@ class Setting_Thread(QThread):
     def getInitialpRStatus(self,status):# get purging rework status when aivc start
         for i, ele in enumerate(status):
             if i == 0 or i == 2:
-                self.initPr[CLASSES[i+1]]=ele
+                self.initPr[NEW_CLASSES[i+1]]=ele
 
     def getInitialpDStatus(self,status):# get purging dispose status when aivc start
         for i, ele in enumerate(status):
             if i == 0 or i == 2:
-                self.initPd[CLASSES[i+1]]=ele
+                self.initPd[NEW_CLASSES[i+1]]=ele
 
     def getInitialPeriStatus(self,peri,classes,status):# get peripheral status when aivc start
         if classes == 1 or classes == 3:
             if peri == 0:
-                self.peri0[CLASSES[classes]]=status
+                self.peri0[NEW_CLASSES[classes]]=status
             if peri == 1:
-                self.peri1[CLASSES[classes]]=status
+                self.peri1[NEW_CLASSES[classes]]=status
             if peri == 2:
-                self.peri2[CLASSES[classes]]=status
+                self.peri2[NEW_CLASSES[classes]]=status
             if peri == 3:
-                self.peri3[CLASSES[classes]]=status
+                self.peri3[NEW_CLASSES[classes]]=status
 
     def run(self):
         while self.running:
@@ -1066,9 +1075,10 @@ class Setting_Thread(QThread):
             
             if dataToSend:
                 try:
-                    resp = requests.post(CONFIG_URL, headers={'Content-Type': 'application/json'}, json=dataToSend)
-                    recorder.info(f"Config send status: {resp}")
-                    recorder.info(f"Config: {dataToSend}")
+                    #resp = requests.post(CONFIG_URL, headers={'Content-Type': 'application/json'}, json=dataToSend)
+                    #recorder.info(f"Config send status: {resp}")
+                    #recorder.info(f"Config: {dataToSend}")
+                    pass
 
                 except Exception as e:
                     recorder.debug(f"Failed to send Config Setting due to {e}")
@@ -1483,23 +1493,25 @@ class DataHandler_Thread(QThread):
     updateTable=pyqtSignal(int,int,str)
     refreshChainGrids=pyqtSignal(list,bool)
     updateStartTime=pyqtSignal(str)
+    sendAligmentData=pyqtSignal(list,int,str)
+    sendAllignmentLabel=pyqtSignal(int,str)
     yoloResultQue=q.Queue()
-    data=np.zeros((5,Data_Num), dtype = int)
+    data=np.zeros((5,New_Data_Num), dtype = int)
     contGoodBadCycle=pyqtSignal(int, int, int, np.ndarray, np.ndarray, np.ndarray)
     contBadData=np.zeros((4,CFG.CHAIN_FORMER_NUM), dtype = int)
     contGoodData=np.zeros((4,CFG.CHAIN_FORMER_NUM), dtype = int)
     formerEmptyLink=np.zeros((4,CFG.CHAIN_FORMER_NUM), dtype = bool)
-    dataLow=np.zeros((5,Data_Num), dtype = int)
-    totalLow=np.zeros((5,Data_Num), dtype = int)
-    prevData=np.zeros((5,Data_Num), dtype = int)
-    prevDataLow=np.zeros((5,Data_Num), dtype = int)
-    dataStart=np.zeros((5,Data_Num), dtype = int)
-    dataDay=np.zeros((5,Data_Num), dtype = int)
-    dataHour=np.zeros((5,Data_Num), dtype = int)
-    data30m=np.zeros((5,Data_Num), dtype = int)
-    data15m=np.zeros((5,Data_Num), dtype = int)
-    dataMin=np.zeros((5,Data_Num), dtype = int)
-    lastData=np.zeros((5,Data_Num), dtype = int)
+    dataLow=np.zeros((5,New_Data_Num), dtype = int)
+    totalLow=np.zeros((5,New_Data_Num), dtype = int)
+    prevData=np.zeros((5,New_Data_Num), dtype = int)
+    prevDataLow=np.zeros((5,New_Data_Num), dtype = int)
+    dataStart=np.zeros((5,New_Data_Num), dtype = int)
+    dataDay=np.zeros((5,New_Data_Num), dtype = int)
+    dataHour=np.zeros((5,New_Data_Num), dtype = int)
+    data30m=np.zeros((5,New_Data_Num), dtype = int)
+    data15m=np.zeros((5,New_Data_Num), dtype = int)
+    dataMin=np.zeros((5,New_Data_Num), dtype = int)
+    lastData=np.zeros((5,New_Data_Num), dtype = int)
     #prevDatas=[dataStart,dataDay,dataHour,data15m,dataMin]
     tempDefectRecord={}
     capturing=False
@@ -1509,6 +1521,8 @@ class DataHandler_Thread(QThread):
     dataRecordState=0 # 0:Start 1:Day 2:Hour 3:15Minute  4:Minute
     appendProblematicFormer=[]
     dictFormerSend = []
+    alignmentData = [],[],[],[]
+    enableLineGuide=False
 
     def __init__(self, parent=None):
         super().__init__(parent=parent)
@@ -1549,8 +1563,13 @@ class DataHandler_Thread(QThread):
         self.samplingCountDown=50
         self.nasConnected=False
         self.firstAnchor=False
-        self.classDatas=[0]*len(CLASSES)
+        self.countAlignment=[0]*4
+        self.notHolderBboxs=[[0]*5]
+        self.classDatas=[0]*len(NEW_CLASSES)
         self.startCapture()
+
+    def drawLineGuide(self,enable):
+        self.enableLineGuide = enable
 
     def sendFormerNum(self,formerNum):
         self.formerNums = formerNum
@@ -1588,7 +1607,7 @@ class DataHandler_Thread(QThread):
                 if i == 10:
                     defectDict[f"FKTH"]=0
                 else:
-                    defectDict[f"{CLASSES[i]}"]=0
+                    defectDict[f"{NEW_CLASSES[i]}"]=0
             defectDict["Non-Chain-Related"]=0
             defectDict["Defective Rate"]=0
             try:  
@@ -1659,7 +1678,7 @@ class DataHandler_Thread(QThread):
         if not os.path.exists(HourlyDataOfMonthDir):
             with open(HourlyDataOfMonthDir, mode='a', newline='') as file:
                 writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-                writer.writerow(["State", "Start Time","End Time","Factory","Line", "Good Glove", "Produced Glove", "Empty Link"]+CLASSES[1:])
+                writer.writerow(["State", "Start Time","End Time","Factory","Line", "Good Glove", "Produced Glove", "Empty Link"]+NEW_CLASSES[1:])
         with open(HourlyDataOfMonthDir, mode='a') as file:
             writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
             writer.writerow(data_to_log)
@@ -1675,7 +1694,7 @@ class DataHandler_Thread(QThread):
         if not os.path.exists('logs/AIVC15minData.csv'):
             with open('logs/AIVC15minData.csv', mode='a', newline='') as file:
                 writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-                writer.writerow(["Start Time","End Time","Factory","Line", "Side", "Good Glove", "Produced Glove", "Empty Link"]+CLASSES[1:])
+                writer.writerow(["Start Time","End Time","Factory","Line", "Side", "Good Glove", "Produced Glove", "Empty Link"]+NEW_CLASSES[1:])
 
         dataSegment=self.data-self.data15m
         endTime=time.strftime("%Y-%m-%d_%H:%M:%S")
@@ -1701,7 +1720,7 @@ class DataHandler_Thread(QThread):
         if not os.path.exists('logs/AIVCDailyData.csv'):
             with open('logs/AIVCDailyData.csv', mode='a', newline='') as file:
                 writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-                writer.writerow(["Start Time","End Time","Factory","Line", "Good Glove", "Produced Glove", "Empty Link"]+CLASSES[1:])
+                writer.writerow(["Start Time","End Time","Factory","Line", "Good Glove", "Produced Glove", "Empty Link"]+NEW_CLASSES[1:])
         with open('logs/AIVCDailyData.csv', mode='a', newline='') as file:
             writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
             writer.writerow(data_to_log)
@@ -1752,9 +1771,9 @@ class DataHandler_Thread(QThread):
         # armData=ArmData(cls)
         # self.rasmRecords[side].feed(armData)
         if cls<0:#Empty Link
-            self.rasmRecords[side].feed(np.zeros(CLASS_NUM,dtype=int))
+            self.rasmRecords[side].feed(np.zeros(NEW_CLASS_NUM,dtype=int))
         else:
-            d=np.zeros(CLASS_NUM,dtype=int)
+            d=np.zeros(NEW_CLASS_NUM,dtype=int)
             d[cls]=1
             self.rasmRecords[side].feed(d)
 
@@ -1770,7 +1789,7 @@ class DataHandler_Thread(QThread):
         armRecord = self.rasmRecords[side].get()-self.prevRasmRecords[side][self.rasmRecords[side].currentIdx] #10 class
 
         #dr=float(dg)/(dg+gg) if gg!=0 else 1
-        label=f"{SIDE_NAME[side]} | {CLASSES[cls]} | RASM ID:{rasmID}" ##May Include Former ID like below
+        label=f"{SIDE_NAME[side]} | {NEW_CLASSES[cls]} | RASM ID:{rasmID}" ##May Include Former ID like below
         self.updateRasmGridOfLine.emit(side, rasmID, armRecord, cycleRasm, contBad, contGood, label, encod)
 
     def incrementData(self, line, row):
@@ -1809,9 +1828,9 @@ class DataHandler_Thread(QThread):
         self.contGoodBadCycle.emit(side, former, self.numCycle, self.contBadData, self.contGoodData, self.formerEmptyLink)
 
     def setGloveDefectionRecord(self, side, formerID, record, lab, classRecord):
-        r=np.zeros(CLASS_NUM,dtype=int)
+        r=np.zeros(NEW_CLASS_NUM,dtype=int)
         if record>1:#Defective glove
-            for i in range(1,CLASS_NUM):
+            for i in range(1,NEW_CLASS_NUM):
                 if (1<<i) & record:
                     r[i]=1
         elif record & 1==1:#Good Glove
@@ -1824,7 +1843,7 @@ class DataHandler_Thread(QThread):
         else: #Increment Produced Glove
             self.incrementData(side,1) 
         if record >1: #Defective glove
-            for i in range(CLASS_NUM-1):
+            for i in range(NEW_CLASS_NUM-1):
                 if record & (1<<i+1) > 0:#Check for class flag ##May need to add priority instead of recording all
                     self.incrementData(side,i+3)#Defection row start on row 4
                     if i+3 == 12: # increase bad count for fkth classes
@@ -1879,7 +1898,7 @@ class DataHandler_Thread(QThread):
         self.data[-1,:]=np.sum(self.data[:-1,:],axis=0)
         self.dataDiff=self.data-self.prevData
         total=self.dataDiff[-1,:]
-        for i in range(Data_Num):#Total
+        for i in range(New_Data_Num):#Total
             self.updateTable.emit(i+1,4, str(total[i]))
         np.seterr(divide='ignore', invalid='ignore')
         dr=1-self.dataDiff[:,0]/self.dataDiff[:,1]  #1-GoodGlove/ProducedGlove
@@ -1928,8 +1947,46 @@ class DataHandler_Thread(QThread):
     def setAutoCamDelay(self, enable):
         self.enableCamDelayAdjustment=enable
 
-    def drawBBoxes(self, frame, bboxes, ch, w, h):
-        image = utils.draw_bbox(frame, bboxes)
+    def drawHolderBox(self, frame, bboxes, camSeq):
+        if camSeq >= 8:
+            drawHolder = True
+            holdersBbox = self.holderBbox(bboxes) #return holder bbox
+        else:
+            drawHolder = False
+        self.notHolderBboxs = self.notHolderBbox(bboxes) #return all bbox except former holder
+
+        if (int(self.notHolderBboxs[0][5])) == 0:
+            if drawHolder:
+                try:
+                    for ele in holdersBbox:
+                        images, alignVal = utils.draw_bbox(frame, [ele], None, camSeq)
+                        midPointHolder = (int(((ele[2]-ele[0])/2)+ele[0]),int(ele[3]))
+                    return images, self.notHolderBboxs, midPointHolder
+                except: # draw good bbox only if former holder not detected
+                    return frame, self.notHolderBboxs, None  
+            else:
+                return frame, self.notHolderBboxs, None
+        else:
+            return frame, self.notHolderBboxs, None  
+
+    def holderBbox(self,bbox):
+        holdersBbox = [box for box in bbox if CLASSES[int(box[5])] == "Former Holder"]
+        if len(holdersBbox) > 0:
+            scores = [box[4] for box in holdersBbox]
+            best_index = scores.index(max(scores))
+            holdersBbox = [holdersBbox[best_index]]
+        return holdersBbox
+
+    def notHolderBbox(self,bbox):
+        notHolderBbox = [box for box in bbox if CLASSES[int(box[5])] != "Former Holder"]
+        if len(notHolderBbox) > 1:
+            scores = [box[4] for box in notHolderBbox]
+            best_index = scores.index(max(scores))
+            notHolderBbox = [notHolderBbox[best_index]]
+        return notHolderBbox
+
+    def drawBBoxes(self, frame, bboxes, ch, w, h, camSeq):
+        image, alignVal = utils.draw_bbox(frame, bboxes, None, camSeq)
         bytesPerLine = ch * w
         convertToQtFormat = QImage(image.data, w, h, bytesPerLine, QImage.Format_RGB888)
         convertedImg = convertToQtFormat.scaled(440, 330, Qt.KeepAspectRatio)
@@ -1953,7 +2010,39 @@ class DataHandler_Thread(QThread):
         for chainIndexer in self.chainIndexers:
             chainIndexer.anchorReached()
         self.firstAnchor=True
+
+    def calAlignment(self,camSeq,formerID,alignVal,camStr):
+        side = camSeq-8
+        self.countAlignment[side] += 1
+        for i in range(Side_Num):
+            if side == i:
+                #self.sendAllignmentLabel.emit(side,camStr)
+                #randomData = random.randint(-100,100)
+                self.alignmentData[i].append(alignVal) # tuple data e.g ([1],[2],[3],[4])
+                if self.countAlignment[side] == 1:
+                    self.sendAligmentData.emit(self.alignmentData[i],side,camStr)
+                    self.countAlignment[side] = 0
+                if formerID == 0:
+                    self.alignmentData[i].clear()
+                    self.sendAligmentData.emit(self.alignmentData[i],side,camStr)
+                    print(f'Clear all Allignment Data: {self.alignmentData[i]}')
+        
+    def drawGridLine(self,image,lineGuide):
+        image_h, image_w, _ = image.shape
+        ratio=10
+        thks=2
+        color_line = (105, 105, 105)
+        if lineGuide:
+            for i in range(ratio):
+                p1r=(0,int(image_h/ratio*(i+1)))
+                p2r=(image_w,int(image_h/ratio*(i+1)))
+                p1c=(int(image_w/ratio*(i+1)),0)
+                p2c=(int(image_w/ratio*(i+1)),image_h)
+                cv2.line(image, p1r, p2r, color_line, thks)
+                cv2.line(image, p1c, p2c, color_line, thks)
+
     def run(self):
+        holderMidCoor=None
         b=[0,0,0,0,0,100]# dummy class for initial start
         while self.dataHandlerRunning:
             try:
@@ -1971,25 +2060,39 @@ class DataHandler_Thread(QThread):
             rawImage=frame.copy() ##Better way?
             classStr=""
             classFlag=0b0
+
+            if self.enableLineGuide:
+                self.drawGridLine(frame,self.enableLineGuide)
+
+            if len(bboxes) >= 2:
+                try:
+                    frame, bboxes, holderMidCoor = self.drawHolderBox(frame, bboxes, camSeq)
+                except:
+                    bboxes=[]
+
+            if len(bboxes) == 1: #bypass when detected holder classes only
+                if CLASSES[int(bboxes[0][5])] == "Former Holder":
+                    bboxes=[]
+
             for b in bboxes:
                 #change unstripped in fkth to good glove
                 if(int(b[5])==4):
                     if isFKTH(camSeq):
                         b[5]=0
                 classFlag=classFlag | (1<< int(b[5]))
-                classStr += CLASSES[int(b[5])] + " "
+                classStr += NEW_CLASSES[int(b[5])] + " "
                 self.lineBypassings[side]=self.operationInspectors[side].isRunning(False if b[5]==BYPASS_CLASS else True)
             if formerID == -2:#No PLC connection, skip data recording
-                img=self.drawBBoxes(frame, bboxes, ch, w, h)
+                img=self.drawBBoxes(frame, bboxes, ch, w, h, camSeq)
                 self.updateCamBox.emit(img, f'{SIDE_NAME[side]} No PLC Connection. Image captured on timeout.', camSeq)
                 self.state=4 #No PLC connection state
                 print('No PLC Connection')
             elif formerID == -1: #Line Stopped
-                img=self.drawBBoxes(frame, bboxes, ch, w, h)
+                img=self.drawBBoxes(frame, bboxes, ch, w, h, camSeq)
                 self.updateCamBox.emit(img, f'{SIDE_NAME[side]} Line Stopped. Image captured on timeout.', camSeq)
                 self.state=3 #line stopped state
             elif self.lineBypassings[side]:#Skip data recording
-                img=self.drawBBoxes(frame, bboxes, ch, w, h)
+                img=self.drawBBoxes(frame, bboxes, ch, w, h, camSeq)
                 rasmID2=self.rasmRecords[side].getActualIndex()+1
                 self.updateCamBox.emit(img, f'{SIDE_NAME[side]} Bypassing. | Former ID: {formerID} | RASM ID: {rasmID2}', camSeq)
                 if self.lineBypassings==[True,True,True,True]:
@@ -2040,7 +2143,9 @@ class DataHandler_Thread(QThread):
                 self.tempDefectRecord[formerID]=previousRecord | classFlag #Accumulate defection
             else:
                 self.tempDefectRecord[formerID]=classFlag
-            image = utils.draw_bbox(frame, bboxes)
+
+            image, alignVal = utils.draw_bbox(frame, bboxes, holderMidCoor if holderMidCoor else None, camSeq)
+
             ######put class text on img
             # if isRASM(camSeq):
             #     prevClassStr=''
@@ -2055,6 +2160,10 @@ class DataHandler_Thread(QThread):
             convertToQtFormat = QImage(image.data, w, h, bytesPerLine, QImage.Format_RGB888)
             p = convertToQtFormat.scaled(440, 330, Qt.KeepAspectRatio)
             self.updateCamBox.emit(p, camStr, camSeq)
+
+            if camSeq>=8:
+                self.calAlignment(camSeq,formerID%SIDE_SEP,alignVal,camStr)
+
 
             if not isFKTH(camSeq): #last cam, update data, pop temp
                 record=self.tempDefectRecord.pop(formerID)
@@ -2125,7 +2234,7 @@ class DataHandler_Thread(QThread):
                             s=f'{(rasmID1):02d}'
                         else:
                             s=CAM_NAME[camSeq][-1]#Either T or B
-                        listStr=f'{CLASSES[classId]}\t{b[4]*100:.2f}%    {time.strftime("%H:%M:%S")}    {SIDE_SHORT[side]}{s}    {formerID:05d}'
+                        listStr=f'{NEW_CLASSES[classId]}\t{b[4]*100:.2f}%    {time.strftime("%H:%M:%S")}    {SIDE_SHORT[side]}{s}    {formerID:05d}'
                         self.setListItem.emit(listStr, f"{imgName}.{IMG_FORMAT}")
                     
                     #syafii edit
@@ -2241,15 +2350,50 @@ class Camera_Thread(QThread):
                     frame=cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
                 bypassCamera=False
+                filterFolder=False
                 if bypassCamera:
+                    if filterFolder:
                     #syafii Edit
-                    convSTR1 = CFG.RASM_TEST_IMAGE.replace("/", "\\")
-                    path = r""f'{convSTR1}'
+                        dir1 = "C:/Users/user/Desktop/syafii/imageTestRASM/LI"
+                        dir2 = "C:/Users/user/Desktop/syafii/imageTestRASM/RI"
+                        dir3 = "C:/Users/user/Desktop/syafii/imageTestRASM/LO"
+                        dir4 = "C:/Users/user/Desktop/syafii/imageTestRASM/RO"
+                 
+                        convSTR11 = dir1.replace("/", "\\")
+                        pathss = r""f'{convSTR11}'
+                        random_filenamess = random.choice([
+                            x for x in os.listdir(pathss)
+                            if os.path.isfile(os.path.join(pathss, x))
+                        ])
+
+                        convSTR111 = dir2.replace("/", "\\")
+                        pathsss = r""f'{convSTR111}'
+                        random_filenamesss = random.choice([
+                            x for x in os.listdir(pathsss)
+                            if os.path.isfile(os.path.join(pathsss, x))
+                        ])
+
+                        convSTR1111 = dir3.replace("/", "\\")
+                        pathssss = r""f'{convSTR1111}'
+                        random_filenamessss = random.choice([
+                            x for x in os.listdir(pathssss)
+                            if os.path.isfile(os.path.join(pathssss, x))
+                        ])
+
+                        convSTR11111 = dir4.replace("/", "\\")
+                        pathsssss = r""f'{convSTR11111}'
+                        random_filenamesssss = random.choice([
+                            x for x in os.listdir(pathsssss)
+                            if os.path.isfile(os.path.join(pathsssss, x))
+                        ])
+
+                    convSTR = CFG.RASM_TEST_IMAGE.replace("/", "\\")
+                    path = r""f'{convSTR}'
                     random_filename = random.choice([
                         x for x in os.listdir(path)
                         if os.path.isfile(os.path.join(path, x))
                     ])
-
+                    
                     convSTR2 = CFG.FKTH_TEST_IMAGE.replace("/", "\\")
                     path2 = r""f'{convSTR2}'
                     random_filename2 = random.choice([
@@ -2263,12 +2407,26 @@ class Camera_Thread(QThread):
                         y for y in os.listdir(path3)
                         if os.path.isfile(os.path.join(path3, y))
                     ])
-
+                    
                     if CFG.AIVC_MODE == 0:
-                        if camSeq >= 8:
-                            image = Image.open(f'{CFG.RASM_TEST_IMAGE}/{random_filename}')
+                        if filterFolder:
+                            if camSeq == 8:
+                                #print(f'{dir1}/{random_filenamess}')
+                                image = Image.open(f'{dir1}/{random_filenamess}')
+                            elif camSeq == 9:
+                                image = Image.open(f'{dir2}/{random_filenamesss}')
+                            elif camSeq == 10:
+                                image = Image.open(f'{dir3}/{random_filenamessss}')
+                            elif camSeq == 11:
+                                image = Image.open(f'{dir4}/{random_filenamesssss}')
+                            else:
+                                image = Image.open(f'{CFG.FKTH_TEST_IMAGE}/{random_filename2}')
                         else:
-                            image = Image.open(f'{CFG.FKTH_TEST_IMAGE}/{random_filename2}')
+                            if camSeq >= 8:
+                                image = Image.open(f'{CFG.RASM_TEST_IMAGE}/{random_filename}')
+                            else:
+                                image = Image.open(f'{CFG.FKTH_TEST_IMAGE}/{random_filename2}')
+
                     else:
                         image = Image.open(f'{CFG.TAC_TEST_IMAGE}/{random_filename3}')
                 
@@ -2625,6 +2783,7 @@ class MainWindow(QMainWindow):
     camBoxes=[]
     rasmDefectionGrids=[]
     gloveDefectionGrids=[]
+    rasmChartGrids=[]
     initialPr = []
     initialPd = []
     capturing=True
@@ -2650,10 +2809,10 @@ class MainWindow(QMainWindow):
         self.ui = Ui_AIVCMainWindow()
         self.ui.setupUi(self)
         self.showFullScreen()
-        self.ui.table_defect_data.setRowCount(CLASS_NUM+3)
-        for i in range(CLASS_NUM-1):
+        self.ui.table_defect_data.setRowCount(NEW_CLASS_NUM+3)
+        for i in range(NEW_CLASS_NUM-1):
             item = QTableWidgetItem()
-            item.setText(CLASSES[i+1])
+            item.setText(NEW_CLASSES[i+1])
             self.ui.table_defect_data.setVerticalHeaderItem(i+4, item)
             for j in range(5):
                 item = QTableWidgetItem()
@@ -2662,7 +2821,7 @@ class MainWindow(QMainWindow):
 
         self.ui.label_title.setText(f'Integrated AIVC System  {CFG.FACTORY_NAME} LINE {CFG.LINE_NUM}')
         #self.ui.label_title.setText(f'AIVC System DEVELOPER MODE DO NOT CLOSED')
-        self.ui.label_version.setText(f'V2.3.62.8n')
+        self.ui.label_version.setText(f'V2.3.70.0')
         self.ui.select_duration.currentIndexChanged.connect(self.changeRecordDuration)
         self.camBoxes=[CamBox(i) for i in range(MAX_CAM_NUM)]
         #Populate Camera View
@@ -2674,6 +2833,9 @@ class MainWindow(QMainWindow):
             rasmDefectionGrid=DefectionGrid(i,parent=self,armNum=CFG.RASM_ARM_NUM)
             self.ui.grid_rasm_data.addWidget(rasmDefectionGrid, i/2, i%2, 1, 1)
             self.rasmDefectionGrids.append(rasmDefectionGrid)
+            rasmChartGrid=ChartGrid(i,parent=self)
+            self.ui.grid_rasm_chart.addWidget(rasmChartGrid, i/2, i%2, 1, 1)
+            self.rasmChartGrids.append(rasmChartGrid)
 
             gloveDefectionGrid=DefectionGrid(i,parent=self)
             self.ui.grid_chain_data.addWidget(gloveDefectionGrid, i/2, i%2, 1, 1)
@@ -2704,6 +2866,8 @@ class MainWindow(QMainWindow):
         self.dataThread.refreshChainGrids.connect(self.refreshChainGrids)
         self.dataThread.updateStartTime.connect(self.updateStartTime)
         self.dataThread.rejectAsm.connect(self.purgingThread.rejectAsm)
+        self.dataThread.sendAligmentData.connect(self.sendAligmentData)
+        self.dataThread.sendAllignmentLabel.connect(self.sendAlignmentLabel)
         for oi in self.dataThread.operationInspectors:
             oi.setPlcBypass.connect(self.setPlcBypass)
         self.captureThread.setAveLineSpeedTxt.connect(self.setAveLineSpeedTxt)
@@ -2818,8 +2982,8 @@ class MainWindow(QMainWindow):
         lab1.setMaximumHeight(13)
         self.setting_ui.grid_classToPurge.addWidget(lab1,0,0,1,4)
         self.checkBoxToRework=[]
-        for i in range(CLASS_NUM-1):
-            checkBox=IndexedCheckBox(i+1,CLASSES[i+1])
+        for i in range(NEW_CLASS_NUM-1):
+            checkBox=IndexedCheckBox(i+1,NEW_CLASSES[i+1])
             if(CFG.CLASS_TO_REWORK & 1<<i+1):
                 checkBox.setChecked(True)
             checkBox.stateChanged.connect(self.setClassToRework)
@@ -2833,8 +2997,8 @@ class MainWindow(QMainWindow):
         lab2.setMaximumHeight(13)
         self.setting_ui.grid_classToPurge.addWidget(lab2,4,0,1,4)
         self.checkBoxToDispose=[]
-        for i in range(CLASS_NUM-1):
-            checkBox=IndexedCheckBox(i+1,CLASSES[i+1])
+        for i in range(NEW_CLASS_NUM-1):
+            checkBox=IndexedCheckBox(i+1,NEW_CLASSES[i+1])
             if(CFG.CLASS_TO_DISPOSE & 1<<i+1 ):
                 checkBox.setChecked(True)
             checkBox.stateChanged.connect(self.setClassToDispose)
@@ -2916,6 +3080,7 @@ class MainWindow(QMainWindow):
         self.setting_ui.formerIntCheckBox.stateChanged.connect(lambda:self.showFormerSpinBox(self.setting_ui.formerIntCheckBox.isChecked()))
         self.setting_ui.sensorCheckBox.stateChanged.connect(lambda:self.showSensorSpinBox(self.setting_ui.sensorCheckBox.isChecked()))
         self.setting_ui.rasmOffsetCheckBox.stateChanged.connect(lambda:self.showRasmOffsetCheckBox(self.setting_ui.rasmOffsetCheckBox.isChecked()))
+        self.setting_ui.lineGuideCheckBox.stateChanged.connect(lambda:self.showLineGuideCheckBox(self.setting_ui.lineGuideCheckBox.isChecked()))
         self.setting_ui.buttonBox.button(QDialogButtonBox.Apply).clicked.connect(self.applyPurgerSetting)
         self.setting_ui.buttonBox.accepted.connect(self.acceptedPurgerSetting)
         self.setting_ui.buttonBox.rejected.connect(self.hidePurgerSetting)
@@ -2953,6 +3118,11 @@ class MainWindow(QMainWindow):
 
         for rasmDefectionGrid in self.rasmDefectionGrids:
             rasmDefectionGrid.rasmOffsetEdit.lineEdit.textChanged.connect(self.setRasmOffset)
+        
+        for rasmChartGrid in self.rasmChartGrids:
+            rasmChartGrid.clearChartBtn.show()
+            rasmChartGrid.clearChartBtn.btnClear.clicked.connect(self.getClearChartBtn)
+
         self.destroyed.connect(lambda: print("Main Window Destroyed"))
         self.startTime=time.strftime("%Y-%m-%d_%H:%M:%S")
         self.recordStartTime=time.strftime("%m/%d %H:%M:%S")
@@ -3427,9 +3597,26 @@ class MainWindow(QMainWindow):
         CFG.RASM_ANCHOR_OFFSET[seq]=val
         CFG_Handler.set('RASM_ANCHOR_OFFSET',CFG.RASM_ANCHOR_OFFSET)
 
+    def getClearChartBtn(self):
+        seq=self.sender().parent().seq
+        self.signal=self.sender().text()
+        self.sendClearChartSignal(seq,self.signal)
+        self.dataThread.alignmentData[seq].clear()       
+
     def refreshChainGrids(self, chainDefectionRecords,clear):
         for index, gloveGrid in enumerate(self.gloveDefectionGrids):
             gloveGrid.updateAllChain(chainDefectionRecords[index],clear)
+
+    def sendAligmentData(self,alignmentData,side,label):
+        self.rasmChartGrids[side].feedUpdateChart(alignmentData,side,label)
+        #self.rasmChartGrids[side].chart.updateChart(alignmentData,side)
+
+    def sendAlignmentLabel(self,side,label):
+        self.rasmChartGrids[side].feedLabel(label)
+
+    def sendClearChartSignal(self,side,signal):
+        self.rasmChartGrids[side].feedClearChart(signal)
+        #self.rasmChartGrids[side].clearChart()
 
     def updateTable(self, row, line, val):
         self.ui.table_defect_data.item(row,line).setText(val)
@@ -3492,7 +3679,7 @@ class MainWindow(QMainWindow):
         if not os.path.exists('logs/AIVCdata.csv'):
             with open('logs/AIVCdata.csv', mode='a', newline='') as file:
                 writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-                writer.writerow(["Start Time","End Time","Factory","Line", "Good Glove", "Produced Glove", "Empty Link"]+CLASSES[1:])
+                writer.writerow(["Start Time","End Time","Factory","Line", "Good Glove", "Produced Glove", "Empty Link"]+NEW_CLASSES[1:])
         with open('logs/AIVCdata.csv', mode='a', newline='') as file:
             writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
             writer.writerow(data_to_log)
@@ -3552,6 +3739,9 @@ class MainWindow(QMainWindow):
                 rasmDefectionGrid.rasmOffsetEdit.show()
             else:
                 rasmDefectionGrid.rasmOffsetEdit.hide()
+
+    def showLineGuideCheckBox(self, enable):
+        self.dataThread.drawLineGuide(enable)
 
     def setFormerInterval(self):
         seq=self.sender().parent().seq
@@ -3824,7 +4014,74 @@ class CamBox(QWidget):
             self.formerSpinBox.spinBox.setValue(Former_Interval[self.seq])
             self.sensorSpinBox.spinBox.setValue(Cam_Sensor[self.seq])
 
+class ChartGrid(QWidget):
+    def __init__(self, seq, parent=None):
+        super(ChartGrid,self).__init__(parent=parent)
+        self.parent=parent
+        self.seq=seq
+        self.label=QLabel(SIDE_NAME[seq])
+        self.frame=QFrame()
+        vbox=QVBoxLayout()
+        self.title = str(f'{SIDE_NAME[self.seq]}')
+        if SMALL_SCREEN:
+            self.cWidth=440
+            self.cHeight=330
+            maxHeight=400
+            self.label.setFont(QFont('Arial', 9)) 
+        else: #for 1280 and others
+            self.cWidth=700
+            self.cHeight=430
+            maxHeight=450
+            vbox.setContentsMargins(30,0,0,0)
+            self.label.setFont(QFont('Arial', 12)) 
+        
+        self.setMaximumHeight(maxHeight)
+        self.setLayout(vbox)
+        self.frame.setFixedSize(self.cWidth,self.cHeight)
+        self.frame.setFrameStyle(6)
+        self.frame.setStyleSheet("color: blue;"
+                               "border-style: solid;"
+                               "border-width: 1px;"
+                               "border-color: #A8A8A8")
+        self.gridLayout=QGridLayout(self.frame)
+        self.frame.setLayout(self.gridLayout)
+        vbox.addWidget(self.frame)
+        hbox=QHBoxLayout()
+        vbox.addLayout(hbox)
+        hbox.addWidget(self.label)
+        hbox.addItem(QSpacerItem(5,5))
+        hbox.setContentsMargins(0,0,10,0)
+        self.clearChartBtn=ClearChartBtn(self.seq, '')
+        hbox.addWidget(self.clearChartBtn)
+        self.plot = pg.PlotWidget(parent=self.frame, background='#f0f0f0')
+        self.plot.resize(self.cWidth, self.cHeight)
+        self.plot.enableAutoRange(axis='xy')
+        self.plot.setMouseEnabled(x=False, y=False)
+        self.plot.setStyleSheet("padding-right: 10px;")
+        self.plot.showGrid(x = True, y = True, alpha = 1.0)
 
+    def feedUpdateChart(self, data, sides, label):
+        if label:
+            self.label.setText(label)
+        y = self.pdf(data)
+        self.plot.clear()
+        self.scatter = pg.ScatterPlotItem(size=5, brush=pg.mkBrush(0, 0, 0, 255))
+        self.scatter.setData(data, y)
+        self.plot.addLine(x=0,y=None, pen=pg.mkPen('g', width=2))
+        self.plot.addItem(self.scatter)
+        
+    def feedLabel(self,label):
+        if label:
+            self.label.setText(label)
+
+    def pdf(self,x):
+        mean = np.mean(x)
+        std = np.std(x) 
+        y_out = 1/(std * np.sqrt(2 * np.pi)) * np.exp( - (x - mean)**2 / (2 * std**2))
+        return y_out
+
+    def feedClearChart(self,signal):
+        self.plot.clear()
 
 class DefectionGrid(QWidget):
     preColor='lightgreen'
@@ -3909,8 +4166,8 @@ class DefectionGrid(QWidget):
             if i >0:
                 if i in rClass:
                     rdg+=record
-                    tt+=f'{CLASSES[i]}: {recordInt}\n'
-                    defectRecord.update({CLASSES[i]: int(recordInt)})             
+                    tt+=f'{NEW_CLASSES[i]}: {recordInt}\n'
+                    defectRecord.update({NEW_CLASSES[i]: int(recordInt)})             
                 else:
                     odg+=recordInt
         defectRecord.update({f'Non-{name}-Related': odg})
@@ -4118,7 +4375,7 @@ class Arm(QLabel):
 TIME_SEGMENT_HEIGHT=20
 ROW_HEIGHT=TIME_SEGMENT_HEIGHT+10
 PIXEL_PER_HOUR=10
-DATA_STR=["State", "Start Time","End Time","Factory","Line", "Good Glove", "Produced Glove", "Empty Link"]+CLASSES[1:]
+DATA_STR=["State", "Start Time","End Time","Factory","Line", "Good Glove", "Produced Glove", "Empty Link"]+NEW_CLASSES[1:]
 class DataHistoryDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent, flags=Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
@@ -4256,12 +4513,12 @@ class ModelLowConfident(QDialog): # syafii edit, add new classes
         self.table=QTableWidget(self)
         vLayout.addWidget(self.table)
         self.table.setColumnCount(3)
-        self.table.setRowCount(len(CLASSES))
+        self.table.setRowCount(len(NEW_CLASSES))
         self.table.setSizePolicy(QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred))
         sizePolicy=QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
         self.setSizePolicy(sizePolicy)
         self.table.setHorizontalHeaderLabels(("Total Glove","Low Conf. Found","High Conf. Rate"))
-        self.table.setVerticalHeaderLabels((CLASSES))
+        self.table.setVerticalHeaderLabels((NEW_CLASSES))
         self.table.setColumnWidth(0,100)
         self.table.setColumnWidth(1,120)
         self.table.setColumnWidth(2,100)
@@ -4272,8 +4529,8 @@ class ModelLowConfident(QDialog): # syafii edit, add new classes
          
     def display(self,appendData,classData,differentDataRate):
         combineData=[]
-        split=len(CLASSES)
-        for i in range (len(CLASSES)):
+        split=len(NEW_CLASSES)
+        for i in range (len(NEW_CLASSES)):
             combineData.append(appendData[i])
             combineData.append(classData[i])
             combineData.append(differentDataRate[i])
@@ -4327,7 +4584,7 @@ class TableDialog(QDialog):
         self.table=QTableWidget(self)
         vLayout.addWidget(self.table)
         self.table.setColumnCount(6)
-        self.table.setRowCount(CLASS_NUM+3)
+        self.table.setRowCount(NEW_CLASS_NUM+3)
         self.table.setSizePolicy(QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred))
         sizePolicy=QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
         self.setSizePolicy(sizePolicy)
@@ -4341,7 +4598,7 @@ class TableDialog(QDialog):
 
         item = QTableWidgetItem('Percentage')
         self.table.setHorizontalHeaderItem(5,item)
-        for row in range(CLASS_NUM+3):
+        for row in range(NEW_CLASS_NUM+3):
             item = QTableWidgetItem()
             item.setText(self.parent.ui.table_defect_data.verticalHeaderItem(row).text())
             self.table.setVerticalHeaderItem(row,item)
@@ -4350,13 +4607,13 @@ class TableDialog(QDialog):
 
     def load(self):
         self.label.setText(f'From   {self.parent.ui.label_startTime.text()}  Till   {time.strftime("%m/%d %H:%M:%S")}')
-        for row in range(CLASS_NUM+3):
+        for row in range(NEW_CLASS_NUM+3):
             for col in range(5):
                 item = QTableWidgetItem()
                 item.setText(self.parent.ui.table_defect_data.item(row,col).text())
                 self.table.setItem(row,col,item)
         total=int(self.table.item(2,4).text()) #Produced Glove
-        for row in range(1,CLASS_NUM+3):
+        for row in range(1,NEW_CLASS_NUM+3):
             number=int(self.table.item(row,4).text())
             try:
                 percentage=number/total
@@ -4612,8 +4869,8 @@ class ImgDialog(QDialog):   #trace windows
             }
             """)
 
-        for i in range(CLASS_NUM-1):
-            classButton=IndexedButton(i+1,CLASSES[i+1])
+        for i in range(NEW_CLASS_NUM-1):
+            classButton=IndexedButton(i+1,NEW_CLASSES[i+1])
             classButton.clicked.connect(self.filterClass)
             classButton.setMinimumHeight(25)
             classButton.setFont(QFont('Arial', 10))
@@ -4649,7 +4906,7 @@ class ImgDialog(QDialog):   #trace windows
             self.traceList.setCurrentItem(thisItem[0])
     def filterClass(self):
         seq=self.sender().seq
-        clsStr=CLASSES[seq]
+        clsStr=NEW_CLASSES[seq]
         matchedItems=self.parent.ui.listWidget.findItems(clsStr,Qt.MatchContains)
         if matchedItems:
             self.setTraceList(matchedItems)
@@ -4772,8 +5029,8 @@ class PeripheralWidget(QWidget):
             self.grid.addWidget(text_distance,1,i,1,1)
             self.text_distances.append(text_distance)
         self.checkBoxes=[]
-        for i in range(CLASS_NUM-1):
-            checkBox=IndexedCheckBox(i+1,CLASSES[i+1],self)
+        for i in range(NEW_CLASS_NUM-1):
+            checkBox=IndexedCheckBox(i+1,NEW_CLASSES[i+1],self)
             # if(CLSES & 1<<i+1):
             #     checkBox.setChecked(True)
             #checkBox.stateChanged.connect(self.setClassFurs)

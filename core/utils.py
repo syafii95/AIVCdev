@@ -84,16 +84,19 @@ def image_preporcess(image, target_size, gt_boxes=None):
         return image_paded, gt_boxes
 
 
-def draw_bbox(image, bboxes, classes=read_class_names(cfg.YOLO.CLASSES), show_label=True):
+def draw_bbox(image, bboxes, holderMidCoor, camSeq, classes=read_class_names(cfg.YOLO.CLASSES), show_label=True):
     """
     bboxes: [x_min, y_min, x_max, y_max, probability, cls_id] format coordinates.
     """
 
     num_classes = len(classes)
     image_h, image_w, _ = image.shape
+    color_arrow = (255, 255, 0)
+    thick_arror = 3
     hsv_tuples = [(1.0 * x / num_classes, 1., 1.) for x in range(num_classes)]
     colors = list(map(lambda x: colorsys.hsv_to_rgb(*x), hsv_tuples))
     colors = list(map(lambda x: (int(x[0] * 255), int(x[1] * 255), int(x[2] * 255)), colors))
+    val=0
 
     random.seed(0)
     random.shuffle(colors)
@@ -108,6 +111,7 @@ def draw_bbox(image, bboxes, classes=read_class_names(cfg.YOLO.CLASSES), show_la
         bbox_thick = int(0.6 * (image_h + image_w) / 600)
         c1, c2 = (coor[0], coor[1]), (coor[2], coor[3])
         cv2.rectangle(image, c1, c2, bbox_color, bbox_thick)
+        alpha = 0.3
 
         if show_label:
             bbox_mess = '%s: %.2f' % (classes[class_ind], score)
@@ -117,7 +121,28 @@ def draw_bbox(image, bboxes, classes=read_class_names(cfg.YOLO.CLASSES), show_la
             cv2.putText(image, bbox_mess, (c1[0], c1[1]-2), cv2.FONT_HERSHEY_SIMPLEX,
                         fontScale, (0, 0, 0), bbox_thick, lineType=cv2.LINE_AA)
 
-    return image
+        if holderMidCoor is not None and int(bbox[5]) == 0:
+            scale = 0.5
+            ggMidCoor = (int(((bbox[2]-bbox[0])/2+bbox[0])),int(bbox[3]))
+            newGgMidCoor = int(((bbox[2]-bbox[0])/2+bbox[0]))
+            tranBoxLen = int(scale*(bbox[2]-bbox[0])/2)
+            tb1 = (int(newGgMidCoor - tranBoxLen),int(bbox[1]))
+            tb2 = (int(newGgMidCoor + tranBoxLen),int(bbox[3]))
+            if camSeq >= 8:
+                cv2.arrowedLine(image, holderMidCoor, ggMidCoor, color_arrow, thick_arror)
+                overlay = image.copy()
+                cv2.rectangle(overlay, tb1, tb2, bbox_color, -1)  # filled
+                image = cv2.addWeighted(overlay, alpha, image, 1 - alpha, 0)
+                val=ggMidCoor[0]-holderMidCoor[0]
+                strVal = f'Alignment: [{val}]'
+            
+                p1=(int(image_w*3.8/5),int(image_h*9.5/10))
+                p2=(int(image_w*4.9/5),int(image_h*9.5/10))
+                #cv2.rectangle(image, p1, p2, color_arrow, -1)
+                cv2.putText(image, strVal, p1, cv2.FONT_HERSHEY_SIMPLEX,
+                            1.1, color_arrow, bbox_thick, lineType=cv2.LINE_AA)
+
+    return image, val
 
 
 
@@ -244,12 +269,12 @@ def nms2(bboxes, iou_threshold, sigma=0.3, method='nms'): #Return only the highe
             score_mask = cls_bboxes[:, 4] > 0.
             cls_bboxes = cls_bboxes[score_mask]
 
-    best_bboxes = [ b for b in best_bboxes if (b[0] < 640 and b[2] > 640 )]
+    """best_bboxes = [ b for b in best_bboxes if (b[0] < 640 and b[2] > 640 )]
 
     if len(best_bboxes) > 0:
         scores = [box[4] for box in best_bboxes]
         best_index = scores.index(max(scores))
-        best_bboxes = [best_bboxes[best_index]]
+        best_bboxes = [best_bboxes[best_index]]"""
         
     return best_bboxes
 
