@@ -13,8 +13,8 @@ base = None
 #     base = "Win32GUI"
 
 setup(  name = "AIVC",
-        version = "2.3.61.5",
-        description = "AIVC 2",
-        author = "Lucas Tan Ser Yee",
+        version = "2.3.70.0",
+        description = "AIVC 4",
+        author = "Syafii",
         options = {"build_exe": build_exe_options},
         executables = [Executable("AIVC.py", base=base, icon='utils/icons/TG_icon.ico')])

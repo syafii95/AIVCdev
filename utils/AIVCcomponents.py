@@ -68,6 +68,24 @@ class LRSpinBox(QWidget):
         hbox.addWidget(self.rightButton)
         self.hide()
 
+class ClearChartBtn(QWidget):
+    def __init__(self, seq, name, parent=None):
+        super().__init__(parent=parent)
+        self.seq=seq
+        self.setMaximumWidth(120)
+        self.setMaximumHeight(20)
+        hbox=QHBoxLayout()
+        hbox.setContentsMargins(0,0,0,0)
+        hbox.setSpacing(0)
+        self.setLayout(hbox)
+        self.label=QLabel(name)
+        self.label.setMaximumWidth(100)
+        hbox.addWidget(self.label)
+        self.btnClear=QPushButton('Clear',self)
+        self.btnClear.setMaximumWidth(50)
+        hbox.addWidget(self.btnClear)
+        self.hide()
+
 class MySpinBox(QWidget):
     def __init__(self, seq, name, _min=0, _max=200, step=1, parent=None):
         super().__init__(parent=parent)
