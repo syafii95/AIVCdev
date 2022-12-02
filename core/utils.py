@@ -84,7 +84,7 @@ def image_preporcess(image, target_size, gt_boxes=None):
         return image_paded, gt_boxes
 
 
-def draw_bbox(image, bboxes, holderMidCoor, camSeq, classes=read_class_names(cfg.YOLO.CLASSES), show_label=True):
+def draw_bbox(image, bboxes, holderMidCoor, camSeq, enableBoxGuide, classes=read_class_names(cfg.YOLO.CLASSES), show_label=True):
     """
     bboxes: [x_min, y_min, x_max, y_max, probability, cls_id] format coordinates.
     """
@@ -130,9 +130,6 @@ def draw_bbox(image, bboxes, holderMidCoor, camSeq, classes=read_class_names(cfg
             tb2 = (int(newGgMidCoor + tranBoxLen),int(bbox[3]))
             if camSeq >= 8:
                 cv2.arrowedLine(image, holderMidCoor, ggMidCoor, color_arrow, thick_arror)
-                overlay = image.copy()
-                cv2.rectangle(overlay, tb1, tb2, bbox_color, -1)  # filled
-                image = cv2.addWeighted(overlay, alpha, image, 1 - alpha, 0)
                 val=ggMidCoor[0]-holderMidCoor[0]
                 strVal = f'Alignment: [{val}]'
             
@@ -141,6 +138,11 @@ def draw_bbox(image, bboxes, holderMidCoor, camSeq, classes=read_class_names(cfg
                 #cv2.rectangle(image, p1, p2, color_arrow, -1)
                 cv2.putText(image, strVal, p1, cv2.FONT_HERSHEY_SIMPLEX,
                             1.1, color_arrow, bbox_thick, lineType=cv2.LINE_AA)
+                
+                if enableBoxGuide:
+                    overlay = image.copy()
+                    cv2.rectangle(overlay, tb1, tb2, bbox_color, -1)  # filled
+                    image = cv2.addWeighted(overlay, alpha, image, 1 - alpha, 0)
 
     return image, val
 

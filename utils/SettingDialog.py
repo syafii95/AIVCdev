@@ -38,6 +38,11 @@ class Ui_SettingDialog(object):
         self.lineGuideCheckBox = QtWidgets.QCheckBox(self.tab_cam_setting)
         self.lineGuideCheckBox.setObjectName("lineGuideCheckBox")
         self.verticalLayout.addWidget(self.lineGuideCheckBox)
+
+        self.boxGuideCheckBox = QtWidgets.QCheckBox(self.tab_cam_setting)
+        self.boxGuideCheckBox.setObjectName("boxGuideCheckBox")
+        self.verticalLayout.addWidget(self.boxGuideCheckBox)
+
         spacerItem = QtWidgets.QSpacerItem(0, 5, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.MinimumExpanding)
         self.verticalLayout.addItem(spacerItem)
         self.groupBox_7 = QtWidgets.QGroupBox(self.tab_cam_setting)
@@ -231,6 +236,7 @@ class Ui_SettingDialog(object):
         self.sensorCheckBox.setText(_translate("SettingDialog", "Allow Camera Sensor Adjustment"))
         self.rasmOffsetCheckBox.setText(_translate("SettingDialog", "Allow RASM Anchor Offset Edit"))
         self.lineGuideCheckBox.setText(_translate("SettingDialog", "Enable Grid Line"))
+        self.boxGuideCheckBox.setText(_translate("SettingDialog", "Enable Guide Box"))
         self.groupBox_7.setTitle(_translate("SettingDialog", "Sensors"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_cam_setting), _translate("SettingDialog", "Camera && Sensor"))
         self.groupBox.setTitle(_translate("SettingDialog", "Left Out"))
