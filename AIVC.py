@@ -1523,6 +1523,7 @@ class DataHandler_Thread(QThread):
     dictFormerSend = []
     alignmentData = [],[],[],[]
     enableLineGuide=False
+    enableBoxGuide=False
 
     def __init__(self, parent=None):
         super().__init__(parent=parent)
@@ -1570,6 +1571,9 @@ class DataHandler_Thread(QThread):
 
     def drawLineGuide(self,enable):
         self.enableLineGuide = enable
+
+    def drawBoxGuide(self, enable):
+        self.enableBoxGuide = enable
 
     def sendFormerNum(self,formerNum):
         self.formerNums = formerNum
@@ -1947,7 +1951,7 @@ class DataHandler_Thread(QThread):
     def setAutoCamDelay(self, enable):
         self.enableCamDelayAdjustment=enable
 
-    def drawHolderBox(self, frame, bboxes, camSeq):
+    def drawHolderBox(self, frame, bboxes, camSeq, enableBoxGuide):
         if camSeq >= 8:
             drawHolder = True
             holdersBbox = self.holderBbox(bboxes) #return holder bbox
@@ -1959,7 +1963,7 @@ class DataHandler_Thread(QThread):
             if drawHolder:
                 try:
                     for ele in holdersBbox:
-                        images, alignVal = utils.draw_bbox(frame, [ele], None, camSeq)
+                        images, alignVal = utils.draw_bbox(frame, [ele], None, camSeq, enableBoxGuide)
                         midPointHolder = (int(((ele[2]-ele[0])/2)+ele[0]),int(ele[3]))
                     return images, self.notHolderBboxs, midPointHolder
                 except: # draw good bbox only if former holder not detected
@@ -1986,7 +1990,7 @@ class DataHandler_Thread(QThread):
         return notHolderBbox
 
     def drawBBoxes(self, frame, bboxes, ch, w, h, camSeq):
-        image, alignVal = utils.draw_bbox(frame, bboxes, None, camSeq)
+        image, alignVal = utils.draw_bbox(frame, bboxes, None, camSeq, self.enableBoxGuide)
         bytesPerLine = ch * w
         convertToQtFormat = QImage(image.data, w, h, bytesPerLine, QImage.Format_RGB888)
         convertedImg = convertToQtFormat.scaled(440, 330, Qt.KeepAspectRatio)
@@ -2066,7 +2070,7 @@ class DataHandler_Thread(QThread):
 
             if len(bboxes) >= 2:
                 try:
-                    frame, bboxes, holderMidCoor = self.drawHolderBox(frame, bboxes, camSeq)
+                    frame, bboxes, holderMidCoor = self.drawHolderBox(frame, bboxes, camSeq, self.enableBoxGuide)
                 except:
                     bboxes=[]
 
@@ -2144,7 +2148,7 @@ class DataHandler_Thread(QThread):
             else:
                 self.tempDefectRecord[formerID]=classFlag
 
-            image, alignVal = utils.draw_bbox(frame, bboxes, holderMidCoor if holderMidCoor else None, camSeq)
+            image, alignVal = utils.draw_bbox(frame, bboxes, holderMidCoor if holderMidCoor else None, camSeq, self.enableBoxGuide)
 
             ######put class text on img
             # if isRASM(camSeq):
@@ -3081,6 +3085,7 @@ class MainWindow(QMainWindow):
         self.setting_ui.sensorCheckBox.stateChanged.connect(lambda:self.showSensorSpinBox(self.setting_ui.sensorCheckBox.isChecked()))
         self.setting_ui.rasmOffsetCheckBox.stateChanged.connect(lambda:self.showRasmOffsetCheckBox(self.setting_ui.rasmOffsetCheckBox.isChecked()))
         self.setting_ui.lineGuideCheckBox.stateChanged.connect(lambda:self.showLineGuideCheckBox(self.setting_ui.lineGuideCheckBox.isChecked()))
+        self.setting_ui.boxGuideCheckBox.stateChanged.connect(lambda:self.showBoxGuideCheckBox(self.setting_ui.boxGuideCheckBox.isChecked()))
         self.setting_ui.buttonBox.button(QDialogButtonBox.Apply).clicked.connect(self.applyPurgerSetting)
         self.setting_ui.buttonBox.accepted.connect(self.acceptedPurgerSetting)
         self.setting_ui.buttonBox.rejected.connect(self.hidePurgerSetting)
@@ -3742,6 +3747,9 @@ class MainWindow(QMainWindow):
 
     def showLineGuideCheckBox(self, enable):
         self.dataThread.drawLineGuide(enable)
+
+    def showBoxGuideCheckBox(self, enable):
+        self.dataThread.drawBoxGuide(enable)
 
     def setFormerInterval(self):
         seq=self.sender().parent().seq
