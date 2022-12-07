@@ -1952,12 +1952,13 @@ class DataHandler_Thread(QThread):
         self.enableCamDelayAdjustment=enable
 
     def drawHolderBox(self, frame, bboxes, camSeq, enableBoxGuide):
+        holdersBbox, self.notHolderBboxs = self.holderBbox(bboxes,camSeq) #return holder bbox
+        #print(holdersBbox, self.notHolderBboxs)
+
         if camSeq >= 8:
             drawHolder = True
-            holdersBbox = self.holderBbox(bboxes) #return holder bbox
         else:
             drawHolder = False
-        self.notHolderBboxs = self.notHolderBbox(bboxes) #return all bbox except former holder
 
         if (int(self.notHolderBboxs[0][5])) == 0:
             if drawHolder:
@@ -1973,13 +1974,28 @@ class DataHandler_Thread(QThread):
         else:
             return frame, self.notHolderBboxs, None  
 
-    def holderBbox(self,bbox):
-        holdersBbox = [box for box in bbox if CLASSES[int(box[5])] == "Former Holder"]
-        if len(holdersBbox) > 0:
-            scores = [box[4] for box in holdersBbox]
+    def holderBbox(self,bbox,camSeq):
+        holderList=[]
+        notHolderList=[]
+        for box in bbox:
+            if CLASSES[int(box[5])] == "Former Holder":
+                if camSeq >= 8:
+                    holderList.append(box)
+            else:
+                notHolderList.append(box)
+
+        if len(holderList) > 0:
+            scores = [box[4] for box in holderList]
             best_index = scores.index(max(scores))
-            holdersBbox = [holdersBbox[best_index]]
-        return holdersBbox
+            holderList = [holderList[best_index]]
+
+        if len(notHolderList) > 1:
+            scores = [box[4] for box in notHolderList]
+            best_index = scores.index(max(scores))
+            notHolderList = [notHolderList[best_index]] 
+
+        return holderList if len(holderList) != 0 else None, notHolderList
+
 
     def notHolderBbox(self,bbox):
         notHolderBbox = [box for box in bbox if CLASSES[int(box[5])] != "Former Holder"]
@@ -2022,7 +2038,8 @@ class DataHandler_Thread(QThread):
             if side == i:
                 #self.sendAllignmentLabel.emit(side,camStr)
                 #randomData = random.randint(-100,100)
-                self.alignmentData[i].append(alignVal) # tuple data e.g ([1],[2],[3],[4])
+                if alignVal <= 300:
+                    self.alignmentData[i].append(alignVal) # tuple data e.g ([1],[2],[3],[4])
                 if self.countAlignment[side] == 1:
                     self.sendAligmentData.emit(self.alignmentData[i],side,camStr)
                     self.countAlignment[side] = 0
@@ -2033,7 +2050,7 @@ class DataHandler_Thread(QThread):
         
     def drawGridLine(self,image,lineGuide):
         image_h, image_w, _ = image.shape
-        ratio=10
+        ratio=15
         thks=2
         color_line = (105, 105, 105)
         if lineGuide:
@@ -2148,7 +2165,9 @@ class DataHandler_Thread(QThread):
             else:
                 self.tempDefectRecord[formerID]=classFlag
 
+            #print(frame, bboxes, holderMidCoor if holderMidCoor else None, camSeq, self.enableBoxGuide)
             image, alignVal = utils.draw_bbox(frame, bboxes, holderMidCoor if holderMidCoor else None, camSeq, self.enableBoxGuide)
+            
 
             ######put class text on img
             # if isRASM(camSeq):
@@ -2824,8 +2843,8 @@ class MainWindow(QMainWindow):
                 self.ui.table_defect_data.setItem(i+4, j, item)
 
         self.ui.label_title.setText(f'Integrated AIVC System  {CFG.FACTORY_NAME} LINE {CFG.LINE_NUM}')
-        #self.ui.label_title.setText(f'AIVC System DEVELOPER MODE DO NOT CLOSED')
-        self.ui.label_version.setText(f'V2.3.70.0')
+        #self.ui.label_title.setText(f'AIVC System Dev Mode')
+        self.ui.label_version.setText(f'V2.3.70.1')
         self.ui.select_duration.currentIndexChanged.connect(self.changeRecordDuration)
         self.camBoxes=[CamBox(i) for i in range(MAX_CAM_NUM)]
         #Populate Camera View
@@ -3261,7 +3280,7 @@ class MainWindow(QMainWindow):
             for i in range(4):
                 self.ui.grid_rasm_cam.addWidget(self.camBoxes[i+8], i/2,i%2, 1, 1)
             self.ui.label_title.setText(f'Integrated AIVC System  {CFG.FACTORY_NAME} LINE {CFG.LINE_NUM}')
-            #self.ui.label_title.setText(f'AIVC System DEVELOPER MODE DO NOT CLOSED')
+            #self.ui.label_title.setText(f'AIVC System Dev Mode')
             for pf in self.purgerforms:
                 for i in range(1,4):
                     pf.itemAt(i,QFormLayout.FieldRole).widget().show()
