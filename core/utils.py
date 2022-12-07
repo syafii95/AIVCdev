@@ -141,7 +141,7 @@ def draw_bbox(image, bboxes, holderMidCoor, camSeq, enableBoxGuide, classes=read
                 
                 if enableBoxGuide:
                     overlay = image.copy()
-                    cv2.rectangle(overlay, tb1, tb2, bbox_color, -1)  # filled
+                    cv2.rectangle(overlay, tb1, tb2, (0,255,0), -1)  # filled
                     image = cv2.addWeighted(overlay, alpha, image, 1 - alpha, 0)
 
     return image, val
