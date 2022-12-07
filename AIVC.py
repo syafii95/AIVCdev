@@ -2038,7 +2038,7 @@ class DataHandler_Thread(QThread):
             if side == i:
                 #self.sendAllignmentLabel.emit(side,camStr)
                 #randomData = random.randint(-100,100)
-                if alignVal <= 300:
+                if alignVal <= 300 and alignVal >= -300:
                     self.alignmentData[i].append(alignVal) # tuple data e.g ([1],[2],[3],[4])
                 if self.countAlignment[side] == 1:
                     self.sendAligmentData.emit(self.alignmentData[i],side,camStr)
