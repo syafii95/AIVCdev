@@ -1964,7 +1964,7 @@ class DataHandler_Thread(QThread):
             if drawHolder:
                 try:
                     for ele in holdersBbox:
-                        images, alignVal = utils.draw_bbox(frame, [ele], None, camSeq, enableBoxGuide)
+                        images, alignVal = utils.draw_bbox(frame, [ele], None, camSeq, enableBoxGuide, CFG.GUIDE_BOX_SIZE)
                         midPointHolder = (int(((ele[2]-ele[0])/2)+ele[0]),int(ele[3]))
                     return images, self.notHolderBboxs, midPointHolder
                 except: # draw good bbox only if former holder not detected
@@ -2006,7 +2006,7 @@ class DataHandler_Thread(QThread):
         return notHolderBbox
 
     def drawBBoxes(self, frame, bboxes, ch, w, h, camSeq):
-        image, alignVal = utils.draw_bbox(frame, bboxes, None, camSeq, self.enableBoxGuide)
+        image, alignVal = utils.draw_bbox(frame, bboxes, None, camSeq, self.enableBoxGuide, CFG.GUIDE_BOX_SIZE)
         bytesPerLine = ch * w
         convertToQtFormat = QImage(image.data, w, h, bytesPerLine, QImage.Format_RGB888)
         convertedImg = convertToQtFormat.scaled(440, 330, Qt.KeepAspectRatio)
@@ -2166,7 +2166,7 @@ class DataHandler_Thread(QThread):
                 self.tempDefectRecord[formerID]=classFlag
 
             #print(frame, bboxes, holderMidCoor if holderMidCoor else None, camSeq, self.enableBoxGuide)
-            image, alignVal = utils.draw_bbox(frame, bboxes, holderMidCoor if holderMidCoor else None, camSeq, self.enableBoxGuide)
+            image, alignVal = utils.draw_bbox(frame, bboxes, holderMidCoor if holderMidCoor else None, camSeq, self.enableBoxGuide, CFG.GUIDE_BOX_SIZE)
             
 
             ######put class text on img
@@ -2982,6 +2982,29 @@ class MainWindow(QMainWindow):
             spinBox.setFixedWidth(45)
             spinBox.valueChanged.connect(self.setPurgerSensor)
             self.setting_ui.grid_sensor.addWidget(spinBox,1,i*2+1,1,1)
+
+            alignLab=QLabel(f'  {SIDE_SHORT[i]}:')
+            alignLab.setMaximumWidth(25)
+            alignLab.setAlignment(Qt.AlignRight)
+            self.setting_ui.grid_align.addWidget(alignLab,1,i*2,1,1)
+            spinBoxAlign=IndexedSpinBoxAlign(i,_min=-200,_max=200, parent=self)
+            spinBoxAlign.setValue(CFG.BEST_ALIGNMENT_AXIS[i])
+            spinBoxAlign.setFixedWidth(45)
+            spinBoxAlign.valueChanged.connect(self.setIdealAlignment)
+            self.setting_ui.grid_align.addWidget(spinBoxAlign,1,i*2+1,1,1)
+
+            sizingLab=QLabel(f'  {SIDE_SHORT[i]}:')
+            sizingLab.setMaximumWidth(25)
+            sizingLab.setAlignment(Qt.AlignRight)
+            self.setting_ui.grid_sizing.addWidget(sizingLab,1,i*2,1,1)
+            spinBoxSizing=IndexedSpinBoxGuideBox(i,_min=35,_max=75, parent=self)
+            spinBoxSizing.setValue(CFG.GUIDE_BOX_SIZE[i])
+            spinBoxSizing.setFixedWidth(45)
+            spinBoxSizing.valueChanged.connect(self.setGuideBoxSize)
+            self.setting_ui.grid_sizing.addWidget(spinBoxSizing,1,i*2+1,1,1)
+
+            self.setting_ui.groupBox_13.setVisible(False)
+
         self.text_factory=QLineEdit()
         self.text_factory.setPlaceholderText('e.g. F39')
         self.text_factory.returnPressed.connect(self.changeFactorynLineName)
@@ -3768,6 +3791,10 @@ class MainWindow(QMainWindow):
         self.dataThread.drawLineGuide(enable)
 
     def showBoxGuideCheckBox(self, enable):
+        if enable:
+            self.setting_ui.groupBox_13.setVisible(True)
+        else:
+            self.setting_ui.groupBox_13.setVisible(False)
         self.dataThread.drawBoxGuide(enable)
 
     def setFormerInterval(self):
@@ -3787,6 +3814,16 @@ class MainWindow(QMainWindow):
         seq=self.sender().seq
         CFG.PURGER_SENSOR[seq]=self.sender().value()-self.sender()._min
         CFG_Handler.set('PURGER_SENSOR',CFG.PURGER_SENSOR)
+
+    def setIdealAlignment(self):
+        seq=self.sender().seq
+        CFG.BEST_ALIGNMENT_AXIS[seq]=self.sender().value()
+        CFG_Handler.set('BEST_ALIGNMENT_AXIS',CFG.BEST_ALIGNMENT_AXIS)
+
+    def setGuideBoxSize(self):
+        seq=self.sender().seq
+        CFG.GUIDE_BOX_SIZE[seq]=self.sender().value()
+        CFG_Handler.set('GUIDE_BOX_SIZE',CFG.GUIDE_BOX_SIZE)
 
     def setCamDelay(self):
         seq=self.sender().parent().seq
@@ -4088,6 +4125,7 @@ class ChartGrid(QWidget):
         self.plot.showGrid(x = True, y = True, alpha = 1.0)
 
     def feedUpdateChart(self, data, sides, label):
+        varX = CFG.BEST_ALIGNMENT_AXIS[sides]
         if label:
             self.label.setText(label)
         y = self.pdf(data)
@@ -4095,6 +4133,7 @@ class ChartGrid(QWidget):
         self.scatter = pg.ScatterPlotItem(size=5, brush=pg.mkBrush(0, 0, 0, 255))
         self.scatter.setData(data, y)
         self.plot.addLine(x=0,y=None, pen=pg.mkPen('g', width=2))
+        self.plot.addLine(varX,y=None, pen=pg.mkPen('r', width=2))
         self.plot.addItem(self.scatter)
         
     def feedLabel(self,label):
