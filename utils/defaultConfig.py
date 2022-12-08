@@ -168,5 +168,17 @@ defaultConfig={
         0,
         0
     ],
-    "ENABLE_HTTP": False,
+    "BEST_ALIGNMENT_AXIS": [
+        20,
+        20,
+        20,
+        20
+    ],
+    "GUIDE_BOX_SIZE": [
+        50,
+        50,
+        50,
+        50
+    ],
+    "ENABLE_HTTP": True,
 }

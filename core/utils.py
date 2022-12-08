@@ -84,7 +84,7 @@ def image_preporcess(image, target_size, gt_boxes=None):
         return image_paded, gt_boxes
 
 
-def draw_bbox(image, bboxes, holderMidCoor, camSeq, enableBoxGuide, classes=read_class_names(cfg.YOLO.CLASSES), show_label=True):
+def draw_bbox(image, bboxes, holderMidCoor, camSeq, enableBoxGuide, guideBoxSize, classes=read_class_names(cfg.YOLO.CLASSES), show_label=True):
     """
     bboxes: [x_min, y_min, x_max, y_max, probability, cls_id] format coordinates.
     """
@@ -122,7 +122,7 @@ def draw_bbox(image, bboxes, holderMidCoor, camSeq, enableBoxGuide, classes=read
                         fontScale, (0, 0, 0), bbox_thick, lineType=cv2.LINE_AA)
 
         if holderMidCoor is not None and int(bbox[5]) == 0:
-            scale = 0.5
+            scale = guideBoxSize[camSeq-8]/100
             ggMidCoor = (int(((bbox[2]-bbox[0])/2+bbox[0])),int(bbox[3]))
             newGgMidCoor = int(((bbox[2]-bbox[0])/2+bbox[0]))
             tranBoxLen = int(scale*(bbox[2]-bbox[0])/2)

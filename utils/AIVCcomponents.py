@@ -29,6 +29,24 @@ class IndexedSpinBox(QSpinBox):
         self.setRange(_min,_max)
         self.setSingleStep(1)
 
+class IndexedSpinBoxAlign(QSpinBox):
+    def __init__(self, seq, _min=0, _max=0, parent=None):
+        super().__init__(parent=parent)
+        self.seq=seq
+        self._min=_min
+        self._max=_max
+        self.setRange(_min,_max)
+        self.setSingleStep(1)
+
+class IndexedSpinBoxGuideBox(QSpinBox):
+    def __init__(self, seq, _min=0, _max=0, parent=None):
+        super().__init__(parent=parent)
+        self.seq=seq
+        self._min=_min
+        self._max=_max
+        self.setRange(_min,_max)
+        self.setSingleStep(1)
+
 class RasmAnchorOffsetLineEdit(QWidget):
     def __init__(self, seq, parent=None):
         super().__init__(parent=parent)
