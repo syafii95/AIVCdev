@@ -122,13 +122,13 @@ def draw_bbox(image, bboxes, holderMidCoor, camSeq, enableBoxGuide, guideBoxSize
                         fontScale, (0, 0, 0), bbox_thick, lineType=cv2.LINE_AA)
 
         if holderMidCoor is not None and int(bbox[5]) == 0:
-            scale = guideBoxSize[camSeq-8]/100
-            ggMidCoor = (int(((bbox[2]-bbox[0])/2+bbox[0])),int(bbox[3]))
-            newGgMidCoor = int(((bbox[2]-bbox[0])/2+bbox[0]))
-            tranBoxLen = int(scale*(bbox[2]-bbox[0])/2)
-            tb1 = (int(newGgMidCoor - tranBoxLen),int(bbox[1]))
-            tb2 = (int(newGgMidCoor + tranBoxLen),int(bbox[3]))
             if camSeq >= 8:
+                scale = guideBoxSize[camSeq-8]/100
+                ggMidCoor = (int(((bbox[2]-bbox[0])/2+bbox[0])),int(bbox[3]))
+                newGgMidCoor = int(((bbox[2]-bbox[0])/2+bbox[0]))
+                tranBoxLen = int(scale*(bbox[2]-bbox[0])/2)
+                tb1 = (int(newGgMidCoor - tranBoxLen),int(bbox[1]))
+                tb2 = (int(newGgMidCoor + tranBoxLen),int(bbox[3]))
                 cv2.arrowedLine(image, holderMidCoor, ggMidCoor, color_arrow, thick_arror)
                 val=ggMidCoor[0]-holderMidCoor[0]
                 strVal = f'Alignment: [{val}]'
