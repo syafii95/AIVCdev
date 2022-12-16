@@ -2257,7 +2257,7 @@ class DataHandler_Thread(QThread):
                             s=f'{(rasmID1):02d}'
                         else:
                             s=CAM_NAME[camSeq][-1]#Either T or B
-                        listStr=f'{NEW_CLASSES[classId]}\t{b[4]*100:.2f}%    {time.strftime("%H:%M:%S")}    {SIDE_SHORT[side]}{s}    {formerID:05d}'
+                        listStr=f'{NEW_CLASSES[classId]}\t{b[4]*100:.2f}%    {time.strftime("%d/%m  %H:%M:%S")}    {SIDE_SHORT[side]}{s}    {formerID:05d}'
                         self.setListItem.emit(listStr, f"{imgName}.{IMG_FORMAT}")
                     
                     #syafii edit
@@ -2844,7 +2844,7 @@ class MainWindow(QMainWindow):
 
         self.ui.label_title.setText(f'Integrated AIVC System  {CFG.FACTORY_NAME} LINE {CFG.LINE_NUM}')
         #self.ui.label_title.setText(f'AIVC System Dev Mode')
-        self.ui.label_version.setText(f'V2.3.70.1')
+        self.ui.label_version.setText(f'V2.3.70.2')
         self.ui.select_duration.currentIndexChanged.connect(self.changeRecordDuration)
         self.camBoxes=[CamBox(i) for i in range(MAX_CAM_NUM)]
         #Populate Camera View
