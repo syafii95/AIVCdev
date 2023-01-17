@@ -174,7 +174,7 @@ class singleinstance:
 def saveStatus(val):
     with open('aivcMonitor/status','w') as f:
         f.write(str(val))
-class maxInt():
+class maxInt(): # Old Class
     def __init__(self, value, max):
         self.value=value
         self.max=max
@@ -199,11 +199,14 @@ class maxInt():
         return self.value==_val
 
 def copyRecords(dst,src):
+    """
+    Copy record to another variable to avoid being replaced halfway in other thread
+    """
     for side in range(len(src)):
         for key, arr in src[side].items():
             np.copyto(dst[side][key], arr)
 
-class ArmData():
+class ArmData(): # Old Class
     def __init__(self, cls=0):
         self.data=np.zeros(CLASS_NUM,dtype=int)
         self.data[cls]=1
@@ -212,6 +215,9 @@ class ArmData():
         return self
 
 def emptyRecords():
+    """
+    Clear all the record in variable
+    """
     record=[]
     for i in range(4):
         side={}
@@ -221,21 +227,33 @@ def emptyRecords():
     return record
 
 def makeDirs(dirs):
+    """
+    Create new directory to saved image
+    """
     for d in dirs:
         if not os.path.exists(d):
             os.makedirs(d)
 
 def isRASM(camSeq):
+    """
+    Checked RASM status
+    """
     if CFG.AIVC_MODE==0 and camSeq>=RASM_SEQ:
         return True
     else:
         return False
 def isFKTH(camSeq):
+    """
+    Checked FKTH status
+    """
     if CFG.AIVC_MODE==0 and camSeq<RASM_SEQ:
         return True
     else:
         return False
 def getSide(camSeq):
+    """
+    Get and return side of camera; E.g LI,RI,LO,RO
+    """
     try:
         return CAM_SIDE[CFG.AIVC_MODE][camSeq]
     except IndexError:
@@ -243,6 +261,9 @@ def getSide(camSeq):
         return CAM_SIDE[2][camSeq]
 
 def generateSasToken(uri, key, expiry=3600):
+    """
+    Generate iotHub token for pushing data
+    """
     ttl = time.time() + expiry
     sign_key = "%s\n%d" % ((parse.quote_plus(uri)), int(ttl))
     print(sign_key)
@@ -255,81 +276,30 @@ def generateSasToken(uri, key, expiry=3600):
     return 'SharedAccessSignature ' + parse.urlencode(rawtoken)
 
 def convertToAscii(strID):
+    """
+    Convert int former ID to ASCII for led display counter hardware
+    """
     elementAppend=[]
     elementAppendFinish=[]
     numElement=48
     listDecimal=[12288,12544,12800,13056,13312,13568,13824,14080,14336,14592]
     for element in strID:
-        if element == '0':
-            numElement=48
-        elif element == '1':
-            numElement=49
-        elif element == '2':
-            numElement=50
-        elif element == '3':
-            numElement=51
-        elif element == '4':
-            numElement=52
-        elif element == '5':
-            numElement=53
-        elif element == '6':
-            numElement=54
-        elif element == '7':
-            numElement=55
-        elif element == '8':
-            numElement=56
-        elif element == '9':
-            numElement=57
-        
+        if element == element:
+            numElement = 48 + int(element)
+
         elementAppend.append(numElement)
         if len(elementAppend) == len(strID):
-            if elementAppend[2] == 48:
-                elementAppend[2] = listDecimal[0]
-            elif elementAppend[2] == 49:
-                elementAppend[2] = listDecimal[1]
-            elif elementAppend[2] == 50:
-                elementAppend[2] = listDecimal[2]
-            elif elementAppend[2] == 51:
-                elementAppend[2] = listDecimal[3]
-            elif elementAppend[2] == 52:
-                elementAppend[2] = listDecimal[4]
-            elif elementAppend[2] == 53:
-                elementAppend[2] = listDecimal[5]
-            elif elementAppend[2] == 54:
-                elementAppend[2] = listDecimal[6]
-            elif elementAppend[2] == 55:
-                elementAppend[2] = listDecimal[7]
-            elif elementAppend[2] == 56:
-                elementAppend[2] = listDecimal[8]
-            elif elementAppend[2] == 57:
-                elementAppend[2] = listDecimal[9]
+            if elementAppend[2] == elementAppend[2]:
+                elementAppend[2] = listDecimal[int(elementAppend[2])-48]
 
-            if elementAppend[0] == 48:
-                elementAppend[0] = listDecimal[0]
-            elif elementAppend[0] == 49:
-                elementAppend[0] = listDecimal[1]
-            elif elementAppend[0] == 50:
-                elementAppend[0] = listDecimal[2]
-            elif elementAppend[0] == 51:
-                elementAppend[0] = listDecimal[3]
-            elif elementAppend[0] == 52:
-                elementAppend[0] = listDecimal[4]
-            elif elementAppend[0] == 53:
-                elementAppend[0] = listDecimal[5]
-            elif elementAppend[0] == 54:
-                elementAppend[0] = listDecimal[6]
-            elif elementAppend[0] == 55:
-                elementAppend[0] = listDecimal[7]
-            elif elementAppend[0] == 56:
-                elementAppend[0] = listDecimal[8]
-            elif elementAppend[0] == 57:
-                elementAppend[0] = listDecimal[9]
+            if elementAppend[0] == elementAppend[0]:
+                elementAppend[0] = listDecimal[int(elementAppend[0])-48]
             
             elementAppendFinish = np.copy(elementAppend)
             elementAppend.clear()
     return elementAppendFinish
 
-class ShiftCounter():
+class ShiftCounter(): # Old Class
     def __init__(self,addr, plc, idx, maxlen=300):
         self.addr=addr
         self.plc=plc
@@ -403,7 +373,11 @@ class RepetitionChecker():
                     highestSimilarity=similarity
                     shift=i
             print(f'{k} Highest Similarity {shift}: {highestSimilarity}')
+
 class TimingChecker():
+    """
+    Check triggering timing
+    """
     def __init__(self,name,length=20,tolerance=2):
         self.name=name
         self.length=length
@@ -422,6 +396,9 @@ class TimingChecker():
         self.prevTime=time.time()
 
 class OccuAnalyzer():
+    """
+    Check timing for each thread
+    """
     def __init__(self,name,l):
         self.name=name
         self.totalTimes=deque(maxlen=l)
@@ -459,6 +436,9 @@ OTA_TCP_BUFFER_SIZE=4096
 DOWNLOAD_FILE_NAME='updatePatch.zip'
 
 class OTAClient(Process):
+    """
+    Auto update AIVC if got new patch from the server
+    """
     def __init__(self, host, port):
         super(OTAClient, self).__init__()
         self.host = host
@@ -537,6 +517,9 @@ def get_gpu_memory():
         return 505, 505, "Unknown"
 
 class JsonRPCClient(QThread):
+    """
+    Send configuration setting to the web server and catch new patch if got via REST API
+    """
     def __init__(self,parent=None):
         super().__init__(parent=parent)
         self.name=f'{CFG.FACTORY_NAME}L{CFG.LINE_NUM}_{CFG.AIVC_MODE}'
@@ -643,6 +626,9 @@ class JsonRPCClient(QThread):
         print("JsonRPC Client Thread Closed")
 
 class ModelPerformanceHandler(QThread):
+    """
+    Handling all model performance analysis
+    """
     lowConfData = pyqtSignal(list,list,np.ndarray)
     lowConfQue = q.Queue()
     #modelPerformanceRunning = True
@@ -676,6 +662,9 @@ class ModelPerformanceHandler(QThread):
         self.lowConfQue.put([total,classIds])
 
 class SQLHandler(QThread):
+    """
+    Push data to the sql database
+    """
     def __init__(self,parent=None):
         super().__init__(parent=parent)
         self.queue = q.Queue()
@@ -711,6 +700,7 @@ class SQLHandler(QThread):
                     continue
                 self.cache.pop(0)
         print('SQLHandler Closed')
+
     def upload(self, data, databasePrevState):
         self.SQLDisableRetry=False#Re-enable SQL Upload
         dataToUpload=data-self.prevData#prevdata
@@ -724,6 +714,9 @@ class SQLHandler(QThread):
         self.prevTime=_time
 
 class ProblematicHandler(QThread):
+    """
+    Handle problematic former process
+    """
     rasmNumCycle = [0]*Side_Num
     def __init__(self,parent):
         super().__init__(parent=parent)
@@ -753,13 +746,14 @@ class ProblematicHandler(QThread):
                 return(self.rasmNumCycle[side],self.contBadDataRasm[side][rasmID-1],self.contGoodDataRasm[side][rasmID-1],self.val)
             else:
                 return(0,0,0,0)
-        """else:
-            return(0,0,0,0)"""
 
     def getEncoderValue(self,val):
         self.val = val
 
 class AlertHandler(QThread):
+    """
+    Send alert to the iotHub
+    """
     def __init__(self,parent, iotHubRestURI,teamsMessenger):
         super().__init__(parent=parent)
         self.alertQueue = q.Queue()
@@ -904,6 +898,9 @@ class AlertHandler(QThread):
 
 
 class TeamsHandler(QThread):
+    """
+    Send alert to the Microsoft Teams
+    """
     resumePreviousTeamsAddr=pyqtSignal()
     def __init__(self, parent, channel_url):
         super().__init__(parent=parent)
@@ -979,6 +976,9 @@ class PLCAddrInput(QLineEdit):
         self.periThreadRunning=False
 
 class Setting_Thread(QThread):
+    """
+    Push config setting to the iotHub
+    """
     pushQue=q.Queue()
     peri0={}
     peri1={}
@@ -1082,6 +1082,9 @@ class Setting_Thread(QThread):
         self.running = False
 
 class Purging_Thread(QThread):
+    """
+    Handle all purging process
+    """
     updatePurgingDisplay=pyqtSignal(int,str)#side,content
     updateListToPurge=pyqtSignal(int,int,str)
     markDetected=pyqtSignal(int,int,int)
@@ -1343,6 +1346,9 @@ class OperationInspector(QObject):
 
 
 class Saving_Process(Process):
+    """
+    Use multiprocessor for saving image process
+    """
     def __init__(self):
         super(Saving_Process, self).__init__()
         self.savingQue=Queue()
@@ -1376,6 +1382,9 @@ class MyTimer(QThread):
             self.timeOut.emit()
 
 class MinuteDataRecorder(QThread):
+    """
+    set data recorder to the time format
+    """
     def __init__(self, dHandler):
         super().__init__(parent=dHandler)
         self.dHandler=dHandler
@@ -1468,6 +1477,9 @@ class MinuteDataRecorder(QThread):
         print('MinuteDataRecorder Closed')
 
 class DataHandler_Thread(QThread):
+    """
+    Handle all data in AIVC
+    """
     refreshStatus=pyqtSignal()
     trigger15min=pyqtSignal()
     updateCamBox = pyqtSignal(QImage, str, int)
@@ -2197,6 +2209,9 @@ class DataHandler_Thread(QThread):
         print('Data Handler Thread Closed')
 
 class Camera_Thread(QThread):
+    """
+    Create a thread for a camera
+    """
     feedCaptureQue=pyqtSignal(int, np.ndarray, np.ndarray, int, int)
     def __init__(self, parent, camControl,camNum,seq,camDetails,plc):
         super().__init__(parent=parent)
@@ -2240,7 +2255,7 @@ class Camera_Thread(QThread):
                 if CFG.ROTATE:
                     frame=cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
-                bypassCamera=False
+                bypassCamera=False # Set true for offline testing
                 if bypassCamera:
                     #syafii Edit
                     convSTR1 = CFG.RASM_TEST_IMAGE.replace("/", "\\")
@@ -2283,6 +2298,9 @@ class Camera_Thread(QThread):
             self.occu.end()
 
 class Capture_Thread(QThread):
+    """
+    Handle all sensor, encoder, PLC and camera
+    """
     feedPurgerQue=pyqtSignal(int,int)
     feedEncoderQue=pyqtSignal(int)
     sendAveLineSpeed=pyqtSignal(float)
@@ -2506,13 +2524,6 @@ class Capture_Thread(QThread):
                                 id+=camSeq % MAX_ASM_LENGTH
                             formerID=id % TOTAL_FORMER + side*SIDE_SEP
                             self.camThreads[num_cam].que.put(formerID)#Capture Image
-                            """stringID = str(formerID%SIDE_SEP).zfill(4) #0001
-                            for i in stringID:
-                                if len(stringID) == 4:
-                                    strID.append(i)
-                            sendFormer = convertToAscii(strID)
-                            self.plc.formerCounting(sendFormer)
-                            strID.clear()"""
                             if CFG.COUNTER_INSTALLED:
                                 if CFG.AIVC_MODE==0:
                                     if camSeq == 8 or camSeq == 9 or camSeq == 10 or camSeq == 11:
@@ -2556,6 +2567,9 @@ class Capture_Thread(QThread):
         print("Capture Thread Closed")
 
 class Inference_Thread(QThread):
+    """
+    Handle yolo inference
+    """
     feedYoloResult = pyqtSignal(int, np.ndarray, list, int, int)
     clearCamBox = pyqtSignal(int)
     inferenceRunning=True
