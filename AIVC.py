@@ -1,3 +1,4 @@
+from lib2to3.pytree import convert
 import cv2
 import time
 import datetime
@@ -107,7 +108,7 @@ Cam_Delay=CFG.CAM_DELAY_ALL[CFG.AIVC_MODE]
 Cam_Sensor=CFG.CAM_SENSOR_ALL[CFG.AIVC_MODE]
 Cam_Sensor=[s if s<CFG.SENSOR_NUM else (CFG.SENSOR_NUM-1) for s in Cam_Sensor]#Limit maximum value of Cam_Sensor
 Side_Num= 4 if CFG.DOUBLE_FORMER else 2 #Get Side Num
-Former_Plc_offset=CFG.FORMER_COUNTER_OFFSET
+bypassCounter = [False]*4
 
 #AIVC_MODE  #0:AIVC RASM&FKTH; 1:TAC AIVC; 2:ASM AIVC
 CAM_NAME=['FKTH_LIT','FKTH_LIB','FKTH_RIT','FKTH_RIB','FKTH_LOT','FKTH_LOB','FKTH_ROT','FKTH_ROB','RASM_LI','RASM_RI','RASM_LO','RASM_RO']
@@ -160,7 +161,11 @@ except FileNotFoundError as e:
 CLASS_NUM=len(CLASSES)
 Data_Num=CLASS_NUM+2 #All class plus Empty Link and Produced Glove
 DATA_NAMES=["Good Glove", "Produced Glove", "Empty Link"]+CLASSES[1:]
+
 class singleinstance:
+    """
+    Checked an instance AIVC running on the pc
+    """
     def __init__(self):
         self.mutex = CreateMutex(None, False, "mutex_AIVC")
         self.lasterror = GetLastError()
@@ -171,9 +176,11 @@ class singleinstance:
     def remove(self):
         if self.mutex:
             CloseHandle(self.mutex)
+
 def saveStatus(val):
     with open('aivcMonitor/status','w') as f:
         f.write(str(val))
+
 class maxInt(): # Old Class
     def __init__(self, value, max):
         self.value=value
@@ -282,18 +289,15 @@ def convertToAscii(strID):
     elementAppend=[]
     elementAppendFinish=[]
     numElement=48
-    listDecimal=[12288,12544,12800,13056,13312,13568,13824,14080,14336,14592]
+    listDecimal=[12288,12544,12800,13056,13312,13568,13824,14080,14336,14592,10752,22528,8192]
     for element in strID:
-        if element == element:
-            numElement = 48 + int(element)
-
+        numElement = ord(element) #convert ascii to decimal
         elementAppend.append(numElement)
         if len(elementAppend) == len(strID):
-            if elementAppend[2] == elementAppend[2]:
-                elementAppend[2] = listDecimal[int(elementAppend[2])-48]
-
-            if elementAppend[0] == elementAppend[0]:
-                elementAppend[0] = listDecimal[int(elementAppend[0])-48]
+            for i,element in enumerate(elementAppend):
+                if i == 0 or i == 2:
+                    hexData = hex(int(element))[2:]+'00'
+                    elementAppend[i] = int(hexData,16)
             
             elementAppendFinish = np.copy(elementAppend)
             elementAppend.clear()
@@ -663,7 +667,7 @@ class ModelPerformanceHandler(QThread):
 
 class SQLHandler(QThread):
     """
-    Push data to the sql database
+    Handling data that wanted to be push to the sql database
     """
     def __init__(self,parent=None):
         super().__init__(parent=parent)
@@ -752,7 +756,7 @@ class ProblematicHandler(QThread):
 
 class AlertHandler(QThread):
     """
-    Send alert to the iotHub
+    Handling alert before send to the iotHub
     """
     def __init__(self,parent, iotHubRestURI,teamsMessenger):
         super().__init__(parent=parent)
@@ -899,7 +903,7 @@ class AlertHandler(QThread):
 
 class TeamsHandler(QThread):
     """
-    Send alert to the Microsoft Teams
+    Handling alert before send to the Microsoft Teams
     """
     resumePreviousTeamsAddr=pyqtSignal()
     def __init__(self, parent, channel_url):
@@ -1081,6 +1085,52 @@ class Setting_Thread(QThread):
         self.pushQue.put(None)
         self.running = False
 
+class AnimationThread(QThread):
+    """
+    Display animation in led counter at production line
+    """
+    def __init__(self,parent,plc,seqs):
+        super().__init__(parent=parent)
+        self.plc=plc
+        self.seqs=seqs
+        self.markIdQue = q.Queue()
+        self.start(3)
+        self.animationStart = False
+        self.animationList = []
+        self.perTrigger=[0]*Side_Num
+        self.animationThreadRun = True
+        self.animationTemplate = ['XXXX','****',' ***','  **','   *']
+
+    def run(self):
+        while self.animationThreadRun:
+            second = 4
+            end = 0
+            record,triggerTime = self.markIdQue.get()
+            if CFG.ENABLE_COUNTER_ANIMATION:
+                if record is None:
+                    break
+                else:
+                    if not self.animationStart:
+                        self.animationList.append(record)
+                        running = True
+                        if len(self.animationList) == 1:
+                            while running:
+                                global bypassCounter
+                                bypassCounter[self.seqs] = True
+                                #print(f'++++++++++++ {second} ++++{self.animationList}++++')
+                                sendAnimation = convertToAscii(str(self.animationTemplate[second]))
+                                self.plc.formerCounting(sendAnimation,self.seqs+8)
+                                time.sleep(triggerTime-0.1)
+                                second -= 1
+                                if second <= end:
+                                    sendAnimation = convertToAscii(str(self.animationTemplate[second]))
+                                    self.plc.formerCounting(sendAnimation,self.seqs+8)
+                                    time.sleep(0.1)
+                                    bypassCounter[self.seqs] = False
+                                    running = False
+                        self.animationList.clear()
+                        self.animationStart = False
+
 class Purging_Thread(QThread):
     """
     Handle all purging process
@@ -1101,7 +1151,9 @@ class Purging_Thread(QThread):
         self.purgingStacks=[{} for _ in range(4)]
         self.periSets=[[set() for _ in range(4)] for _ in CFG.PERI_NAME]
         self.testMarkSets=[set() for _ in range(4)]
+        self.testMarkCounterSets=[set() for _ in range(4)]
         self.markIdSignal=[set() for _ in range(4)]
+        self.markIdSignalCounter=[set() for _ in range(4)]
         self.purgerDistance=[p[0] for p in CFG.PURGER_SETTING]
         self.firstAnchorIDs=[0]*4
         self.verifyMarking=[0]*4
@@ -1110,18 +1162,29 @@ class Purging_Thread(QThread):
         self.purgeQue=q.Queue()
         self.timingChecker=TimingChecker(self.__class__.__name__,tolerance=1.5)
         self.testBin=False
+        self.animation_Threads = []
+        for seqs in range(Side_Num):
+            self.animation_Thread=AnimationThread(self,self.plc,seqs)
+            self.animation_Threads.append(self.animation_Thread)
         if CFG.ENABLE_HMPLC:
             self.hmPlc=plcLib.HalfmoonPLC(CFG.HM_PLC_IP)
 
     def sendFormerLamps(self,IDs,side,rdr):
         if CFG.AIVC_MODE==0:
+            markFormerIdCounter = IDs+CFG.FORMER_COUNTER_OFFSET[side]
+            if markFormerIdCounter >= CFG.CHAIN_FORMER_NUM:
+                bals = markFormerIdCounter - CFG.CHAIN_FORMER_NUM
+            else:
+                bals = markFormerIdCounter
+            if len(self.markIdSignalCounter[side]) == 0:
+                self.markIdSignalCounter[side].add(bals)
+
             markFormerIDs = IDs+CFG.FORMER_MARKING_DISTANCE[side]
             if markFormerIDs >= CFG.CHAIN_FORMER_NUM:
                 bal = markFormerIDs - CFG.CHAIN_FORMER_NUM
             else:
                 bal = markFormerIDs
             self.markIdSignal[side].add(bal)
-            #print(f'=== FormerID: {bal} | Side: {side} | Defective Rate: {rdr*100:.2f} ===')
 
     def testPurge(self):
         #self.plc.purgeGlove(self.sender().seq)##Purge directly
@@ -1153,8 +1216,22 @@ class Purging_Thread(QThread):
         self.feedTestMarkStack(bal+side*SIDE_SEP)
         self.markTestMark.emit(side,bal)
         
+    def testCounter(self):
+        side=self.sender().seq
+        formerID=self.purgerFormerIDs[side]+CFG.FORMER_COUNTER_OFFSET[side]
+        if formerID >= CFG.CHAIN_FORMER_NUM:
+            bal = formerID - CFG.CHAIN_FORMER_NUM
+        else:
+            bal = formerID
+        print(f"Test Mark Counter {SIDE_SHORT[side]} {bal}")
+        self.feedTestMarkCounterStack(bal+side*SIDE_SEP)
+
     def closeThread(self):
         self.purgeThreadRunning=False
+        for animation_thread in self.animation_Threads:
+            animation_thread.markIdQue.put([None,None])
+            animation_thread.wait()
+        
 
     def clearStack(self):
         for purgingStack in self.purgingStacks:
@@ -1181,8 +1258,8 @@ class Purging_Thread(QThread):
                 self.periSets[periIdx][side]=newPeriSet
         print(self.periSets)
 
-    def feedPurgerQue(self,side,formerID):
-        self.purgeQue.put([side,formerID])
+    def feedPurgerQue(self,side,formerID,triggerTime):
+        self.purgeQue.put([side,formerID,triggerTime])
 
     @pyqtSlot(int)
     def rejectAsm(self,camSeq):
@@ -1225,13 +1302,20 @@ class Purging_Thread(QThread):
         sideID=formerID%SIDE_SEP
         self.testMarkSets[side].add(sideID)
         print(self.testMarkSets)
+    def feedTestMarkCounterStack(self,formerID):
+        side=int(formerID/SIDE_SEP)
+        sideID=formerID%SIDE_SEP
+        if len(self.testMarkCounterSets[side]) == 0:
+            self.testMarkCounterSets[side].add(sideID)
+        print(self.testMarkCounterSets)
     def run(self):
         prevBins=['','','','']
+        strPurgeID = []
         for i in range(4):
             self.plc.setDualBinFlap(i,False)#Reset All Dual Bin Flap
         while(self.purgeThreadRunning):
             try:
-                side,purgerFormerID = self.purgeQue.get(timeout=0.5)
+                side,purgerFormerID,triggerTime = self.purgeQue.get(timeout=0.5)
             except q.Empty:
                 continue
             self.updatePurgingDisplay.emit(side,f'{purgerFormerID:03d}')
@@ -1286,6 +1370,24 @@ class Purging_Thread(QThread):
                 self.markMarkFormer.emit(side,purgerFormerID)
                 self.plc.sendFormerMarkingSignal(side)
 
+            #remove Mark Counter former from the list
+            if purgerFormerID in self.testMarkCounterSets[side]:
+                self.testMarkCounterSets[side].remove(purgerFormerID)    
+                self.testMarkCounterSets[side].clear()
+
+            #Test Mark Counter 4 count earlier
+            if (purgerFormerID+4) in self.testMarkCounterSets[side]:
+                self.animation_Threads[side].markIdQue.put([self.testMarkCounterSets[side],triggerTime])
+
+            #remove Mark former at counter display from the list
+            if purgerFormerID in self.markIdSignalCounter[side]:
+                self.markIdSignalCounter[side].remove(purgerFormerID)
+                self.markIdSignalCounter[side].clear()
+
+            #Mark former 4 count earlier at counter display
+            if (purgerFormerID+4) in self.markIdSignalCounter[side]:
+                self.animation_Threads[side].markIdQue.put([self.markIdSignalCounter[side],triggerTime])
+
             #Mark High Defective Rate Former
             if purgerFormerID  in self.markIdSignal[side]:
                 self.verifyMarking[side]+=1
@@ -1302,8 +1404,8 @@ class Purging_Thread(QThread):
                     pg=np.sum(targetFormerRecord)
                     dg=np.sum(targetFormerRecord[1:])
                     dr=dg/(pg)
-                    print(f"Mark Former {SIDE_SHORT[side]} {purgerFormerID} {dr*100:.2f}%")
-                    #print(f'========== Result: {self.verifyMarking} =============')
+                    #print(f"Mark Former {SIDE_SHORT[side]} {purgerFormerID} {dr*100:.2f}%")
+
                 if CFG.ENABLE_FORMER_MARKING:
                     self.plc.sendFormerMarkingSignal(side)
                     
@@ -2301,7 +2403,7 @@ class Capture_Thread(QThread):
     """
     Handle all sensor, encoder, PLC and camera
     """
-    feedPurgerQue=pyqtSignal(int,int)
+    feedPurgerQue=pyqtSignal(int,int,float)
     feedEncoderQue=pyqtSignal(int)
     sendAveLineSpeed=pyqtSignal(float)
     camCapture=pyqtSignal(int)
@@ -2488,7 +2590,7 @@ class Capture_Thread(QThread):
                                 CFormerIDs[s]=CFormerIDs[s]-TOTAL_FORMER
                             for side in range(4):
                                 if CFG.PURGER_SENSOR[side] == s:
-                                    self.feedPurgerQue.emit(side,CFormerIDs[CFG.PURGER_SENSOR[side]])#Purge glove if defected glove reached purger#T#
+                                    self.feedPurgerQue.emit(side,CFormerIDs[CFG.PURGER_SENSOR[side]],self.secPerGloves[0])#Purge glove if defected glove reached purger#T#
 
                             if self.secPerGloves[s] < 4: #Avoid record first trigger after line started moving
                                 self.secPerGloveList.append(self.secPerGloves[s])
@@ -2525,6 +2627,7 @@ class Capture_Thread(QThread):
                             formerID=id % TOTAL_FORMER + side*SIDE_SEP
                             self.camThreads[num_cam].que.put(formerID)#Capture Image
                             if CFG.COUNTER_INSTALLED:
+                                Former_Plc_offset=CFG.FORMER_COUNTER_OFFSET
                                 if CFG.AIVC_MODE==0:
                                     if camSeq == 8 or camSeq == 9 or camSeq == 10 or camSeq == 11:
                                         if camSeq == 8:
@@ -2542,8 +2645,9 @@ class Capture_Thread(QThread):
                                             if len(stringID) == 4:
                                                 strID.append(i)
                                         if strID:
-                                            sendFormer = convertToAscii(strID)
-                                            self.plc.formerCounting(sendFormer,camSeq)
+                                            if not bypassCounter[side]:
+                                                sendFormer = convertToAscii(strID)
+                                                self.plc.formerCounting(sendFormer,camSeq)
                                             strID.clear()
                             
                             camTriggereds[num_cam]=False
@@ -2676,7 +2780,7 @@ class MainWindow(QMainWindow):
 
         self.ui.label_title.setText(f'Integrated AIVC System  {CFG.FACTORY_NAME} LINE {CFG.LINE_NUM}')
         #self.ui.label_title.setText(f'AIVC System DEVELOPER MODE DO NOT CLOSED')
-        self.ui.label_version.setText(f'V2.3.62.9')
+        self.ui.label_version.setText(f'V2.3.63.0')
         self.ui.select_duration.currentIndexChanged.connect(self.changeRecordDuration)
         self.camBoxes=[CamBox(i) for i in range(MAX_CAM_NUM)]
         #Populate Camera View
@@ -2914,6 +3018,9 @@ class MainWindow(QMainWindow):
         self.setting_ui.formerMarkingCheckBox.setChecked(CFG.ENABLE_FORMER_MARKING)
         self.setting_ui.formerMarkingCheckBox.setText(f"Enable Former Marking Signal (M{950+CFG.AIVC_MODE*10})")
         self.setting_ui.formerMarkingCheckBox.stateChanged.connect(lambda:self.enableFormerMarking(self.setting_ui.formerMarkingCheckBox.isChecked()))
+        self.setting_ui.counterAnimationCheckBox.setChecked(CFG.ENABLE_FORMER_MARKING)
+        self.setting_ui.counterAnimationCheckBox.setText(f"Enable Counter Animation")
+        self.setting_ui.counterAnimationCheckBox.stateChanged.connect(lambda:self.enableCounterAnimation(self.setting_ui.counterAnimationCheckBox.isChecked()))
         formerMarkingWidget=FormerMarkingWidget()
         self.setting_ui.formerVLayout.addWidget(formerMarkingWidget)
         self.setting_ui.formerVLayout.addItem(QSpacerItem(5,5, QSizePolicy.Preferred, QSizePolicy.MinimumExpanding))
@@ -2925,6 +3032,11 @@ class MainWindow(QMainWindow):
         for i, to in enumerate(formerMarkingWidget.text_offsets):
             to.setText(str(CFG.CHAIN_ANCHOR_OFFSET[i]))
             to.returnPressed.connect(self.setChainAnchorOffset)
+        for i, tc in enumerate(formerMarkingWidget.text_counter):
+            tc.setText(str(CFG.FORMER_COUNTER_OFFSET[i]))
+            tc.returnPressed.connect(self.setFormerCounterOffset)
+        for tcb in formerMarkingWidget.counterButtons:
+            tcb.clicked.connect(self.purgingThread.testCounter)
         self.setting_ui.camDelayCheckBox.stateChanged.connect(lambda:self.showCamDelaySpinBox(self.setting_ui.camDelayCheckBox.isChecked()))
         self.setting_ui.camSeqCheckBox.stateChanged.connect(lambda:self.showCamSeqSpinBox(self.setting_ui.camSeqCheckBox.isChecked()))
         self.setting_ui.formerIntCheckBox.stateChanged.connect(lambda:self.showFormerSpinBox(self.setting_ui.formerIntCheckBox.isChecked()))
@@ -3184,6 +3296,12 @@ class MainWindow(QMainWindow):
         offset=self.sender().val
         CFG.CHAIN_ANCHOR_OFFSET[seq]=offset
         CFG_Handler.set('CHAIN_ANCHOR_OFFSET',CFG.CHAIN_ANCHOR_OFFSET)
+
+    def setFormerCounterOffset(self):
+        seq=self.sender().idx
+        counterOffset=self.sender().val
+        CFG.FORMER_COUNTER_OFFSET[seq]=counterOffset
+        CFG_Handler.set('FORMER_COUNTER_OFFSET',CFG.FORMER_COUNTER_OFFSET)
 
     def printOccu(self):
         print(self.dataThread.occu)
@@ -3532,6 +3650,9 @@ class MainWindow(QMainWindow):
 
     def enableFormerMarking(self,enable):
         CFG_Handler.set('ENABLE_FORMER_MARKING',enable)
+
+    def enableCounterAnimation(self,enable):
+        CFG_Handler.set('ENABLE_COUNTER_ANIMATION',enable)
 
     def showCamDelaySpinBox(self, enable):
         for camBox in self.camBoxes:
@@ -4751,10 +4872,13 @@ class FormerMarkingWidget(QWidget):
         self.text_distances=[]
         self.testButtons=[]
         self.text_offsets=[]
+        self.text_counter=[]
+        self.counterButtons=[]
         self.grid.addWidget(QLabel("Side"),0,0,1,1)
         self.grid.addWidget(QLabel("Distance"),1,0,1,1)
         self.grid.addWidget(QLabel("Mark"),2,0,1,1)
-        self.grid.addWidget(QLabel("Offset"),3,0,1,1)
+        #self.grid.addWidget(QLabel("Offset"),3,0,1,1)
+        self.grid.addWidget(QLabel("Counter Offset"),4,0,1,1)
         for i in range(4):
             self.grid.addWidget(QLabel(SIDE_NAME[i]),0,i+1,1,1)
             text_distance=IndexedLELI(max=maxDist, hint="Distance", idx=i)
@@ -4763,10 +4887,15 @@ class FormerMarkingWidget(QWidget):
             testButton=IndexedButton(i,"Test")
             self.grid.addWidget(testButton,2,i+1,1,1)
             self.testButtons.append(testButton)
-            text_offset=IndexedLELI(max=maxDist, hint="Offset", idx=i)
-            self.grid.addWidget(text_offset,3,i+1,1,1)
-            self.text_offsets.append(text_offset)
-
+            #text_offset=IndexedLELI(max=maxDist, hint="Offset", idx=i)
+            #self.grid.addWidget(text_offset,3,i+1,1,1)
+            #self.text_offsets.append(text_offset)
+            text_counter=IndexedLELI(hint="Counter", idx=i)
+            self.grid.addWidget(text_counter,4,i+1,1,1)
+            self.text_counter.append(text_counter)
+            counterButton=IndexedButton(i,"Test")
+            self.grid.addWidget(counterButton,5,i+1,1,1)
+            self.counterButtons.append(counterButton)
 
 class PeripheralWidget(QWidget):
     def __init__(self, name, addr, idx , maxDist=299,parent=None):

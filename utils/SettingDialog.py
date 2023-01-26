@@ -211,6 +211,9 @@ class Ui_SettingDialog(object):
         self.formerMarkingCheckBox = QtWidgets.QCheckBox(self.tab)
         self.formerMarkingCheckBox.setObjectName("formerMarkingCheckBox")
         self.formerVLayout.addWidget(self.formerMarkingCheckBox)
+        self.counterAnimationCheckBox = QtWidgets.QCheckBox(self.tab)
+        self.counterAnimationCheckBox.setObjectName("counterAnimationCheckBox")
+        self.formerVLayout.addWidget(self.counterAnimationCheckBox)
         self.verticalLayout_5.addLayout(self.formerVLayout)
         self.tabWidget.addTab(self.tab, "")
         self.horizontalLayout.addWidget(self.tabWidget)
@@ -258,5 +261,6 @@ class Ui_SettingDialog(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_general_setting), _translate("SettingDialog", "General"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_peri_setting), _translate("SettingDialog", "Peripherals"))
         self.formerMarkingCheckBox.setText(_translate("SettingDialog", "Enable Former Marking Signal"))
+        self.counterAnimationCheckBox.setText(_translate("SettingDialog", "Enable Counter Animation"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("SettingDialog", "Former"))
 
