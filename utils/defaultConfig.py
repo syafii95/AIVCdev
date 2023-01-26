@@ -162,6 +162,7 @@ defaultConfig={
     "ENABLE_FORMER_MARKING":True,
     "CHAIN_ANCHOR_OFFSET":[0,0,0,0],
     "COUNTER_INSTALLED": True,
+    "ENABLE_COUNTER_ANIMATION": True,
     "FORMER_COUNTER_OFFSET": [
         0,
         0,

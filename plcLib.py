@@ -306,7 +306,8 @@ class PLC():
 			return False
 	def resetRejectCount(self,side):
 		if self.connected:
-			self.client.writeRegisters(REJECT_COUNT_ADDR+side*2,0,2)
+			self.client.write_registers(REJECT_COUNT_ADDR+side*2,0)
+			self.client.write_registers(REJECT_COUNT_ADDR+side*2+1,0)
 
 	def readEncoder(self,sensor):
 		if self.connected:
