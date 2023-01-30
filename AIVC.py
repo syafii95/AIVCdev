@@ -69,6 +69,7 @@ from color_detect_class import ColorDetect
 
 requests.urllib3.disable_warnings(requests.urllib3.exceptions.SubjectAltNameWarning)
 
+#************************** Create data folder **************************#
 if not os.path.exists('data/'):
     os.mkdir('data/')
 logging.basicConfig(format="%(asctime)s\t| %(message)s")
@@ -79,7 +80,9 @@ recordHandler = ConcurrentRotatingFileHandler(os.path.abspath("data/record"), "a
 recordHandler.setFormatter(logging.Formatter("%(asctime)s\t| %(message)s"))
 recorder.addHandler(recordHandler)
 recorder.setLevel(logging.DEBUG)
+#************************** Create data folder **************************#
 
+#************************** Create log folder **************************#
 if not os.path.exists('logs/'):
     os.mkdir('logs/')
 logging.basicConfig(format="%(asctime)s\t| %(message)s")
@@ -99,7 +102,9 @@ configLogHandler = ConcurrentRotatingFileHandler(os.path.abspath("logs/configCha
 configLogHandler.setFormatter(logging.Formatter("%(asctime)s\t| %(message)s"))
 configLogger.addHandler(configLogHandler)
 configLogger.setLevel(logging.DEBUG)
+#************************** Create data folder **************************#
 
+#************************** Initialize Global variable **************************#
 CFG=EasyDict()
 CFG_Handler=ConfigHandler(CFG,'config.json')#Load Config
 Cam_Seq=CFG.CAM_SEQ_ALL[CFG.AIVC_MODE]
@@ -112,6 +117,7 @@ bypassCounter = [False]*4
 
 #AIVC_MODE  #0:AIVC RASM&FKTH; 1:TAC AIVC; 2:ASM AIVC
 CAM_NAME=['FKTH_LIT','FKTH_LIB','FKTH_RIT','FKTH_RIB','FKTH_LOT','FKTH_LOB','FKTH_ROT','FKTH_ROB','RASM_LI','RASM_RI','RASM_LO','RASM_RO']
+OFFLINEMODE=True # Set true for offline testing
 STATE=["Start","Running","Bypassing","Line Stopped", "No PLC Connection", "None Camera"]
 STATE_COLOR=[Qt.green,Qt.green,QColor(117,217,139),Qt.darkGray,Qt.red,Qt.white]
 SIDE_NAME=["Left In", "Right In", "Left Out", "Right Out", "Total"]
@@ -161,10 +167,11 @@ except FileNotFoundError as e:
 CLASS_NUM=len(CLASSES)
 Data_Num=CLASS_NUM+2 #All class plus Empty Link and Produced Glove
 DATA_NAMES=["Good Glove", "Produced Glove", "Empty Link"]+CLASSES[1:]
+#************************** Initialize Global variable **************************#
 
 class singleinstance:
     """
-    Checked an instance AIVC running on the pc
+    Enable only single AIVC running on the pc.
     """
     def __init__(self):
         self.mutex = CreateMutex(None, False, "mutex_AIVC")
@@ -178,6 +185,9 @@ class singleinstance:
             CloseHandle(self.mutex)
 
 def saveStatus(val):
+    """
+    Store AIVC current status to the aivcmonitor config file.
+    """
     with open('aivcMonitor/status','w') as f:
         f.write(str(val))
 
@@ -207,7 +217,7 @@ class maxInt(): # Old Class
 
 def copyRecords(dst,src):
     """
-    Copy record to another variable to avoid being replaced halfway in other thread
+    Copy record to another variable to avoid being replaced halfway in other thread.
     """
     for side in range(len(src)):
         for key, arr in src[side].items():
@@ -223,7 +233,7 @@ class ArmData(): # Old Class
 
 def emptyRecords():
     """
-    Clear all the record in variable
+    Clear all the record in variable.
     """
     record=[]
     for i in range(4):
@@ -235,7 +245,7 @@ def emptyRecords():
 
 def makeDirs(dirs):
     """
-    Create new directory to saved image
+    Create a new directory for saved image.
     """
     for d in dirs:
         if not os.path.exists(d):
@@ -243,7 +253,7 @@ def makeDirs(dirs):
 
 def isRASM(camSeq):
     """
-    Checked RASM status
+    Check RASM status.
     """
     if CFG.AIVC_MODE==0 and camSeq>=RASM_SEQ:
         return True
@@ -251,7 +261,7 @@ def isRASM(camSeq):
         return False
 def isFKTH(camSeq):
     """
-    Checked FKTH status
+    Check FKTH status.
     """
     if CFG.AIVC_MODE==0 and camSeq<RASM_SEQ:
         return True
@@ -259,7 +269,7 @@ def isFKTH(camSeq):
         return False
 def getSide(camSeq):
     """
-    Get and return side of camera; E.g LI,RI,LO,RO
+    Get and return side of camera; E.g LI,RI,LO,RO.
     """
     try:
         return CAM_SIDE[CFG.AIVC_MODE][camSeq]
@@ -269,7 +279,7 @@ def getSide(camSeq):
 
 def generateSasToken(uri, key, expiry=3600):
     """
-    Generate iotHub token for pushing data
+    Generate iotHub token for pushing data.
     """
     ttl = time.time() + expiry
     sign_key = "%s\n%d" % ((parse.quote_plus(uri)), int(ttl))
@@ -284,7 +294,7 @@ def generateSasToken(uri, key, expiry=3600):
 
 def convertToAscii(strID):
     """
-    Convert int former ID to ASCII for led display counter hardware
+    Convert int former ID to ASCII for led display counter hardware.
     """
     elementAppend=[]
     elementAppendFinish=[]
@@ -345,7 +355,7 @@ class ShiftCounter(): # Old Class
             if self.stacks[i][CFG.FURS_DISTANCE[i]]:
                 self.plc.activateCoilBySide(self.addr,i)
 
-class RepetitionChecker():
+class RepetitionChecker(): # Old Class
     def __init__(self,side):
         self.centerList=deque(maxlen=20)
         self.listsToAlign=[deque(maxlen=20) for _ in range(2)]
@@ -380,7 +390,7 @@ class RepetitionChecker():
 
 class TimingChecker():
     """
-    Check triggering timing
+    Check triggering timing.
     """
     def __init__(self,name,length=20,tolerance=2):
         self.name=name
@@ -401,7 +411,7 @@ class TimingChecker():
 
 class OccuAnalyzer():
     """
-    Check timing for each thread
+    Check timing for each thread.
     """
     def __init__(self,name,l):
         self.name=name
@@ -431,6 +441,7 @@ class OccuAnalyzer():
             occuRate=0
         return f"{self.name}\tTotal Time: {totalTimeAvg*1000:.2f}ms\tDuration: {durationAvg*1000:.2f}ms\tOccupation Rate: {occuRate*100:.2f}%"
 
+#******* Initialize AIVC Server IP *******#
 JSON_RPC_PORT=1444
 JSON_RPC_IP=CFG.AIVC_SERVER_IP
 
@@ -438,10 +449,11 @@ OTA_HOST=CFG.AIVC_WEB_IP
 OTA_PORT=1445
 OTA_TCP_BUFFER_SIZE=4096
 DOWNLOAD_FILE_NAME='updatePatch.zip'
+#******* Initialize AIVC Server IP *******#
 
 class OTAClient(Process):
     """
-    Auto update AIVC if got new patch from the server
+    Auto update AIVC if got new patch from the server.
     """
     def __init__(self, host, port):
         super(OTAClient, self).__init__()
@@ -522,7 +534,7 @@ def get_gpu_memory():
 
 class JsonRPCClient(QThread):
     """
-    Send configuration setting to the web server and catch new patch if got via REST API
+    Send configuration setting to the web server and catch new patch if got via RESTful API.
     """
     def __init__(self,parent=None):
         super().__init__(parent=parent)
@@ -631,7 +643,7 @@ class JsonRPCClient(QThread):
 
 class ModelPerformanceHandler(QThread):
     """
-    Handling all model performance analysis
+    Handling all model performance analysis.
     """
     lowConfData = pyqtSignal(list,list,np.ndarray)
     lowConfQue = q.Queue()
@@ -667,7 +679,7 @@ class ModelPerformanceHandler(QThread):
 
 class SQLHandler(QThread):
     """
-    Handling data that wanted to be push to the sql database
+    Handling data that wanted to be push to the sql database.
     """
     def __init__(self,parent=None):
         super().__init__(parent=parent)
@@ -719,7 +731,7 @@ class SQLHandler(QThread):
 
 class ProblematicHandler(QThread):
     """
-    Handle problematic former process
+    Handle problematic former process.
     """
     rasmNumCycle = [0]*Side_Num
     def __init__(self,parent):
@@ -756,7 +768,7 @@ class ProblematicHandler(QThread):
 
 class AlertHandler(QThread):
     """
-    Handling alert before send to the iotHub
+    Handling alert before send to the iotHub.
     """
     def __init__(self,parent, iotHubRestURI,teamsMessenger):
         super().__init__(parent=parent)
@@ -903,7 +915,7 @@ class AlertHandler(QThread):
 
 class TeamsHandler(QThread):
     """
-    Handling alert before send to the Microsoft Teams
+    Handling alert before send to the Microsoft Teams.
     """
     resumePreviousTeamsAddr=pyqtSignal()
     def __init__(self, parent, channel_url):
@@ -946,7 +958,7 @@ class TeamsHandler(QThread):
     def emit(self, record):
         self.queue.put(record)
 
-class PLCAddrInput(QLineEdit):
+class PLCAddrInput(QLineEdit): # Old Class
     def __init__(self, parent=None, maxD=9999, maxM=4096, hint=None):
         super().__init__(parent=parent)
         self.maxD=maxD
@@ -981,7 +993,7 @@ class PLCAddrInput(QLineEdit):
 
 class Setting_Thread(QThread):
     """
-    Push config setting to the iotHub
+    Push config setting to the iotHub.
     """
     pushQue=q.Queue()
     peri0={}
@@ -1087,7 +1099,7 @@ class Setting_Thread(QThread):
 
 class AnimationThread(QThread):
     """
-    Display animation in led counter at production line
+    Display animation in led counter at production line.
     """
     def __init__(self,parent,plc,seqs):
         super().__init__(parent=parent)
@@ -1099,7 +1111,7 @@ class AnimationThread(QThread):
         self.animationList = []
         self.perTrigger=[0]*Side_Num
         self.animationThreadRun = True
-        self.animationTemplate = ['XXXX','****',' ***','  **','   *']
+        self.animationTemplate = ['XXXX','****',' ***','  **','   *'] # Animation template
 
     def run(self):
         while self.animationThreadRun:
@@ -1117,7 +1129,6 @@ class AnimationThread(QThread):
                             while running:
                                 global bypassCounter
                                 bypassCounter[self.seqs] = True
-                                #print(f'++++++++++++ {second} ++++{self.animationList}++++')
                                 sendAnimation = convertToAscii(str(self.animationTemplate[second]))
                                 self.plc.formerCounting(sendAnimation,self.seqs+8)
                                 time.sleep(triggerTime-0.1)
@@ -1133,7 +1144,7 @@ class AnimationThread(QThread):
 
 class Purging_Thread(QThread):
     """
-    Handle all purging process
+    Handle all purging process.
     """
     updatePurgingDisplay=pyqtSignal(int,str)#side,content
     updateListToPurge=pyqtSignal(int,int,str)
@@ -1416,6 +1427,9 @@ class Purging_Thread(QThread):
         print("Purging Thread Closed")
 
 class OperationInspector(QObject):
+    """
+    Inspect current operation state in AIVC.
+    """
     setPlcBypass=pyqtSignal(int,bool)
     def __init__(self, threshould=5,side=0,parent=None):
         super().__init__(parent=parent)
@@ -1449,7 +1463,7 @@ class OperationInspector(QObject):
 
 class Saving_Process(Process):
     """
-    Use multiprocessor for saving image process
+    Handling all saving process for defect and sampling image.
     """
     def __init__(self):
         super(Saving_Process, self).__init__()
@@ -1485,7 +1499,7 @@ class MyTimer(QThread):
 
 class MinuteDataRecorder(QThread):
     """
-    set data recorder to the time format
+    Record and display data according to the selected time format.
     """
     def __init__(self, dHandler):
         super().__init__(parent=dHandler)
@@ -1580,7 +1594,7 @@ class MinuteDataRecorder(QThread):
 
 class DataHandler_Thread(QThread):
     """
-    Handle all data in AIVC
+    Handle all glove defect data.
     """
     refreshStatus=pyqtSignal()
     trigger15min=pyqtSignal()
@@ -1975,10 +1989,8 @@ class DataHandler_Thread(QThread):
         if formerID%10==0 and side==0: #calculate total and defective rate every 10 former 
             self.updateTotal()
 
-        # syafii edit
         if formerID%1==0 and side==0: #calculate total and defective rate every 1 former 
             self.updateTotalLowConf()
-        # syafii edit
 
         if formerID==0 and side==0:#update the whole grid once for every former iteration
             chainDefectionRecords=[self.chainIndexers[i].getAllData() for i in range(4)]
@@ -2000,13 +2012,11 @@ class DataHandler_Thread(QThread):
         for i in range(5):#Defective rate (1st row)
             self.updateTable.emit(0,i, str(f'{dr[i]*100:.2f}%'))
 
-    #syafii edit, add new function
     def updateTotalLowConf(self):
         self.dataLow[-1,:]=np.sum(self.dataLow[:-1,:],axis=0)
         self.dataDiffLow=self.dataLow-self.prevDataLow
         self.totalLow=self.dataDiffLow[-1,:]
 
-    #syafii edit, add new function
     def getLowConfidence(self,classIds):
         total = self.totalLow
         self.modelPerformanceHandler.getConfidenceInfo(total,classIds)
@@ -2244,7 +2254,7 @@ class DataHandler_Thread(QThread):
                     
                     #syafii edit
                     try:
-                        if b[4]<0.90:
+                        if b[4]<0.80:
                             self.getLowConfidence(classId)
                     except:
                         pass
@@ -2312,7 +2322,7 @@ class DataHandler_Thread(QThread):
 
 class Camera_Thread(QThread):
     """
-    Create a thread for a camera
+    Create a thread for each camera.
     """
     feedCaptureQue=pyqtSignal(int, np.ndarray, np.ndarray, int, int)
     def __init__(self, parent, camControl,camNum,seq,camDetails,plc):
@@ -2357,24 +2367,26 @@ class Camera_Thread(QThread):
                 if CFG.ROTATE:
                     frame=cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
-                bypassCamera=False # Set true for offline testing
-                if bypassCamera:
-                    #syafii Edit
-                    convSTR1 = CFG.RASM_TEST_IMAGE.replace("/", "\\")
+                if OFFLINEMODE:
+                    rasmDir = "C:/Users/user/Desktop/syafii/imageTestRASM"
+                    fkthDir = "C:/Users/user/Desktop/syafii/imageTestFKTH"
+                    tacDir = "C:/Users/user/Desktop/syafii/imageTestTac"
+
+                    convSTR1 = rasmDir.replace("/", "\\")
                     path = r""f'{convSTR1}'
                     random_filename = random.choice([
                         x for x in os.listdir(path)
                         if os.path.isfile(os.path.join(path, x))
                     ])
 
-                    convSTR2 = CFG.FKTH_TEST_IMAGE.replace("/", "\\")
+                    convSTR2 = fkthDir.replace("/", "\\")
                     path2 = r""f'{convSTR2}'
                     random_filename2 = random.choice([
                         y for y in os.listdir(path2)
                         if os.path.isfile(os.path.join(path2, y))
                     ])
 
-                    convSTR3 = CFG.TAC_TEST_IMAGE.replace("/", "\\")
+                    convSTR3 = tacDir.replace("/", "\\")
                     path3 = r""f'{convSTR3}'
                     random_filename3 = random.choice([
                         y for y in os.listdir(path3)
@@ -2383,14 +2395,13 @@ class Camera_Thread(QThread):
 
                     if CFG.AIVC_MODE == 0:
                         if camSeq >= 8:
-                            image = Image.open(f'{CFG.RASM_TEST_IMAGE}/{random_filename}')
+                            image = Image.open(f'{rasmDir}/{random_filename}')
                         else:
-                            image = Image.open(f'{CFG.FKTH_TEST_IMAGE}/{random_filename2}')
+                            image = Image.open(f'{fkthDir}/{random_filename2}')
                     else:
-                        image = Image.open(f'{CFG.TAC_TEST_IMAGE}/{random_filename3}')
+                        image = Image.open(f'{tacDir}/{random_filename3}')
                 
                     frame = asarray(image)
-                    ## syafii edit
 
                 image_processed = np.asarray(utils.image_preporcess(frame, [FIXED_INPUT_SIZE, FIXED_INPUT_SIZE])[np.newaxis, ...],dtype=np.float32)
                 self.feedCaptureQue.emit(camSeq, frame, image_processed, formerID, isRasmAnchor)
@@ -2401,7 +2412,7 @@ class Camera_Thread(QThread):
 
 class Capture_Thread(QThread):
     """
-    Handle all sensor, encoder, PLC and camera
+    Handle all sensor, encoder, PLC and camera feedback.
     """
     feedPurgerQue=pyqtSignal(int,int,float)
     feedEncoderQue=pyqtSignal(int)
@@ -2672,7 +2683,7 @@ class Capture_Thread(QThread):
 
 class Inference_Thread(QThread):
     """
-    Handle yolo inference
+    Handle yolov3 inference.
     """
     feedYoloResult = pyqtSignal(int, np.ndarray, list, int, int)
     clearCamBox = pyqtSignal(int)
@@ -4378,7 +4389,7 @@ class DataHistoryDialog(QDialog):
         else:
             self.label.setText(f'No Data for {monthStartTime.strftime("%y%B")}')
 
-class ModelLowConfident(QDialog): # syafii edit, add new classes
+class ModelLowConfident(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent, flags=Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
         self.parent=parent
