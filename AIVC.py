@@ -117,7 +117,7 @@ bypassCounter = [False]*4
 
 #AIVC_MODE  #0:AIVC RASM&FKTH; 1:TAC AIVC; 2:ASM AIVC
 CAM_NAME=['FKTH_LIT','FKTH_LIB','FKTH_RIT','FKTH_RIB','FKTH_LOT','FKTH_LOB','FKTH_ROT','FKTH_ROB','RASM_LI','RASM_RI','RASM_LO','RASM_RO']
-OFFLINEMODE=True # Set true for offline testing
+OFFLINEMODE=False # Set true for offline testing
 STATE=["Start","Running","Bypassing","Line Stopped", "No PLC Connection", "None Camera"]
 STATE_COLOR=[Qt.green,Qt.green,QColor(117,217,139),Qt.darkGray,Qt.red,Qt.white]
 SIDE_NAME=["Left In", "Right In", "Left Out", "Right Out", "Total"]
@@ -390,7 +390,7 @@ class RepetitionChecker(): # Old Class
 
 class TimingChecker():
     """
-    Check triggering timing.
+    Checking thread timing.
     """
     def __init__(self,name,length=20,tolerance=2):
         self.name=name
@@ -411,7 +411,7 @@ class TimingChecker():
 
 class OccuAnalyzer():
     """
-    Check timing for each thread.
+    Checking occupation time.
     """
     def __init__(self,name,l):
         self.name=name
@@ -461,6 +461,7 @@ class OTAClient(Process):
         self.port = port
         self.updated=Value('i',0)
         self.daemon=True
+
     def run(self):
         try:
             print('OTA Client Started')
@@ -520,6 +521,7 @@ class OTAClient(Process):
             logger.info('Update Package Extraction Successfully. Pending AIVC Restart To Complete Update')
         except Exception as e:
             logger.warning(f"OTAClient Exception: {e}")
+
 def get_gpu_memory():
     try:
         _output_to_list = lambda x: x.decode('ascii').split('\r\n')[1]
@@ -534,7 +536,7 @@ def get_gpu_memory():
 
 class JsonRPCClient(QThread):
     """
-    Send configuration setting to the web server and catch new patch if got via RESTful API.
+    Send configuration setting to the server and catch new patch if got via RESTful API.
     """
     def __init__(self,parent=None):
         super().__init__(parent=parent)
@@ -718,6 +720,9 @@ class SQLHandler(QThread):
         print('SQLHandler Closed')
 
     def upload(self, data, databasePrevState):
+        """
+        Upload rasm data to sql server.
+        """
         self.SQLDisableRetry=False#Re-enable SQL Upload
         dataToUpload=data-self.prevData#prevdata
         _time=time.strftime("%H:%M:%S")
@@ -742,9 +747,15 @@ class ProblematicHandler(QThread):
         self.val = 0
 
     def getRasmCycle(self, side):
+        """
+        Get rasm cycle number.
+        """
         self.rasmNumCycle[side] += 1
 
     def getInfoRasm(self,side,rasmID,classes):
+        """
+        Get rasm defect info.
+        """
         self.rasmID = rasmID
         if classes > 0: #defect classes
             if classes in RASM_CLASS:
@@ -764,6 +775,9 @@ class ProblematicHandler(QThread):
                 return(0,0,0,0)
 
     def getEncoderValue(self,val):
+        """
+        Get encoder value.
+        """
         self.val = val
 
 class AlertHandler(QThread):
@@ -1511,6 +1525,9 @@ class MinuteDataRecorder(QThread):
         self.start(priority=3)
 
     def pushIotHub(self,databasePrevState):
+        """
+        Push data to the IotHub.
+        """
         dataDiff=self.dHandler.data-self.previousData
         self.previousData=np.copy(self.dHandler.data)
         if CFG.AIVC_MODE==0: #Send RASM Arm Set Alert
@@ -1680,33 +1697,51 @@ class DataHandler_Thread(QThread):
         self.classDatas=[0]*len(CLASSES)
         self.startCapture()
 
-    def sendFormerNum(self,formerNum):
+    def getFormerNum(self,formerNum):
+        """
+        Get real time former number count from capture thread.
+        """
         self.formerNums = formerNum
 
     def cycleCount(self,cycleNum,triggerCycle):
+        """
+        Get real time former cycle count from capture thread.
+        """
         self.numCycle = cycleNum
         self.triggerCycle = triggerCycle
         if self.triggerCycle == 1:
-            if self.state == 1:
+            if self.state == 1 or self.state == 2:
                 if self.numCycle >= 3:
                     self.uploadProblematic()
         #print(f'Number of cycle is: {self.numCycle}')
 
     def lineSpeedAlert(self, aveSecPerGlove):
+        """
+        Give alert if line speed is not consistant.
+        """
         longestPurgingDuration=max([purgerSetting[3] for purgerSetting in CFG.PURGER_SETTING])/10
         if aveSecPerGlove<longestPurgingDuration and aveSecPerGlove > 0.1:
             self.teamsMessenger.emit(f'<div style="color:black;background-color: #ffff00; padding:10px">Warning: {CFG.FACTORY_NAME} L{CFG.LINE_NUM} Purging Duration ({longestPurgingDuration} sec) longer than Second Per Glove ({aveSecPerGlove:.3f} sec)</div>')
 
     def uploadDatabase(self):
+        """
+        Upload rasm defect data to sql server and iothub.
+        """
         if CFG.AIVC_MODE==0:#TEMP, waiting database upgrade
             self.sqlHandler.upload(self.data,self.databasePrevState)
         self.minuteDataRecorder.pushIotHub(self.databasePrevState)
         self.databasePrevState=STATE[self.state]
     
     def appendProblematic(self,dictDataDefect):
+        """
+        Append dictDataDefect info into the list.
+        """
         self.appendProblematicFormer.append(dictDataDefect)
         
     def uploadProblematic(self):
+        """
+        Upload problematic former data to the iothub.
+        """
         if CFG.AIVC_MODE==0:
             utcDateTime=datetime.datetime.utcnow().isoformat()
             DateTime=datetime.datetime.now().isoformat()
@@ -1775,6 +1810,9 @@ class DataHandler_Thread(QThread):
                 recorder.info(f'Failed to upload Problematic Former data to {PROBLEMATIC_FORMER_URL}')
 
     def saveSegmentedRecord(self):
+        """
+        Saved 1 hour recorded data into csv file.
+        """
         dataSegment=self.data-self.lastData
         endTime=time.strftime("%Y-%m-%d_%H:%M:%S")
         data_to_log = [STATE[self.prevState], self.segmentedRecordStartTime, endTime, CFG.FACTORY_NAME, CFG.LINE_NUM]
@@ -1798,6 +1836,9 @@ class DataHandler_Thread(QThread):
         self.prevState=self.state
 
     def save15minSideRecord(self):
+        """
+        Saved 15 min recorded data into csv file.
+        """
         if not os.path.exists('logs/'):
             os.mkdir('logs/')
         if not os.path.exists('logs/AIVC15minData.csv'):
@@ -1818,6 +1859,9 @@ class DataHandler_Thread(QThread):
         self.recordStartTime15min=endTime
 
     def saveDailyRecord(self):
+        """
+        Saved Daily recorded data into csv file.
+        """
         dataSegment=self.data-self.dataDay
         endTime=time.strftime("%Y-%m-%d_%H:%M:%S")
         data_to_log = [self.dailyRecordStartTime, endTime, CFG.FACTORY_NAME, CFG.LINE_NUM]
@@ -1837,9 +1881,15 @@ class DataHandler_Thread(QThread):
         #reset last time
         self.dailyRecordStartTime=endTime
     def isRunning(self):
+        """
+        Check state status.
+        """
         return True if self.state<=1 else False #return true for either START or RUNNING
 
     def closeThread(self):
+        """
+        Close datahandler thread.
+        """
         self.uploadDatabase()#Upload last data segment to SQL & IotHub before closing
         try:
             if len(self.appendProblematicFormer) == 0:
@@ -1871,9 +1921,17 @@ class DataHandler_Thread(QThread):
         self.modelPerformanceHandler.wait()
         self.jsonRPCThread.wait()
         self.problematicHandler.wait()
+
     def feedYoloResult(self,camSeq,frame,pred_bbox,formerID,isRasmAnchor):
+        """
+        Queuing result from yolo.
+        """
         self.yoloResultQue.put([camSeq,frame,pred_bbox,formerID,isRasmAnchor])
+
     def updateRasmRecord(self, side, cls, isRasmAnchor):
+        """
+        Update rasm record every time sensor trigger.
+        """
         if isRasmAnchor==1:
             self.rasmRecords[side].anchorReached()
 
@@ -1902,28 +1960,43 @@ class DataHandler_Thread(QThread):
         self.updateRasmGridOfLine.emit(side, rasmID, armRecord, cycleRasm, contBad, contGood, label, encod)
 
     def incrementData(self, line, row):
+        """
+        Increase the number of data inside the defect table.
+        """
         self.data[line][row]+=1
         self.dataLow[line][row]+=1
         self.updateTable.emit(row+1,line, str(self.data[line][row]-self.prevData[line][row]))
 
     def refreshDataTable(self):
+        """
+        Refresh data table based on selected setting.
+        """
         for line,row in np.ndindex(self.data.shape):
             self.updateTable.emit(row+1,line, str(self.data[line][row]-self.prevData[line][row]))
         self.updateTotal()
 
     def incrementContBad(self,side,former):
+        """
+        Increase the number of Continues bad count for problematic former.
+        """
         if self.numCycle >= 1:
             self.contBadData[side][former]+=1
             self.contBadDataSend = self.contBadData[side][former]
             #print(f'FormerID: {former} : Side: {side} | Cont Bad: {self.contBadData[side][former]} | Cont Good: {self.contGoodData[side][former]} | Cycle: {self.numCycle}')
 
     def incrementContGood(self,side,former):
+        """
+        Increase the number of Continues good count for problematic former.
+        """
         if self.numCycle >= 1:
             self.contGoodData[side][former]+=1
             self.contGoodDataSend = self.contGoodData[side][former]
             #print(f'FormerID: {former} : Side: {side} | Cont Bad: {self.contBadData[side][former]} | Cont Good: {self.contGoodData[side][former]} | Cycle: {self.numCycle}')
 
     def resetConsecutiveCount(self,side,former,condition):
+        """
+        Reset certain variable to 0 depend on condition.
+        """
         if condition == 0: #Empty Link
             self.contBadData[side][former] = 0
             self.contGoodData[side][former] = 0
@@ -1937,6 +2010,9 @@ class DataHandler_Thread(QThread):
         self.contGoodBadCycle.emit(side, former, self.numCycle, self.contBadData, self.contGoodData, self.formerEmptyLink)
 
     def setGloveDefectionRecord(self, side, formerID, record, lab, classRecord):
+        """
+        Set glove defect record to the table.
+        """
         r=np.zeros(CLASS_NUM,dtype=int)
         if record>1:#Defective glove
             for i in range(1,CLASS_NUM):
@@ -2001,7 +2077,10 @@ class DataHandler_Thread(QThread):
                 clear=False
             self.refreshChainGrids.emit(chainDefectionRecords,clear)
 
-    def updateTotal(self):        
+    def updateTotal(self):   
+        """
+        Update total table.
+        """     
         self.data[-1,:]=np.sum(self.data[:-1,:],axis=0)
         self.dataDiff=self.data-self.prevData
         total=self.dataDiff[-1,:]
@@ -2013,15 +2092,24 @@ class DataHandler_Thread(QThread):
             self.updateTable.emit(0,i, str(f'{dr[i]*100:.2f}%'))
 
     def updateTotalLowConf(self):
+        """
+        Update total low confidence table.
+        """
         self.dataLow[-1,:]=np.sum(self.dataLow[:-1,:],axis=0)
         self.dataDiffLow=self.dataLow-self.prevDataLow
         self.totalLow=self.dataDiffLow[-1,:]
 
     def getLowConfidence(self,classIds):
+        """
+        Get low confidence number for each triggering.
+        """
         total = self.totalLow
         self.modelPerformanceHandler.getConfidenceInfo(total,classIds)
 
     def startCapture(self):
+        """
+        Start capturing defect image.
+        """
         self.capturing=not self.capturing
         if self.capturing:
             # tracelog
@@ -2049,16 +2137,23 @@ class DataHandler_Thread(QThread):
             # tracelog
             logger.info("STOP CAPTURE") 
 
-    def setAutoCamDelay(self, enable):
+    def setAutoCamDelay(self, enable):# Not use
         self.enableCamDelayAdjustment=enable
 
     def drawBBoxes(self, frame, bboxes, ch, w, h):
+        """
+        Draw bounding box.
+        """
         image = utils.draw_bbox(frame, bboxes)
         bytesPerLine = ch * w
         convertToQtFormat = QImage(image.data, w, h, bytesPerLine, QImage.Format_RGB888)
         convertedImg = convertToQtFormat.scaled(440, 330, Qt.KeepAspectRatio)
         return convertedImg
+
     def saveImg(self, imgName, img, label=None):
+        """
+        Save defect or sampling image.
+        """
         #send img to saving queue, will be save by savingProcess in another core
         os.makedirs(os.path.dirname(imgName), exist_ok=True)
         if label:
@@ -2071,12 +2166,20 @@ class DataHandler_Thread(QThread):
         self.savingProcesses[sn].savingQue.put([imgName,img])
         
     def noneCamera(self):
+        """
+        Change current state to 5 if None camera.
+        """
         recorder.info("No Camera Found, Changed State To 'None Camera'")
         self.state=5#None Camera State
+
     def firstChainAnchorReached(self):
+        """
+        Set first anchor true for first time anchor trigger.
+        """
         for chainIndexer in self.chainIndexers:
             chainIndexer.anchorReached()
         self.firstAnchor=True
+
     def run(self):
         b=[0,0,0,0,0,100]# dummy class for initial start
         while self.dataHandlerRunning:
@@ -2252,13 +2355,11 @@ class DataHandler_Thread(QThread):
                         listStr=f'{CLASSES[classId]}\t{b[4]*100:.2f}%    {time.strftime("%d/%m  %H:%M:%S")}    {SIDE_SHORT[side]}{s}    {formerID:05d}'
                         self.setListItem.emit(listStr, f"{imgName}.{IMG_FORMAT}")
                     
-                    #syafii edit
                     try:
                         if b[4]<0.80:
                             self.getLowConfidence(classId)
                     except:
                         pass
-                    #syafii edit    
 
                     if b[4]<CFG.LOW_CONF_THRESHOLD: #Any low confidence inference
                         labelLow+=f"{classId} {xc} {yc} {width} {height}\n"
@@ -2465,11 +2566,17 @@ class Capture_Thread(QThread):
                 self.camThreads.append(camThread)
 
     def getAveLineSpeed(self):
+        """
+        Get average AIVC line speed.
+        """
         if self.aveSecPerGlove:
             self.sendAveLineSpeed.emit(self.aveSecPerGlove)
 
     #Obsolete
     def adjustCamDelay(self, camSeq, xc):
+        """
+        Adjusting camera delay.
+        """
         if xc > 0.40 and xc < 0.60:
             return
         if camSeq%2==0: ##Right side, glove move to left (-x)
@@ -2494,9 +2601,13 @@ class Capture_Thread(QThread):
                 self.indiviDelay[num_cam]-=0.1*distanceFromCenter*distanceFromCenter
 
     def closeThread(self):
+        """
+        Close capture thread.
+        """
         self.camThreadRunning=False
         for camThread in self.camThreads:
             camThread.que.put(None)
+
     def run(self):
         CFormerIDs=[-1]*CFG.SENSOR_NUM
         if Cams_Num>len(Cam_Seq):
@@ -2711,12 +2822,21 @@ class Inference_Thread(QThread):
         dummy_bbox = self.model.predict_on_batch(dummyArray)#Fire first inference to warm up (first inference is slow)
 
     def feedCaptureQue(self, camSeq, image, image_processed, formerID, isRasmAnchor):
+        """
+        Queuing capture image from camera.
+        """
         self.captureQue.put([camSeq, image, image_processed, formerID, isRasmAnchor])
 
     def closeThread(self):
+        """
+        Close inference thread.
+        """
         self.inferenceRunning=False
 
     def batchProcessYolo(self):
+        """
+        Feed capture image to the yolo for inference.
+        """
         self.occu.start()
         images_data=[p[0] for p in self.payload]
         images_data=np.vstack(images_data)
@@ -2843,7 +2963,7 @@ class MainWindow(QMainWindow):
         self.captureThread.setAnchorID.connect(self.purgingThread.setAnchorID)
         self.captureThread.cycleCount.connect(self.dataThread.cycleCount)
 
-        self.captureThread.sendFormerNum.connect(self.dataThread.sendFormerNum)
+        self.captureThread.sendFormerNum.connect(self.dataThread.getFormerNum)
         self.inferenceThread.feedYoloResult.connect(self.dataThread.feedYoloResult)
         self.inferenceThread.clearCamBox.connect(self.clearCamBox)
         for camThread in self.captureThread.camThreads:
@@ -4890,6 +5010,7 @@ class FormerMarkingWidget(QWidget):
         self.grid.addWidget(QLabel("Mark"),2,0,1,1)
         #self.grid.addWidget(QLabel("Offset"),3,0,1,1)
         self.grid.addWidget(QLabel("Counter Offset"),4,0,1,1)
+
         for i in range(4):
             self.grid.addWidget(QLabel(SIDE_NAME[i]),0,i+1,1,1)
             text_distance=IndexedLELI(max=maxDist, hint="Distance", idx=i)
