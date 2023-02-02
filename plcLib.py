@@ -33,6 +33,7 @@ ENCODER_ADDR=3829			#C245 (3784+45) X4 Encoder
 ENCODER_LATCH_ADDR=4386		#D290
 HIGH_DEFECT_FORMER_ADDR=2998	#M950
 FORMER_COUNTING=6096			#D2000
+FKTH_NO_GLOVE_SIGNAL=2348		#M300
 
 class HalfmoonPLC():
 	def __init__(self, ip):
@@ -220,6 +221,9 @@ class PLC():
 				return -1
 		else:
 			return -1	#no connection
+
+	def feedFkthNoGloveSignal(self,side,camSeq,noGloveSignal):
+		self.client.write_coil(FKTH_NO_GLOVE_SIGNAL+side, noGloveSignal)
 
 	def formerCounting(self,formerID,camSeq):
 		if self.connected:
