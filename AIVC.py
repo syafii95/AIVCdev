@@ -184,6 +184,19 @@ class singleinstance:
         if self.mutex:
             CloseHandle(self.mutex)
 
+def verifyCls(CLASSES):
+    """
+    Verify default class name to prevent changes from user.
+    """
+    defaultCls = ["Good Glove","Tearing","Single Arm","Double Dip", "Unstripped","No Glove"]
+    for i, cls in enumerate(defaultCls):
+        if cls != CLASSES[i]:
+            logger.warning(f'Classes name for {CLASSES[i]} not found. Change to {cls} classe name by following default setting.')
+            CLASSES[i] = cls
+        else:
+            pass
+    return CLASSES
+
 def saveStatus(val):
     """
     Store AIVC current status to the aivcmonitor config file.
@@ -1628,6 +1641,7 @@ class DataHandler_Thread(QThread):
     updateTable=pyqtSignal(int,int,str)
     refreshChainGrids=pyqtSignal(list,bool)
     updateStartTime=pyqtSignal(str)
+    feedFkthNoGlove=pyqtSignal(int, int, bool)
     yoloResultQue=q.Queue()
     data=np.zeros((5,Data_Num), dtype = int)
     contGoodBadCycle=pyqtSignal(int, int, int, np.ndarray, np.ndarray, np.ndarray)
@@ -1694,6 +1708,7 @@ class DataHandler_Thread(QThread):
         self.samplingCountDown=50
         self.nasConnected=False
         self.firstAnchor=False
+        self.countDown=[0]*12
         self.classDatas=[0]*len(CLASSES)
         self.startCapture()
 
@@ -2198,6 +2213,7 @@ class DataHandler_Thread(QThread):
             rawImage=frame.copy() ##Better way?
             classStr=""
             classFlag=0b0
+            
             for b in bboxes:
                 #change unstripped in fkth to good glove
                 if(int(b[5])==4):
@@ -2206,6 +2222,19 @@ class DataHandler_Thread(QThread):
                 classFlag=classFlag | (1<< int(b[5]))
                 classStr += CLASSES[int(b[5])] + " "
                 self.lineBypassings[side]=self.operationInspectors[side].isRunning(False if b[5]==BYPASS_CLASS else True)
+
+                if camSeq == 0 or camSeq == 2 or camSeq == 4 or camSeq == 6: # Target only top fkth camera
+                    if CLASSES[int(b[5])] == "No Glove":
+                        self.countDown[camSeq] += 1
+                        if self.countDown[camSeq] == Former_Interval[camSeq]:
+                            self.countDown[camSeq] = 0
+                            noGloveSignal = True
+                            self.feedFkthNoGlove.emit(side, camSeq, noGloveSignal)
+                    else:
+                        noGloveSignal = False
+                        self.countDown[camSeq] = 0
+                        self.feedFkthNoGlove.emit(side, camSeq, noGloveSignal)
+
             if formerID == -2:#No PLC connection, skip data recording
                 img=self.drawBBoxes(frame, bboxes, ch, w, h)
                 self.updateCamBox.emit(img, f'{SIDE_NAME[side]} No PLC Connection. Image captured on timeout.', camSeq)
@@ -2953,6 +2982,7 @@ class MainWindow(QMainWindow):
         self.dataThread.refreshChainGrids.connect(self.refreshChainGrids)
         self.dataThread.updateStartTime.connect(self.updateStartTime)
         self.dataThread.rejectAsm.connect(self.purgingThread.rejectAsm)
+        self.dataThread.feedFkthNoGlove.connect(self.feedFkthNoGlove)
         for oi in self.dataThread.operationInspectors:
             oi.setPlcBypass.connect(self.setPlcBypass)
         self.captureThread.setAveLineSpeedTxt.connect(self.setAveLineSpeedTxt)
@@ -3223,6 +3253,9 @@ class MainWindow(QMainWindow):
         self.tab_camera= CameraTab()
         self.loadAIVCMode()
     
+    def feedFkthNoGlove(self, side, camSeq, noGloveShignal):
+        self.plc.feedFkthNoGloveSignal(side,camSeq, noGloveShignal)
+
     def setPlcBypass(self,side,bypass):
         self.plc.setBypass(side,bypass)
             
@@ -5061,6 +5094,7 @@ def forceExit(exctype, value, tb):
     #os._exit(-1)
 
 if __name__ == "__main__":
+    CLASSES = verifyCls(CLASSES)
     freeze_support()
     sys._excepthook = sys.excepthook 
     def exception_hook(exctype, value, traceback):
