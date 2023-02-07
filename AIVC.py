@@ -1,3 +1,4 @@
+from lib2to3.pytree import convert
 import cv2
 import time
 import datetime
@@ -71,6 +72,7 @@ np.seterr(divide='ignore', invalid='ignore')
 
 requests.urllib3.disable_warnings(requests.urllib3.exceptions.SubjectAltNameWarning)
 
+#************************** Create data folder **************************#
 if not os.path.exists('data/'):
     os.mkdir('data/')
 logging.basicConfig(format="%(asctime)s\t| %(message)s")
@@ -81,7 +83,9 @@ recordHandler = ConcurrentRotatingFileHandler(os.path.abspath("data/record"), "a
 recordHandler.setFormatter(logging.Formatter("%(asctime)s\t| %(message)s"))
 recorder.addHandler(recordHandler)
 recorder.setLevel(logging.DEBUG)
+#************************** Create data folder **************************#
 
+#************************** Create log folder **************************#
 if not os.path.exists('logs/'):
     os.mkdir('logs/')
 logging.basicConfig(format="%(asctime)s\t| %(message)s")
@@ -101,7 +105,9 @@ configLogHandler = ConcurrentRotatingFileHandler(os.path.abspath("logs/configCha
 configLogHandler.setFormatter(logging.Formatter("%(asctime)s\t| %(message)s"))
 configLogger.addHandler(configLogHandler)
 configLogger.setLevel(logging.DEBUG)
+#************************** Create data folder **************************#
 
+#************************** Initialize Global variable **************************#
 CFG=EasyDict()
 CFG_Handler=ConfigHandler(CFG,'config.json')#Load Config
 Cam_Seq=CFG.CAM_SEQ_ALL[CFG.AIVC_MODE]
@@ -110,10 +116,11 @@ Cam_Delay=CFG.CAM_DELAY_ALL[CFG.AIVC_MODE]
 Cam_Sensor=CFG.CAM_SENSOR_ALL[CFG.AIVC_MODE]
 Cam_Sensor=[s if s<CFG.SENSOR_NUM else (CFG.SENSOR_NUM-1) for s in Cam_Sensor]#Limit maximum value of Cam_Sensor
 Side_Num= 4 if CFG.DOUBLE_FORMER else 2 #Get Side Num
-Former_Plc_offset=CFG.FORMER_COUNTER_OFFSET
+bypassCounter = [False]*4
 
 #AIVC_MODE  #0:AIVC RASM&FKTH; 1:TAC AIVC; 2:ASM AIVC
 CAM_NAME=['FKTH_LIT','FKTH_LIB','FKTH_RIT','FKTH_RIB','FKTH_LOT','FKTH_LOB','FKTH_ROT','FKTH_ROB','RASM_LI','RASM_RI','RASM_LO','RASM_RO']
+OFFLINEMODE=False # Set true for offline testing
 STATE=["Start","Running","Bypassing","Line Stopped", "No PLC Connection", "None Camera"]
 STATE_COLOR=[Qt.green,Qt.green,QColor(117,217,139),Qt.darkGray,Qt.red,Qt.white]
 SIDE_NAME=["Left In", "Right In", "Left Out", "Right Out", "Total"]
@@ -168,7 +175,12 @@ Data_Num=CLASS_NUM+2 #All class plus Empty Link and Produced Glove
 New_Data_Num=NEW_CLASS_NUM+2
 DATA_NAMES=["Good Glove", "Produced Glove", "Empty Link"]+CLASSES[1:]
 NEW_DATA_NAMES=["Good Glove", "Produced Glove", "Empty Link"]+NEW_CLASSES[1:]
+#************************** Initialize Global variable **************************#
+
 class singleinstance:
+    """
+    Enable only single AIVC running on the pc.
+    """
     def __init__(self):
         self.mutex = CreateMutex(None, False, "mutex_AIVC")
         self.lasterror = GetLastError()
@@ -179,10 +191,31 @@ class singleinstance:
     def remove(self):
         if self.mutex:
             CloseHandle(self.mutex)
+
+def verifyCls(CLASSES):
+    """
+    Verify default class name to prevent changes from user.
+    """
+    defaultCls = ["Good Glove","Tearing","Single Arm","Double Dip", "Unstripped","No Glove"]
+    for i, cls in enumerate(defaultCls):
+        if cls != CLASSES[i]:
+            logger.warning(f'Classes name for {CLASSES[i]} not found. Change to {cls} classes name by following default setting.')
+            CLASSES[i] = cls
+        else:
+            pass
+    return CLASSES
+
+if CFG.AIVC_MODE == 0:
+    CLASSES = verifyCls(CLASSES)
+
 def saveStatus(val):
+    """
+    Store AIVC current status to the aivcmonitor config file.
+    """
     with open('aivcMonitor/status','w') as f:
         f.write(str(val))
-class maxInt():
+
+class maxInt(): # Old Class
     def __init__(self, value, max):
         self.value=value
         self.max=max
@@ -207,11 +240,14 @@ class maxInt():
         return self.value==_val
 
 def copyRecords(dst,src):
+    """
+    Copy record to another variable to avoid being replaced halfway in other thread.
+    """
     for side in range(len(src)):
         for key, arr in src[side].items():
             np.copyto(dst[side][key], arr)
 
-class ArmData():
+class ArmData(): # Old Class
     def __init__(self, cls=0):
         self.data=np.zeros(NEW_CLASS_NUM,dtype=int)
         self.data[cls]=1
@@ -220,6 +256,9 @@ class ArmData():
         return self
 
 def emptyRecords():
+    """
+    Clear all the record in variable.
+    """
     record=[]
     for i in range(4):
         side={}
@@ -229,21 +268,33 @@ def emptyRecords():
     return record
 
 def makeDirs(dirs):
+    """
+    Create a new directory for saved image.
+    """
     for d in dirs:
         if not os.path.exists(d):
             os.makedirs(d)
 
 def isRASM(camSeq):
+    """
+    Check RASM status.
+    """
     if CFG.AIVC_MODE==0 and camSeq>=RASM_SEQ:
         return True
     else:
         return False
 def isFKTH(camSeq):
+    """
+    Check FKTH status.
+    """
     if CFG.AIVC_MODE==0 and camSeq<RASM_SEQ:
         return True
     else:
         return False
 def getSide(camSeq):
+    """
+    Get and return side of camera; E.g LI,RI,LO,RO.
+    """
     try:
         return CAM_SIDE[CFG.AIVC_MODE][camSeq]
     except IndexError:
@@ -251,6 +302,9 @@ def getSide(camSeq):
         return CAM_SIDE[2][camSeq]
 
 def generateSasToken(uri, key, expiry=3600):
+    """
+    Generate iotHub token for pushing data.
+    """
     ttl = time.time() + expiry
     sign_key = "%s\n%d" % ((parse.quote_plus(uri)), int(ttl))
     print(sign_key)
@@ -263,81 +317,27 @@ def generateSasToken(uri, key, expiry=3600):
     return 'SharedAccessSignature ' + parse.urlencode(rawtoken)
 
 def convertToAscii(strID):
+    """
+    Convert int former ID to ASCII for led display counter hardware.
+    """
     elementAppend=[]
     elementAppendFinish=[]
     numElement=48
-    listDecimal=[12288,12544,12800,13056,13312,13568,13824,14080,14336,14592]
+    listDecimal=[12288,12544,12800,13056,13312,13568,13824,14080,14336,14592,10752,22528,8192]
     for element in strID:
-        if element == '0':
-            numElement=48
-        elif element == '1':
-            numElement=49
-        elif element == '2':
-            numElement=50
-        elif element == '3':
-            numElement=51
-        elif element == '4':
-            numElement=52
-        elif element == '5':
-            numElement=53
-        elif element == '6':
-            numElement=54
-        elif element == '7':
-            numElement=55
-        elif element == '8':
-            numElement=56
-        elif element == '9':
-            numElement=57
-        
+        numElement = ord(element) #convert ascii to decimal
         elementAppend.append(numElement)
         if len(elementAppend) == len(strID):
-            if elementAppend[2] == 48:
-                elementAppend[2] = listDecimal[0]
-            elif elementAppend[2] == 49:
-                elementAppend[2] = listDecimal[1]
-            elif elementAppend[2] == 50:
-                elementAppend[2] = listDecimal[2]
-            elif elementAppend[2] == 51:
-                elementAppend[2] = listDecimal[3]
-            elif elementAppend[2] == 52:
-                elementAppend[2] = listDecimal[4]
-            elif elementAppend[2] == 53:
-                elementAppend[2] = listDecimal[5]
-            elif elementAppend[2] == 54:
-                elementAppend[2] = listDecimal[6]
-            elif elementAppend[2] == 55:
-                elementAppend[2] = listDecimal[7]
-            elif elementAppend[2] == 56:
-                elementAppend[2] = listDecimal[8]
-            elif elementAppend[2] == 57:
-                elementAppend[2] = listDecimal[9]
-
-            if elementAppend[0] == 48:
-                elementAppend[0] = listDecimal[0]
-            elif elementAppend[0] == 49:
-                elementAppend[0] = listDecimal[1]
-            elif elementAppend[0] == 50:
-                elementAppend[0] = listDecimal[2]
-            elif elementAppend[0] == 51:
-                elementAppend[0] = listDecimal[3]
-            elif elementAppend[0] == 52:
-                elementAppend[0] = listDecimal[4]
-            elif elementAppend[0] == 53:
-                elementAppend[0] = listDecimal[5]
-            elif elementAppend[0] == 54:
-                elementAppend[0] = listDecimal[6]
-            elif elementAppend[0] == 55:
-                elementAppend[0] = listDecimal[7]
-            elif elementAppend[0] == 56:
-                elementAppend[0] = listDecimal[8]
-            elif elementAppend[0] == 57:
-                elementAppend[0] = listDecimal[9]
+            for i,element in enumerate(elementAppend):
+                if i == 0 or i == 2:
+                    hexData = hex(int(element))[2:]+'00'
+                    elementAppend[i] = int(hexData,16)
             
             elementAppendFinish = np.copy(elementAppend)
             elementAppend.clear()
     return elementAppendFinish
 
-class ShiftCounter():
+class ShiftCounter(): # Old Class
     def __init__(self,addr, plc, idx, maxlen=300):
         self.addr=addr
         self.plc=plc
@@ -379,7 +379,7 @@ class ShiftCounter():
             if self.stacks[i][CFG.FURS_DISTANCE[i]]:
                 self.plc.activateCoilBySide(self.addr,i)
 
-class RepetitionChecker():
+class RepetitionChecker(): # Old Class
     def __init__(self,side):
         self.centerList=deque(maxlen=20)
         self.listsToAlign=[deque(maxlen=20) for _ in range(2)]
@@ -411,7 +411,11 @@ class RepetitionChecker():
                     highestSimilarity=similarity
                     shift=i
             print(f'{k} Highest Similarity {shift}: {highestSimilarity}')
+
 class TimingChecker():
+    """
+    Checking thread timing.
+    """
     def __init__(self,name,length=20,tolerance=2):
         self.name=name
         self.length=length
@@ -430,6 +434,9 @@ class TimingChecker():
         self.prevTime=time.time()
 
 class OccuAnalyzer():
+    """
+    Checking occupation time.
+    """
     def __init__(self,name,l):
         self.name=name
         self.totalTimes=deque(maxlen=l)
@@ -458,6 +465,7 @@ class OccuAnalyzer():
             occuRate=0
         return f"{self.name}\tTotal Time: {totalTimeAvg*1000:.2f}ms\tDuration: {durationAvg*1000:.2f}ms\tOccupation Rate: {occuRate*100:.2f}%"
 
+#******* Initialize AIVC Server IP *******#
 JSON_RPC_PORT=1444
 JSON_RPC_IP=CFG.AIVC_SERVER_IP
 
@@ -465,14 +473,19 @@ OTA_HOST=CFG.AIVC_WEB_IP
 OTA_PORT=1445
 OTA_TCP_BUFFER_SIZE=4096
 DOWNLOAD_FILE_NAME='updatePatch.zip'
+#******* Initialize AIVC Server IP *******#
 
 class OTAClient(Process):
+    """
+    Auto update AIVC if got new patch from the server.
+    """
     def __init__(self, host, port):
         super(OTAClient, self).__init__()
         self.host = host
         self.port = port
         self.updated=Value('i',0)
         self.daemon=True
+
     def run(self):
         try:
             print('OTA Client Started')
@@ -532,6 +545,7 @@ class OTAClient(Process):
             logger.info('Update Package Extraction Successfully. Pending AIVC Restart To Complete Update')
         except Exception as e:
             logger.warning(f"OTAClient Exception: {e}")
+
 def get_gpu_memory():
     try:
         _output_to_list = lambda x: x.decode('ascii').split('\r\n')[1]
@@ -545,6 +559,9 @@ def get_gpu_memory():
         return 505, 505, "Unknown"
 
 class JsonRPCClient(QThread):
+    """
+    Send configuration setting to the server and catch new patch if got via RESTful API.
+    """
     def __init__(self,parent=None):
         super().__init__(parent=parent)
         self.name=f'{CFG.FACTORY_NAME}L{CFG.LINE_NUM}_{CFG.AIVC_MODE}'
@@ -651,6 +668,9 @@ class JsonRPCClient(QThread):
         print("JsonRPC Client Thread Closed")
 
 class ModelPerformanceHandler(QThread):
+    """
+    Handling all model performance analysis.
+    """
     lowConfData = pyqtSignal(list,list,np.ndarray)
     lowConfQue = q.Queue()
     #modelPerformanceRunning = True
@@ -674,7 +694,6 @@ class ModelPerformanceHandler(QThread):
                     appendLowConfidence.append(total[i])# total glove
             for i in range(len(NEW_CLASSES)):
                 if classIds == i:
-                    np.seterr(divide='ignore', invalid='ignore')
                     self.classDatas[i]+=1 #increase if got low confident 
                     differentDataRate = np.nan_to_num((np.subtract(appendLowConfidence,self.classDatas)/appendLowConfidence))*100
                     if not -inf in differentDataRate:
@@ -685,6 +704,9 @@ class ModelPerformanceHandler(QThread):
         self.lowConfQue.put([total,classIds])
 
 class SQLHandler(QThread):
+    """
+    Handling data that wanted to be push to the sql database.
+    """
     def __init__(self,parent=None):
         super().__init__(parent=parent)
         self.queue = q.Queue()
@@ -720,7 +742,11 @@ class SQLHandler(QThread):
                     continue
                 self.cache.pop(0)
         print('SQLHandler Closed')
+
     def upload(self, data, databasePrevState):
+        """
+        Upload rasm data to sql server.
+        """
         self.SQLDisableRetry=False#Re-enable SQL Upload
         dataToUpload=data-self.prevData#prevdata
         _time=time.strftime("%H:%M:%S")
@@ -733,6 +759,9 @@ class SQLHandler(QThread):
         self.prevTime=_time
 
 class ProblematicHandler(QThread):
+    """
+    Handle problematic former process.
+    """
     rasmNumCycle = [0]*Side_Num
     def __init__(self,parent):
         super().__init__(parent=parent)
@@ -742,9 +771,15 @@ class ProblematicHandler(QThread):
         self.val = 0
 
     def getRasmCycle(self, side):
+        """
+        Get rasm cycle number.
+        """
         self.rasmNumCycle[side] += 1
 
     def getInfoRasm(self,side,rasmID,classes):
+        """
+        Get rasm defect info.
+        """
         self.rasmID = rasmID
         if classes > 0: #defect classes
             if classes in RASM_CLASS:
@@ -762,13 +797,17 @@ class ProblematicHandler(QThread):
                 return(self.rasmNumCycle[side],self.contBadDataRasm[side][rasmID-1],self.contGoodDataRasm[side][rasmID-1],self.val)
             else:
                 return(0,0,0,0)
-        """else:
-            return(0,0,0,0)"""
 
     def getEncoderValue(self,val):
+        """
+        Get encoder value.
+        """
         self.val = val
 
 class AlertHandler(QThread):
+    """
+    Handling alert before send to the iotHub.
+    """
     def __init__(self,parent, iotHubRestURI,teamsMessenger):
         super().__init__(parent=parent)
         self.alertQueue = q.Queue()
@@ -913,6 +952,9 @@ class AlertHandler(QThread):
 
 
 class TeamsHandler(QThread):
+    """
+    Handling alert before send to the Microsoft Teams.
+    """
     resumePreviousTeamsAddr=pyqtSignal()
     def __init__(self, parent, channel_url):
         super().__init__(parent=parent)
@@ -954,7 +996,7 @@ class TeamsHandler(QThread):
     def emit(self, record):
         self.queue.put(record)
 
-class PLCAddrInput(QLineEdit):
+class PLCAddrInput(QLineEdit): # Old Class
     def __init__(self, parent=None, maxD=9999, maxM=4096, hint=None):
         super().__init__(parent=parent)
         self.maxD=maxD
@@ -988,6 +1030,9 @@ class PLCAddrInput(QLineEdit):
         self.periThreadRunning=False
 
 class Setting_Thread(QThread):
+    """
+    Push config setting to the iotHub.
+    """
     pushQue=q.Queue()
     peri0={}
     peri1={}
@@ -1075,10 +1120,9 @@ class Setting_Thread(QThread):
             
             if dataToSend:
                 try:
-                    #resp = requests.post(CONFIG_URL, headers={'Content-Type': 'application/json'}, json=dataToSend)
-                    #recorder.info(f"Config send status: {resp}")
-                    #recorder.info(f"Config: {dataToSend}")
-                    pass
+                    resp = requests.post(CONFIG_URL, headers={'Content-Type': 'application/json'}, json=dataToSend)
+                    recorder.info(f"Config send status: {resp}")
+                    recorder.info(f"Config: {dataToSend}")
 
                 except Exception as e:
                     recorder.debug(f"Failed to send Config Setting due to {e}")
@@ -1091,7 +1135,55 @@ class Setting_Thread(QThread):
         self.pushQue.put(None)
         self.running = False
 
+class AnimationThread(QThread):
+    """
+    Display animation in led counter at production line.
+    """
+    def __init__(self,parent,plc,seqs):
+        super().__init__(parent=parent)
+        self.plc=plc
+        self.seqs=seqs
+        self.markIdQue = q.Queue()
+        self.start(3)
+        self.animationStart = False
+        self.animationList = []
+        self.perTrigger=[0]*Side_Num
+        self.animationThreadRun = True
+        self.animationTemplate = ['XXXX','****',' ***','  **','   *'] # Animation template
+
+    def run(self):
+        while self.animationThreadRun:
+            second = 4
+            end = 0
+            record,triggerTime = self.markIdQue.get()
+            if CFG.ENABLE_COUNTER_ANIMATION:
+                if record is None:
+                    break
+                else:
+                    if not self.animationStart:
+                        self.animationList.append(record)
+                        running = True
+                        if len(self.animationList) == 1:
+                            while running:
+                                global bypassCounter
+                                bypassCounter[self.seqs] = True
+                                sendAnimation = convertToAscii(str(self.animationTemplate[second]))
+                                self.plc.formerCounting(sendAnimation,self.seqs+8)
+                                time.sleep(triggerTime-0.1)
+                                second -= 1
+                                if second <= end:
+                                    sendAnimation = convertToAscii(str(self.animationTemplate[second]))
+                                    self.plc.formerCounting(sendAnimation,self.seqs+8)
+                                    time.sleep(0.1)
+                                    bypassCounter[self.seqs] = False
+                                    running = False
+                        self.animationList.clear()
+                        self.animationStart = False
+
 class Purging_Thread(QThread):
+    """
+    Handle all purging process.
+    """
     updatePurgingDisplay=pyqtSignal(int,str)#side,content
     updateListToPurge=pyqtSignal(int,int,str)
     markDetected=pyqtSignal(int,int,int)
@@ -1108,7 +1200,9 @@ class Purging_Thread(QThread):
         self.purgingStacks=[{} for _ in range(4)]
         self.periSets=[[set() for _ in range(4)] for _ in CFG.PERI_NAME]
         self.testMarkSets=[set() for _ in range(4)]
+        self.testMarkCounterSets=[set() for _ in range(4)]
         self.markIdSignal=[set() for _ in range(4)]
+        self.markIdSignalCounter=[set() for _ in range(4)]
         self.purgerDistance=[p[0] for p in CFG.PURGER_SETTING]
         self.firstAnchorIDs=[0]*4
         self.verifyMarking=[0]*4
@@ -1117,18 +1211,29 @@ class Purging_Thread(QThread):
         self.purgeQue=q.Queue()
         self.timingChecker=TimingChecker(self.__class__.__name__,tolerance=1.5)
         self.testBin=False
+        self.animation_Threads = []
+        for seqs in range(Side_Num):
+            self.animation_Thread=AnimationThread(self,self.plc,seqs)
+            self.animation_Threads.append(self.animation_Thread)
         if CFG.ENABLE_HMPLC:
             self.hmPlc=plcLib.HalfmoonPLC(CFG.HM_PLC_IP)
 
     def sendFormerLamps(self,IDs,side,rdr):
         if CFG.AIVC_MODE==0:
+            markFormerIdCounter = IDs+CFG.FORMER_COUNTER_OFFSET[side]
+            if markFormerIdCounter >= CFG.CHAIN_FORMER_NUM:
+                bals = markFormerIdCounter - CFG.CHAIN_FORMER_NUM
+            else:
+                bals = markFormerIdCounter
+            if len(self.markIdSignalCounter[side]) == 0:
+                self.markIdSignalCounter[side].add(bals)
+
             markFormerIDs = IDs+CFG.FORMER_MARKING_DISTANCE[side]
             if markFormerIDs >= CFG.CHAIN_FORMER_NUM:
                 bal = markFormerIDs - CFG.CHAIN_FORMER_NUM
             else:
                 bal = markFormerIDs
             self.markIdSignal[side].add(bal)
-            #print(f'=== FormerID: {bal} | Side: {side} | Defective Rate: {rdr*100:.2f} ===')
 
     def testPurge(self):
         #self.plc.purgeGlove(self.sender().seq)##Purge directly
@@ -1160,8 +1265,22 @@ class Purging_Thread(QThread):
         self.feedTestMarkStack(bal+side*SIDE_SEP)
         self.markTestMark.emit(side,bal)
         
+    def testCounter(self):
+        side=self.sender().seq
+        formerID=self.purgerFormerIDs[side]+CFG.FORMER_COUNTER_OFFSET[side]
+        if formerID >= CFG.CHAIN_FORMER_NUM:
+            bal = formerID - CFG.CHAIN_FORMER_NUM
+        else:
+            bal = formerID
+        print(f"Test Mark Counter {SIDE_SHORT[side]} {bal}")
+        self.feedTestMarkCounterStack(bal+side*SIDE_SEP)
+
     def closeThread(self):
         self.purgeThreadRunning=False
+        for animation_thread in self.animation_Threads:
+            animation_thread.markIdQue.put([None,None])
+            animation_thread.wait()
+        
 
     def clearStack(self):
         for purgingStack in self.purgingStacks:
@@ -1188,8 +1307,8 @@ class Purging_Thread(QThread):
                 self.periSets[periIdx][side]=newPeriSet
         print(self.periSets)
 
-    def feedPurgerQue(self,side,formerID):
-        self.purgeQue.put([side,formerID])
+    def feedPurgerQue(self,side,formerID,triggerTime):
+        self.purgeQue.put([side,formerID,triggerTime])
 
     @pyqtSlot(int)
     def rejectAsm(self,camSeq):
@@ -1232,13 +1351,20 @@ class Purging_Thread(QThread):
         sideID=formerID%SIDE_SEP
         self.testMarkSets[side].add(sideID)
         print(self.testMarkSets)
+    def feedTestMarkCounterStack(self,formerID):
+        side=int(formerID/SIDE_SEP)
+        sideID=formerID%SIDE_SEP
+        if len(self.testMarkCounterSets[side]) == 0:
+            self.testMarkCounterSets[side].add(sideID)
+        print(self.testMarkCounterSets)
     def run(self):
         prevBins=['','','','']
+        strPurgeID = []
         for i in range(4):
             self.plc.setDualBinFlap(i,False)#Reset All Dual Bin Flap
         while(self.purgeThreadRunning):
             try:
-                side,purgerFormerID = self.purgeQue.get(timeout=0.5)
+                side,purgerFormerID,triggerTime = self.purgeQue.get(timeout=0.5)
             except q.Empty:
                 continue
             self.updatePurgingDisplay.emit(side,f'{purgerFormerID:03d}')
@@ -1293,6 +1419,24 @@ class Purging_Thread(QThread):
                 self.markMarkFormer.emit(side,purgerFormerID)
                 self.plc.sendFormerMarkingSignal(side)
 
+            #remove Mark Counter former from the list
+            if purgerFormerID in self.testMarkCounterSets[side]:
+                self.testMarkCounterSets[side].remove(purgerFormerID)    
+                self.testMarkCounterSets[side].clear()
+
+            #Test Mark Counter 4 count earlier
+            if (purgerFormerID+4) in self.testMarkCounterSets[side]:
+                self.animation_Threads[side].markIdQue.put([self.testMarkCounterSets[side],triggerTime])
+
+            #remove Mark former at counter display from the list
+            if purgerFormerID in self.markIdSignalCounter[side]:
+                self.markIdSignalCounter[side].remove(purgerFormerID)
+                self.markIdSignalCounter[side].clear()
+
+            #Mark former 4 count earlier at counter display
+            if (purgerFormerID+4) in self.markIdSignalCounter[side]:
+                self.animation_Threads[side].markIdQue.put([self.markIdSignalCounter[side],triggerTime])
+
             #Mark High Defective Rate Former
             if purgerFormerID  in self.markIdSignal[side]:
                 self.verifyMarking[side]+=1
@@ -1321,6 +1465,9 @@ class Purging_Thread(QThread):
         print("Purging Thread Closed")
 
 class OperationInspector(QObject):
+    """
+    Inspect current operation state in AIVC.
+    """
     setPlcBypass=pyqtSignal(int,bool)
     def __init__(self, threshould=5,side=0,parent=None):
         super().__init__(parent=parent)
@@ -1353,6 +1500,9 @@ class OperationInspector(QObject):
 
 
 class Saving_Process(Process):
+    """
+    Handling all saving process for defect and sampling image.
+    """
     def __init__(self):
         super(Saving_Process, self).__init__()
         self.savingQue=Queue()
@@ -1386,6 +1536,9 @@ class MyTimer(QThread):
             self.timeOut.emit()
 
 class MinuteDataRecorder(QThread):
+    """
+    Record and display data according to the selected time format.
+    """
     def __init__(self, dHandler):
         super().__init__(parent=dHandler)
         self.dHandler=dHandler
@@ -1396,6 +1549,9 @@ class MinuteDataRecorder(QThread):
         self.start(priority=3)
 
     def pushIotHub(self,databasePrevState):
+        """
+        Push data to the IotHub.
+        """
         dataDiff=self.dHandler.data-self.previousData
         self.previousData=np.copy(self.dHandler.data)
         if CFG.AIVC_MODE==0: #Send RASM Arm Set Alert
@@ -1478,6 +1634,9 @@ class MinuteDataRecorder(QThread):
         print('MinuteDataRecorder Closed')
 
 class DataHandler_Thread(QThread):
+    """
+    Handle all glove defect data.
+    """
     refreshStatus=pyqtSignal()
     trigger15min=pyqtSignal()
     updateCamBox = pyqtSignal(QImage, str, int)
@@ -1493,6 +1652,7 @@ class DataHandler_Thread(QThread):
     updateTable=pyqtSignal(int,int,str)
     refreshChainGrids=pyqtSignal(list,bool)
     updateStartTime=pyqtSignal(str)
+    feedFkthNoGlove=pyqtSignal(int, int, bool)
     sendAligmentData=pyqtSignal(list,int,str)
     sendAllignmentLabel=pyqtSignal(int,str)
     yoloResultQue=q.Queue()
@@ -1564,6 +1724,7 @@ class DataHandler_Thread(QThread):
         self.samplingCountDown=50
         self.nasConnected=False
         self.firstAnchor=False
+        self.countDown=[0]*12
         self.countAlignment=[0]*4
         self.notHolderBboxs=[[0]*5]
         self.classDatas=[0]*len(NEW_CLASSES)
@@ -1575,33 +1736,51 @@ class DataHandler_Thread(QThread):
     def drawBoxGuide(self, enable):
         self.enableBoxGuide = enable
 
-    def sendFormerNum(self,formerNum):
+    def getFormerNum(self,formerNum):
+        """
+        Get real time former number count from capture thread.
+        """
         self.formerNums = formerNum
 
     def cycleCount(self,cycleNum,triggerCycle):
+        """
+        Get real time former cycle count from capture thread.
+        """
         self.numCycle = cycleNum
         self.triggerCycle = triggerCycle
         if self.triggerCycle == 1:
-            if self.state == 1:
+            if self.state == 1 or self.state == 2:
                 if self.numCycle >= 3:
                     self.uploadProblematic()
         #print(f'Number of cycle is: {self.numCycle}')
 
     def lineSpeedAlert(self, aveSecPerGlove):
+        """
+        Give alert if line speed is not consistant.
+        """
         longestPurgingDuration=max([purgerSetting[3] for purgerSetting in CFG.PURGER_SETTING])/10
         if aveSecPerGlove<longestPurgingDuration and aveSecPerGlove > 0.1:
             self.teamsMessenger.emit(f'<div style="color:black;background-color: #ffff00; padding:10px">Warning: {CFG.FACTORY_NAME} L{CFG.LINE_NUM} Purging Duration ({longestPurgingDuration} sec) longer than Second Per Glove ({aveSecPerGlove:.3f} sec)</div>')
 
     def uploadDatabase(self):
+        """
+        Upload rasm defect data to sql server and iothub.
+        """
         if CFG.AIVC_MODE==0:#TEMP, waiting database upgrade
             self.sqlHandler.upload(self.data,self.databasePrevState)
         self.minuteDataRecorder.pushIotHub(self.databasePrevState)
         self.databasePrevState=STATE[self.state]
     
     def appendProblematic(self,dictDataDefect):
+        """
+        Append dictDataDefect info into the list.
+        """
         self.appendProblematicFormer.append(dictDataDefect)
         
     def uploadProblematic(self):
+        """
+        Upload problematic former data to the iothub.
+        """
         if CFG.AIVC_MODE==0:
             utcDateTime=datetime.datetime.utcnow().isoformat()
             DateTime=datetime.datetime.now().isoformat()
@@ -1670,6 +1849,9 @@ class DataHandler_Thread(QThread):
                 recorder.info(f'Failed to upload Problematic Former data to {PROBLEMATIC_FORMER_URL}')
 
     def saveSegmentedRecord(self):
+        """
+        Saved 1 hour recorded data into csv file.
+        """
         dataSegment=self.data-self.lastData
         endTime=time.strftime("%Y-%m-%d_%H:%M:%S")
         data_to_log = [STATE[self.prevState], self.segmentedRecordStartTime, endTime, CFG.FACTORY_NAME, CFG.LINE_NUM]
@@ -1693,6 +1875,9 @@ class DataHandler_Thread(QThread):
         self.prevState=self.state
 
     def save15minSideRecord(self):
+        """
+        Saved 15 min recorded data into csv file.
+        """
         if not os.path.exists('logs/'):
             os.mkdir('logs/')
         if not os.path.exists('logs/AIVC15minData.csv'):
@@ -1713,6 +1898,9 @@ class DataHandler_Thread(QThread):
         self.recordStartTime15min=endTime
 
     def saveDailyRecord(self):
+        """
+        Saved Daily recorded data into csv file.
+        """
         dataSegment=self.data-self.dataDay
         endTime=time.strftime("%Y-%m-%d_%H:%M:%S")
         data_to_log = [self.dailyRecordStartTime, endTime, CFG.FACTORY_NAME, CFG.LINE_NUM]
@@ -1732,9 +1920,15 @@ class DataHandler_Thread(QThread):
         #reset last time
         self.dailyRecordStartTime=endTime
     def isRunning(self):
+        """
+        Check state status.
+        """
         return True if self.state<=1 else False #return true for either START or RUNNING
 
     def closeThread(self):
+        """
+        Close datahandler thread.
+        """
         self.uploadDatabase()#Upload last data segment to SQL & IotHub before closing
         try:
             if len(self.appendProblematicFormer) == 0:
@@ -1766,9 +1960,17 @@ class DataHandler_Thread(QThread):
         self.modelPerformanceHandler.wait()
         self.jsonRPCThread.wait()
         self.problematicHandler.wait()
+
     def feedYoloResult(self,camSeq,frame,pred_bbox,formerID,isRasmAnchor):
+        """
+        Queuing result from yolo.
+        """
         self.yoloResultQue.put([camSeq,frame,pred_bbox,formerID,isRasmAnchor])
+
     def updateRasmRecord(self, side, cls, isRasmAnchor):
+        """
+        Update rasm record every time sensor trigger.
+        """
         if isRasmAnchor==1:
             self.rasmRecords[side].anchorReached()
 
@@ -1797,28 +1999,43 @@ class DataHandler_Thread(QThread):
         self.updateRasmGridOfLine.emit(side, rasmID, armRecord, cycleRasm, contBad, contGood, label, encod)
 
     def incrementData(self, line, row):
+        """
+        Increase the number of data inside the defect table.
+        """
         self.data[line][row]+=1
         self.dataLow[line][row]+=1
         self.updateTable.emit(row+1,line, str(self.data[line][row]-self.prevData[line][row]))
 
     def refreshDataTable(self):
+        """
+        Refresh data table based on selected setting.
+        """
         for line,row in np.ndindex(self.data.shape):
             self.updateTable.emit(row+1,line, str(self.data[line][row]-self.prevData[line][row]))
         self.updateTotal()
 
     def incrementContBad(self,side,former):
+        """
+        Increase the number of Continues bad count for problematic former.
+        """
         if self.numCycle >= 1:
             self.contBadData[side][former]+=1
             self.contBadDataSend = self.contBadData[side][former]
             #print(f'FormerID: {former} : Side: {side} | Cont Bad: {self.contBadData[side][former]} | Cont Good: {self.contGoodData[side][former]} | Cycle: {self.numCycle}')
 
     def incrementContGood(self,side,former):
+        """
+        Increase the number of Continues good count for problematic former.
+        """
         if self.numCycle >= 1:
             self.contGoodData[side][former]+=1
             self.contGoodDataSend = self.contGoodData[side][former]
             #print(f'FormerID: {former} : Side: {side} | Cont Bad: {self.contBadData[side][former]} | Cont Good: {self.contGoodData[side][former]} | Cycle: {self.numCycle}')
 
     def resetConsecutiveCount(self,side,former,condition):
+        """
+        Reset certain variable to 0 depend on condition.
+        """
         if condition == 0: #Empty Link
             self.contBadData[side][former] = 0
             self.contGoodData[side][former] = 0
@@ -1832,6 +2049,9 @@ class DataHandler_Thread(QThread):
         self.contGoodBadCycle.emit(side, former, self.numCycle, self.contBadData, self.contGoodData, self.formerEmptyLink)
 
     def setGloveDefectionRecord(self, side, formerID, record, lab, classRecord):
+        """
+        Set glove defect record to the table.
+        """
         r=np.zeros(NEW_CLASS_NUM,dtype=int)
         if record>1:#Defective glove
             for i in range(1,NEW_CLASS_NUM):
@@ -1884,10 +2104,8 @@ class DataHandler_Thread(QThread):
         if formerID%10==0 and side==0: #calculate total and defective rate every 10 former 
             self.updateTotal()
 
-        # syafii edit
         if formerID%1==0 and side==0: #calculate total and defective rate every 1 former 
             self.updateTotalLowConf()
-        # syafii edit
 
         if formerID==0 and side==0:#update the whole grid once for every former iteration
             chainDefectionRecords=[self.chainIndexers[i].getAllData() for i in range(4)]
@@ -1898,7 +2116,10 @@ class DataHandler_Thread(QThread):
                 clear=False
             self.refreshChainGrids.emit(chainDefectionRecords,clear)
 
-    def updateTotal(self):        
+    def updateTotal(self):   
+        """
+        Update total table.
+        """     
         self.data[-1,:]=np.sum(self.data[:-1,:],axis=0)
         self.dataDiff=self.data-self.prevData
         total=self.dataDiff[-1,:]
@@ -1909,18 +2130,25 @@ class DataHandler_Thread(QThread):
         for i in range(5):#Defective rate (1st row)
             self.updateTable.emit(0,i, str(f'{dr[i]*100:.2f}%'))
 
-    #syafii edit, add new function
     def updateTotalLowConf(self):
+        """
+        Update total low confidence table.
+        """
         self.dataLow[-1,:]=np.sum(self.dataLow[:-1,:],axis=0)
         self.dataDiffLow=self.dataLow-self.prevDataLow
         self.totalLow=self.dataDiffLow[-1,:]
 
-    #syafii edit, add new function
     def getLowConfidence(self,classIds):
+        """
+        Get low confidence number for each triggering.
+        """
         total = self.totalLow
         self.modelPerformanceHandler.getConfidenceInfo(total,classIds)
 
     def startCapture(self):
+        """
+        Start capturing defect image.
+        """
         self.capturing=not self.capturing
         if self.capturing:
             # tracelog
@@ -1948,7 +2176,7 @@ class DataHandler_Thread(QThread):
             # tracelog
             logger.info("STOP CAPTURE") 
 
-    def setAutoCamDelay(self, enable):
+    def setAutoCamDelay(self, enable):# Not use
         self.enableCamDelayAdjustment=enable
 
     def drawHolderBox(self, frame, bboxes, camSeq, enableBoxGuide):
@@ -2006,12 +2234,19 @@ class DataHandler_Thread(QThread):
         return notHolderBbox
 
     def drawBBoxes(self, frame, bboxes, ch, w, h, camSeq):
+        """
+        Draw bounding box.
+        """
         image, alignVal = utils.draw_bbox(frame, bboxes, None, camSeq, self.enableBoxGuide, CFG.GUIDE_BOX_SIZE)
         bytesPerLine = ch * w
         convertToQtFormat = QImage(image.data, w, h, bytesPerLine, QImage.Format_RGB888)
         convertedImg = convertToQtFormat.scaled(440, 330, Qt.KeepAspectRatio)
         return convertedImg
+
     def saveImg(self, imgName, img, label=None):
+        """
+        Save defect or sampling image.
+        """
         #send img to saving queue, will be save by savingProcess in another core
         os.makedirs(os.path.dirname(imgName), exist_ok=True)
         if label:
@@ -2024,9 +2259,16 @@ class DataHandler_Thread(QThread):
         self.savingProcesses[sn].savingQue.put([imgName,img])
         
     def noneCamera(self):
+        """
+        Change current state to 5 if None camera.
+        """
         recorder.info("No Camera Found, Changed State To 'None Camera'")
         self.state=5#None Camera State
+
     def firstChainAnchorReached(self):
+        """
+        Set first anchor true for first time anchor trigger.
+        """
         for chainIndexer in self.chainIndexers:
             chainIndexer.anchorReached()
         self.firstAnchor=True
@@ -2036,8 +2278,6 @@ class DataHandler_Thread(QThread):
         self.countAlignment[side] += 1
         for i in range(Side_Num):
             if side == i:
-                #self.sendAllignmentLabel.emit(side,camStr)
-                #randomData = random.randint(-100,100)
                 if alignVal <= 300 and alignVal >= -300:
                     self.alignmentData[i].append(alignVal) # tuple data e.g ([1],[2],[3],[4])
                 if self.countAlignment[side] == 1:
@@ -2103,6 +2343,19 @@ class DataHandler_Thread(QThread):
                 classFlag=classFlag | (1<< int(b[5]))
                 classStr += NEW_CLASSES[int(b[5])] + " "
                 self.lineBypassings[side]=self.operationInspectors[side].isRunning(False if b[5]==BYPASS_CLASS else True)
+
+                if camSeq == 0 or camSeq == 2 or camSeq == 4 or camSeq == 6: # Target only top fkth camera
+                    if CLASSES[int(b[5])] == "No Glove":
+                        self.countDown[camSeq] += 1
+                        if self.countDown[camSeq] == Former_Interval[camSeq]:
+                            self.countDown[camSeq] = 0
+                            noGloveSignal = True
+                            self.feedFkthNoGlove.emit(side, camSeq, noGloveSignal)
+                    else:
+                        noGloveSignal = False
+                        self.countDown[camSeq] = 0
+                        self.feedFkthNoGlove.emit(side, camSeq, noGloveSignal)
+
             if formerID == -2:#No PLC connection, skip data recording
                 img=self.drawBBoxes(frame, bboxes, ch, w, h, camSeq)
                 self.updateCamBox.emit(img, f'{SIDE_NAME[side]} No PLC Connection. Image captured on timeout.', camSeq)
@@ -2184,7 +2437,7 @@ class DataHandler_Thread(QThread):
             p = convertToQtFormat.scaled(440, 330, Qt.KeepAspectRatio)
             self.updateCamBox.emit(p, camStr, camSeq)
 
-            if camSeq>=8:
+            if camSeq>=8: # Only calculate the alignment in tearing station
                 self.calAlignment(camSeq,formerID%SIDE_SEP,alignVal,camStr)
 
 
@@ -2260,13 +2513,11 @@ class DataHandler_Thread(QThread):
                         listStr=f'{NEW_CLASSES[classId]}\t{b[4]*100:.2f}%    {time.strftime("%d/%m  %H:%M:%S")}    {SIDE_SHORT[side]}{s}    {formerID:05d}'
                         self.setListItem.emit(listStr, f"{imgName}.{IMG_FORMAT}")
                     
-                    #syafii edit
                     try:
-                        if b[4]<0.90:
+                        if b[4]<0.80: #Set treshold for model performence
                             self.getLowConfidence(classId)
                     except:
                         pass
-                    #syafii edit    
 
                     if b[4]<CFG.LOW_CONF_THRESHOLD: #Any low confidence inference
                         labelLow+=f"{classId} {xc} {yc} {width} {height}\n"
@@ -2329,6 +2580,9 @@ class DataHandler_Thread(QThread):
         print('Data Handler Thread Closed')
 
 class Camera_Thread(QThread):
+    """
+    Create a thread for each camera.
+    """
     feedCaptureQue=pyqtSignal(int, np.ndarray, np.ndarray, int, int)
     def __init__(self, parent, camControl,camNum,seq,camDetails,plc):
         super().__init__(parent=parent)
@@ -2372,89 +2626,41 @@ class Camera_Thread(QThread):
                 if CFG.ROTATE:
                     frame=cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
-                bypassCamera=False
-                filterFolder=False
-                if bypassCamera:
-                    if filterFolder:
-                    #syafii Edit
-                        dir1 = "C:/Users/user/Desktop/syafii/imageTestRASM/LI"
-                        dir2 = "C:/Users/user/Desktop/syafii/imageTestRASM/RI"
-                        dir3 = "C:/Users/user/Desktop/syafii/imageTestRASM/LO"
-                        dir4 = "C:/Users/user/Desktop/syafii/imageTestRASM/RO"
-                 
-                        convSTR11 = dir1.replace("/", "\\")
-                        pathss = r""f'{convSTR11}'
-                        random_filenamess = random.choice([
-                            x for x in os.listdir(pathss)
-                            if os.path.isfile(os.path.join(pathss, x))
-                        ])
+                if OFFLINEMODE:
+                    rasmDir = "C:/Users/user/Desktop/syafii/imageTestRASM"
+                    fkthDir = "C:/Users/user/Desktop/syafii/imageTestFKTH"
+                    tacDir = "C:/Users/user/Desktop/syafii/imageTestTac"
 
-                        convSTR111 = dir2.replace("/", "\\")
-                        pathsss = r""f'{convSTR111}'
-                        random_filenamesss = random.choice([
-                            x for x in os.listdir(pathsss)
-                            if os.path.isfile(os.path.join(pathsss, x))
-                        ])
-
-                        convSTR1111 = dir3.replace("/", "\\")
-                        pathssss = r""f'{convSTR1111}'
-                        random_filenamessss = random.choice([
-                            x for x in os.listdir(pathssss)
-                            if os.path.isfile(os.path.join(pathssss, x))
-                        ])
-
-                        convSTR11111 = dir4.replace("/", "\\")
-                        pathsssss = r""f'{convSTR11111}'
-                        random_filenamesssss = random.choice([
-                            x for x in os.listdir(pathsssss)
-                            if os.path.isfile(os.path.join(pathsssss, x))
-                        ])
-
-                    convSTR = CFG.RASM_TEST_IMAGE.replace("/", "\\")
-                    path = r""f'{convSTR}'
+                    convSTR1 = rasmDir.replace("/", "\\")
+                    path = r""f'{convSTR1}'
                     random_filename = random.choice([
                         x for x in os.listdir(path)
                         if os.path.isfile(os.path.join(path, x))
                     ])
-                    
-                    convSTR2 = CFG.FKTH_TEST_IMAGE.replace("/", "\\")
+
+                    convSTR2 = fkthDir.replace("/", "\\")
                     path2 = r""f'{convSTR2}'
                     random_filename2 = random.choice([
                         y for y in os.listdir(path2)
                         if os.path.isfile(os.path.join(path2, y))
                     ])
 
-                    convSTR3 = CFG.TAC_TEST_IMAGE.replace("/", "\\")
+                    convSTR3 = tacDir.replace("/", "\\")
                     path3 = r""f'{convSTR3}'
                     random_filename3 = random.choice([
                         y for y in os.listdir(path3)
                         if os.path.isfile(os.path.join(path3, y))
                     ])
-                    
-                    if CFG.AIVC_MODE == 0:
-                        if filterFolder:
-                            if camSeq == 8:
-                                #print(f'{dir1}/{random_filenamess}')
-                                image = Image.open(f'{dir1}/{random_filenamess}')
-                            elif camSeq == 9:
-                                image = Image.open(f'{dir2}/{random_filenamesss}')
-                            elif camSeq == 10:
-                                image = Image.open(f'{dir3}/{random_filenamessss}')
-                            elif camSeq == 11:
-                                image = Image.open(f'{dir4}/{random_filenamesssss}')
-                            else:
-                                image = Image.open(f'{CFG.FKTH_TEST_IMAGE}/{random_filename2}')
-                        else:
-                            if camSeq >= 8:
-                                image = Image.open(f'{CFG.RASM_TEST_IMAGE}/{random_filename}')
-                            else:
-                                image = Image.open(f'{CFG.FKTH_TEST_IMAGE}/{random_filename2}')
 
+                    if CFG.AIVC_MODE == 0:
+                        if camSeq >= 8:
+                            image = Image.open(f'{rasmDir}/{random_filename}')
+                        else:
+                            image = Image.open(f'{fkthDir}/{random_filename2}')
                     else:
-                        image = Image.open(f'{CFG.TAC_TEST_IMAGE}/{random_filename3}')
+                        image = Image.open(f'{tacDir}/{random_filename3}')
                 
                     frame = asarray(image)
-                    ## syafii edit
 
                 image_processed = np.asarray(utils.image_preporcess(frame, [FIXED_INPUT_SIZE, FIXED_INPUT_SIZE])[np.newaxis, ...],dtype=np.float32)
                 self.feedCaptureQue.emit(camSeq, frame, image_processed, formerID, isRasmAnchor)
@@ -2464,7 +2670,10 @@ class Camera_Thread(QThread):
             self.occu.end()
 
 class Capture_Thread(QThread):
-    feedPurgerQue=pyqtSignal(int,int)
+    """
+    Handle all sensor, encoder, PLC and camera feedback.
+    """
+    feedPurgerQue=pyqtSignal(int,int,float)
     feedEncoderQue=pyqtSignal(int)
     sendAveLineSpeed=pyqtSignal(float)
     camCapture=pyqtSignal(int)
@@ -2515,11 +2724,17 @@ class Capture_Thread(QThread):
                 self.camThreads.append(camThread)
 
     def getAveLineSpeed(self):
+        """
+        Get average AIVC line speed.
+        """
         if self.aveSecPerGlove:
             self.sendAveLineSpeed.emit(self.aveSecPerGlove)
 
     #Obsolete
     def adjustCamDelay(self, camSeq, xc):
+        """
+        Adjusting camera delay.
+        """
         if xc > 0.40 and xc < 0.60:
             return
         if camSeq%2==0: ##Right side, glove move to left (-x)
@@ -2544,9 +2759,13 @@ class Capture_Thread(QThread):
                 self.indiviDelay[num_cam]-=0.1*distanceFromCenter*distanceFromCenter
 
     def closeThread(self):
+        """
+        Close capture thread.
+        """
         self.camThreadRunning=False
         for camThread in self.camThreads:
             camThread.que.put(None)
+
     def run(self):
         CFormerIDs=[-1]*CFG.SENSOR_NUM
         if Cams_Num>len(Cam_Seq):
@@ -2651,7 +2870,7 @@ class Capture_Thread(QThread):
                                 CFormerIDs[s]=CFormerIDs[s]-TOTAL_FORMER
                             for side in range(4):
                                 if CFG.PURGER_SENSOR[side] == s:
-                                    self.feedPurgerQue.emit(side,CFormerIDs[CFG.PURGER_SENSOR[side]])#Purge glove if defected glove reached purger#T#
+                                    self.feedPurgerQue.emit(side,CFormerIDs[CFG.PURGER_SENSOR[side]],self.secPerGloves[0])#Purge glove if defected glove reached purger#T#
 
                             if self.secPerGloves[s] < 4: #Avoid record first trigger after line started moving
                                 self.secPerGloveList.append(self.secPerGloves[s])
@@ -2687,14 +2906,8 @@ class Capture_Thread(QThread):
                                 id+=camSeq % MAX_ASM_LENGTH
                             formerID=id % TOTAL_FORMER + side*SIDE_SEP
                             self.camThreads[num_cam].que.put(formerID)#Capture Image
-                            """stringID = str(formerID%SIDE_SEP).zfill(4) #0001
-                            for i in stringID:
-                                if len(stringID) == 4:
-                                    strID.append(i)
-                            sendFormer = convertToAscii(strID)
-                            self.plc.formerCounting(sendFormer)
-                            strID.clear()"""
                             if CFG.COUNTER_INSTALLED:
+                                Former_Plc_offset=CFG.FORMER_COUNTER_OFFSET
                                 if CFG.AIVC_MODE==0:
                                     if camSeq == 8 or camSeq == 9 or camSeq == 10 or camSeq == 11:
                                         if camSeq == 8:
@@ -2712,8 +2925,9 @@ class Capture_Thread(QThread):
                                             if len(stringID) == 4:
                                                 strID.append(i)
                                         if strID:
-                                            sendFormer = convertToAscii(strID)
-                                            self.plc.formerCounting(sendFormer,camSeq)
+                                            if not bypassCounter[side]:
+                                                sendFormer = convertToAscii(strID)
+                                                self.plc.formerCounting(sendFormer,camSeq)
                                             strID.clear()
                             
                             camTriggereds[num_cam]=False
@@ -2737,6 +2951,9 @@ class Capture_Thread(QThread):
         print("Capture Thread Closed")
 
 class Inference_Thread(QThread):
+    """
+    Handle yolov3 inference.
+    """
     feedYoloResult = pyqtSignal(int, np.ndarray, list, int, int)
     clearCamBox = pyqtSignal(int)
     inferenceRunning=True
@@ -2763,12 +2980,21 @@ class Inference_Thread(QThread):
         dummy_bbox = self.model.predict_on_batch(dummyArray)#Fire first inference to warm up (first inference is slow)
 
     def feedCaptureQue(self, camSeq, image, image_processed, formerID, isRasmAnchor):
+        """
+        Queuing capture image from camera.
+        """
         self.captureQue.put([camSeq, image, image_processed, formerID, isRasmAnchor])
 
     def closeThread(self):
+        """
+        Close inference thread.
+        """
         self.inferenceRunning=False
 
     def batchProcessYolo(self):
+        """
+        Feed capture image to the yolo for inference.
+        """
         self.occu.start()
         images_data=[p[0] for p in self.payload]
         images_data=np.vstack(images_data)
@@ -2843,8 +3069,7 @@ class MainWindow(QMainWindow):
                 self.ui.table_defect_data.setItem(i+4, j, item)
 
         self.ui.label_title.setText(f'Integrated AIVC System  {CFG.FACTORY_NAME} LINE {CFG.LINE_NUM}')
-        #self.ui.label_title.setText(f'AIVC System Dev Mode')
-        self.ui.label_version.setText(f'V2.3.70.2')
+        self.ui.label_version.setText(f'V2.3.70.2') # Update version here
         self.ui.select_duration.currentIndexChanged.connect(self.changeRecordDuration)
         self.camBoxes=[CamBox(i) for i in range(MAX_CAM_NUM)]
         #Populate Camera View
@@ -2889,6 +3114,7 @@ class MainWindow(QMainWindow):
         self.dataThread.refreshChainGrids.connect(self.refreshChainGrids)
         self.dataThread.updateStartTime.connect(self.updateStartTime)
         self.dataThread.rejectAsm.connect(self.purgingThread.rejectAsm)
+        self.dataThread.feedFkthNoGlove.connect(self.feedFkthNoGlove)
         self.dataThread.sendAligmentData.connect(self.sendAligmentData)
         self.dataThread.sendAllignmentLabel.connect(self.sendAlignmentLabel)
         for oi in self.dataThread.operationInspectors:
@@ -2901,7 +3127,7 @@ class MainWindow(QMainWindow):
         self.captureThread.setAnchorID.connect(self.purgingThread.setAnchorID)
         self.captureThread.cycleCount.connect(self.dataThread.cycleCount)
 
-        self.captureThread.sendFormerNum.connect(self.dataThread.sendFormerNum)
+        self.captureThread.sendFormerNum.connect(self.dataThread.getFormerNum)
         self.inferenceThread.feedYoloResult.connect(self.dataThread.feedYoloResult)
         self.inferenceThread.clearCamBox.connect(self.clearCamBox)
         for camThread in self.captureThread.camThreads:
@@ -3110,6 +3336,9 @@ class MainWindow(QMainWindow):
         self.setting_ui.formerMarkingCheckBox.setChecked(CFG.ENABLE_FORMER_MARKING)
         self.setting_ui.formerMarkingCheckBox.setText(f"Enable Former Marking Signal (M{950+CFG.AIVC_MODE*10})")
         self.setting_ui.formerMarkingCheckBox.stateChanged.connect(lambda:self.enableFormerMarking(self.setting_ui.formerMarkingCheckBox.isChecked()))
+        self.setting_ui.counterAnimationCheckBox.setChecked(CFG.ENABLE_FORMER_MARKING)
+        self.setting_ui.counterAnimationCheckBox.setText(f"Enable Counter Animation")
+        self.setting_ui.counterAnimationCheckBox.stateChanged.connect(lambda:self.enableCounterAnimation(self.setting_ui.counterAnimationCheckBox.isChecked()))
         formerMarkingWidget=FormerMarkingWidget()
         self.setting_ui.formerVLayout.addWidget(formerMarkingWidget)
         self.setting_ui.formerVLayout.addItem(QSpacerItem(5,5, QSizePolicy.Preferred, QSizePolicy.MinimumExpanding))
@@ -3121,6 +3350,11 @@ class MainWindow(QMainWindow):
         for i, to in enumerate(formerMarkingWidget.text_offsets):
             to.setText(str(CFG.CHAIN_ANCHOR_OFFSET[i]))
             to.returnPressed.connect(self.setChainAnchorOffset)
+        for i, tc in enumerate(formerMarkingWidget.text_counter):
+            tc.setText(str(CFG.FORMER_COUNTER_OFFSET[i]))
+            tc.returnPressed.connect(self.setFormerCounterOffset)
+        for tcb in formerMarkingWidget.counterButtons:
+            tcb.clicked.connect(self.purgingThread.testCounter)
         self.setting_ui.camDelayCheckBox.stateChanged.connect(lambda:self.showCamDelaySpinBox(self.setting_ui.camDelayCheckBox.isChecked()))
         self.setting_ui.camSeqCheckBox.stateChanged.connect(lambda:self.showCamSeqSpinBox(self.setting_ui.camSeqCheckBox.isChecked()))
         self.setting_ui.formerIntCheckBox.stateChanged.connect(lambda:self.showFormerSpinBox(self.setting_ui.formerIntCheckBox.isChecked()))
@@ -3183,6 +3417,9 @@ class MainWindow(QMainWindow):
         self.tab_camera= CameraTab()
         self.loadAIVCMode()
     
+    def feedFkthNoGlove(self, side, camSeq, noGloveShignal):
+        self.plc.feedFkthNoGloveSignal(side,camSeq, noGloveShignal)
+
     def setPlcBypass(self,side,bypass):
         self.plc.setBypass(side,bypass)
             
@@ -3303,7 +3540,6 @@ class MainWindow(QMainWindow):
             for i in range(4):
                 self.ui.grid_rasm_cam.addWidget(self.camBoxes[i+8], i/2,i%2, 1, 1)
             self.ui.label_title.setText(f'Integrated AIVC System  {CFG.FACTORY_NAME} LINE {CFG.LINE_NUM}')
-            #self.ui.label_title.setText(f'AIVC System Dev Mode')
             for pf in self.purgerforms:
                 for i in range(1,4):
                     pf.itemAt(i,QFormLayout.FieldRole).widget().show()
@@ -3387,6 +3623,12 @@ class MainWindow(QMainWindow):
         offset=self.sender().val
         CFG.CHAIN_ANCHOR_OFFSET[seq]=offset
         CFG_Handler.set('CHAIN_ANCHOR_OFFSET',CFG.CHAIN_ANCHOR_OFFSET)
+
+    def setFormerCounterOffset(self):
+        seq=self.sender().idx
+        counterOffset=self.sender().val
+        CFG.FORMER_COUNTER_OFFSET[seq]=counterOffset
+        CFG_Handler.set('FORMER_COUNTER_OFFSET',CFG.FORMER_COUNTER_OFFSET)
 
     def printOccu(self):
         print(self.dataThread.occu)
@@ -3752,6 +3994,9 @@ class MainWindow(QMainWindow):
 
     def enableFormerMarking(self,enable):
         CFG_Handler.set('ENABLE_FORMER_MARKING',enable)
+
+    def enableCounterAnimation(self,enable):
+        CFG_Handler.set('ENABLE_COUNTER_ANIMATION',enable)
 
     def showCamDelaySpinBox(self, enable):
         for camBox in self.camBoxes:
@@ -4566,7 +4811,7 @@ class DataHistoryDialog(QDialog):
         else:
             self.label.setText(f'No Data for {monthStartTime.strftime("%y%B")}')
 
-class ModelLowConfident(QDialog): # syafii edit, add new classes
+class ModelLowConfident(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent, flags=Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
         self.parent=parent
@@ -5060,10 +5305,14 @@ class FormerMarkingWidget(QWidget):
         self.text_distances=[]
         self.testButtons=[]
         self.text_offsets=[]
+        self.text_counter=[]
+        self.counterButtons=[]
         self.grid.addWidget(QLabel("Side"),0,0,1,1)
         self.grid.addWidget(QLabel("Distance"),1,0,1,1)
         self.grid.addWidget(QLabel("Mark"),2,0,1,1)
-        self.grid.addWidget(QLabel("Offset"),3,0,1,1)
+        self.grid.addWidget(QLabel(" "),3,0,1,1)
+        self.grid.addWidget(QLabel("Counter Offset"),4,0,1,1)
+
         for i in range(4):
             self.grid.addWidget(QLabel(SIDE_NAME[i]),0,i+1,1,1)
             text_distance=IndexedLELI(max=maxDist, hint="Distance", idx=i)
@@ -5072,10 +5321,12 @@ class FormerMarkingWidget(QWidget):
             testButton=IndexedButton(i,"Test")
             self.grid.addWidget(testButton,2,i+1,1,1)
             self.testButtons.append(testButton)
-            text_offset=IndexedLELI(max=maxDist, hint="Offset", idx=i)
-            self.grid.addWidget(text_offset,3,i+1,1,1)
-            self.text_offsets.append(text_offset)
-
+            text_counter=IndexedLELI(hint="Counter", idx=i)
+            self.grid.addWidget(text_counter,4,i+1,1,1)
+            self.text_counter.append(text_counter)
+            counterButton=IndexedButton(i,"Test")
+            self.grid.addWidget(counterButton,5,i+1,1,1)
+            self.counterButtons.append(counterButton)
 
 class PeripheralWidget(QWidget):
     def __init__(self, name, addr, idx , maxDist=299,parent=None):

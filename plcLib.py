@@ -33,6 +33,7 @@ ENCODER_ADDR=3829			#C245 (3784+45) X4 Encoder
 ENCODER_LATCH_ADDR=4386		#D290
 HIGH_DEFECT_FORMER_ADDR=2998	#M950
 FORMER_COUNTING=6096			#D2000
+FKTH_NO_GLOVE_SIGNAL=2348
 
 class HalfmoonPLC():
 	def __init__(self, ip):
@@ -221,6 +222,9 @@ class PLC():
 		else:
 			return -1	#no connection
 
+	def feedFkthNoGloveSignal(self,side,camSeq,noGloveSignal): # Send signal to plc when detect no glove in fkth
+		self.client.write_coil(FKTH_NO_GLOVE_SIGNAL+side, noGloveSignal)
+
 	def formerCounting(self,formerID,camSeq):
 		if self.connected:
 			for ele, data in enumerate(formerID):
@@ -306,7 +310,8 @@ class PLC():
 			return False
 	def resetRejectCount(self,side):
 		if self.connected:
-			self.client.writeRegisters(REJECT_COUNT_ADDR+side*2,0,2)
+			self.client.write_registers(REJECT_COUNT_ADDR+side*2,0)
+			self.client.write_registers(REJECT_COUNT_ADDR+side*2+1,0)
 
 	def readEncoder(self,sensor):
 		if self.connected:
