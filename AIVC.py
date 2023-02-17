@@ -191,11 +191,14 @@ def verifyCls(CLASSES):
     defaultCls = ["Good Glove","Tearing","Single Arm","Double Dip", "Unstripped","No Glove"]
     for i, cls in enumerate(defaultCls):
         if cls != CLASSES[i]:
-            logger.warning(f'Classes name for {CLASSES[i]} not found. Change to {cls} classe name by following default setting.')
+            logger.warning(f'Classes name for {CLASSES[i]} not found. Change to {cls} classes name by following default setting.')
             CLASSES[i] = cls
         else:
             pass
     return CLASSES
+
+if CFG.AIVC_MODE == 0:
+    CLASSES = verifyCls(CLASSES)
 
 def saveStatus(val):
     """
@@ -1799,12 +1802,12 @@ class DataHandler_Thread(QThread):
                             emptyFormer[i].update({f'Former Count': CFG.CHAIN_FORMER_NUM})
                     Sample_jsonstring = json.dumps(emptyFormer)
                     if self.numCycle >= 4:
-                        if CFG.ENABLE_SHAREPOINT:
+                        if CFG.ENABLE_SHAREPOINT2:
                             resp = requests.post(IOTHUB_REST_URI_FORMER, json=emptyFormer, headers=headers)
                             recorder.info(f'IotHub Status:{resp}')
-                        if CFG.ENABLE_HTTP:
-                            req = requests.post(PROBLEMATIC_FORMER_URL, data=Sample_jsonstring) #upload to power BI\
-                            recorder.info(f'Http Status:{req}')
+                        #if CFG.ENABLE_HTTP:
+                            #req = requests.post(PROBLEMATIC_FORMER_URL, data=Sample_jsonstring) #upload to power BI\
+                            #recorder.info(f'Http Status:{req}')
                         
                         recorder.info(f'Succesfully upload {len(emptyFormer)} side Former')
                         recorder.info(emptyFormer)
@@ -1812,12 +1815,12 @@ class DataHandler_Thread(QThread):
                         pass
                 else:
                     Sample_jsonstrings = json.dumps(self.appendProblematicFormer)
-                    if CFG.ENABLE_SHAREPOINT:
+                    if CFG.ENABLE_SHAREPOINT2:
                         resp = requests.post(IOTHUB_REST_URI_FORMER, json=self.appendProblematicFormer, headers=headers)
                         recorder.info(f'IotHub Status:{resp}')
-                    if CFG.ENABLE_HTTP:
-                        req = requests.post(PROBLEMATIC_FORMER_URL, data=Sample_jsonstrings) #upload to power BI\
-                        recorder.info(f'Http Status:{req}')
+                    #if CFG.ENABLE_HTTP:
+                        #req = requests.post(PROBLEMATIC_FORMER_URL, data=Sample_jsonstrings) #upload to power BI\
+                        #recorder.info(f'Http Status:{req}')
                     recorder.info(f'Succesfully upload {len(self.appendProblematicFormer)} defect Former')
                     recorder.info(self.appendProblematicFormer)
                 self.appendProblematicFormer.clear()
@@ -2940,7 +2943,7 @@ class MainWindow(QMainWindow):
 
         self.ui.label_title.setText(f'Integrated AIVC System  {CFG.FACTORY_NAME} LINE {CFG.LINE_NUM}')
         #self.ui.label_title.setText(f'AIVC System DEVELOPER MODE DO NOT CLOSED')
-        self.ui.label_version.setText(f'V2.3.63.0')
+        self.ui.label_version.setText(f'V2.3.63.1')
         self.ui.select_duration.currentIndexChanged.connect(self.changeRecordDuration)
         self.camBoxes=[CamBox(i) for i in range(MAX_CAM_NUM)]
         #Populate Camera View
@@ -5093,8 +5096,9 @@ def forceExit(exctype, value, tb):
     sys.exit(-1)
     #os._exit(-1)
 
+
 if __name__ == "__main__":
-    CLASSES = verifyCls(CLASSES)
+    
     freeze_support()
     sys._excepthook = sys.excepthook 
     def exception_hook(exctype, value, traceback):
