@@ -139,6 +139,7 @@ defaultConfig={
     "SENSOR_M":0,
     "ROTATE": False,
     "ENABLE_SHAREPOINT": False,
+    "ENABLE_SHAREPOINT2": False,
     "ENABLE_NAS_SHARE": False,
     "STREAM":0,
     "PLC_CONFIG":[],
@@ -161,8 +162,8 @@ defaultConfig={
     "FORMER_MARKING_DISTANCE":[10,10,10,10],
     "ENABLE_FORMER_MARKING":True,
     "CHAIN_ANCHOR_OFFSET":[0,0,0,0],
-    "COUNTER_INSTALLED": True,
-    "ENABLE_COUNTER_ANIMATION": True,
+    "COUNTER_INSTALLED": False,
+    "ENABLE_COUNTER_ANIMATION": False,
     "FORMER_COUNTER_OFFSET": [
         0,
         0,
